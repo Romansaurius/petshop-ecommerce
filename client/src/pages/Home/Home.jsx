@@ -133,7 +133,7 @@ const Home = () => {
                 Envío Gratis
               </h3>
               <p className="text-secondary-600">
-                Envío gratuito en compras superiores a $50.000 en toda Argentina
+                Envío gratuito en compras superiores a $100.000 en toda Argentina
               </p>
             </div>
             

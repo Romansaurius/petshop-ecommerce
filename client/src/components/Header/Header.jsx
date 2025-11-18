@@ -36,7 +36,7 @@ const Header = () => {
         <div className="max-w-7xl mx-auto px-4 text-center">
           <div className="flex items-center justify-center space-x-2 text-sm font-medium">
             <Sparkles className="w-4 h-4 animate-pulse" />
-            <span>🚚 Envío GRATIS en compras superiores a $50.000</span>
+            <span>🚚 Envío GRATIS en compras superiores a $100.000</span>
             <Sparkles className="w-4 h-4 animate-pulse" />
           </div>
         </div>
@@ -51,8 +51,8 @@ const Header = () => {
               <span className="text-white font-bold text-2xl">🐾</span>
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-bold text-secondary-800 group-hover:text-primary-600 transition-colors">PetShop</span>
-              <span className="text-xs text-secondary-500 -mt-1">Digital</span>
+              <span className="text-xl font-bold text-secondary-800 group-hover:text-primary-600 transition-colors">MauLu</span>
+              <span className="text-xs text-secondary-500 -mt-1">PetShop</span>
             </div>
           </Link>
 
