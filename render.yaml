@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: ecommerce-mascotas
+    env: node
+    buildCommand: cd server && npm run build
+    startCommand: cd server && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_HOST
+        value: shuttle.proxy.rlwy.net
+      - key: DB_PORT
+        value: 21840
+      - key: DB_USER
+        value: root
+      - key: DB_PASSWORD
+        value: anJkMDnhTJoXaMDjgYFpfmkMBUskRZFu
+      - key: DB_NAME
+        value: ecommerce_mascotas
