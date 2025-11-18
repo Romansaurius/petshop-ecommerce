@@ -1,0 +1,26 @@
+{
+  "name": "ecommerce-mascotas-server",
+  "version": "1.0.0",
+  "description": "Backend para e-commerce de productos para mascotas",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "build": "cd ../client && npm install && npm run build && cd ../server && npm install",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "mysql2": "^3.6.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": ["ecommerce", "mascotas", "node", "express", "mysql"],
+  "author": "Tu Nombre",
+  "license": "MIT"
+}
