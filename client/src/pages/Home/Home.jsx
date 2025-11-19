@@ -70,6 +70,112 @@ const Home = () => {
       {/* Offers Slider */}
       <OffersSlider />
       
+      {/* Featured Brands Section */}
+      <section className="py-16 bg-gradient-to-r from-secondary-50 to-primary-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-secondary-800 mb-4">
+              🏆 Marcas Destacadas
+            </h2>
+            <p className="text-lg text-secondary-600">
+              Trabajamos con los mejores proveedores para garantizar la calidad de nuestros productos
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 mb-12">
+            {/* Brand Cards */}
+            <div className="group bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-2">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                  <span className="text-white font-bold text-xl">RC</span>
+                </div>
+                <h3 className="font-semibold text-secondary-800 text-sm">Royal Canin</h3>
+                <p className="text-xs text-secondary-500 mt-1">Nutrición Premium</p>
+              </div>
+            </div>
+            
+            <div className="group bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-2">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-red-400 to-red-600 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                  <span className="text-white font-bold text-xl">HP</span>
+                </div>
+                <h3 className="font-semibold text-secondary-800 text-sm">Hill's Pet</h3>
+                <p className="text-xs text-secondary-500 mt-1">Salud Veterinaria</p>
+              </div>
+            </div>
+            
+            <div className="group bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-2">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                  <span className="text-white font-bold text-xl">PR</span>
+                </div>
+                <h3 className="font-semibold text-secondary-800 text-sm">Pro Plan</h3>
+                <p className="text-xs text-secondary-500 mt-1">Nutrición Avanzada</p>
+              </div>
+            </div>
+            
+            <div className="group bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-2">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                  <span className="text-white font-bold text-xl">EU</span>
+                </div>
+                <h3 className="font-semibold text-secondary-800 text-sm">Eukanuba</h3>
+                <p className="text-xs text-secondary-500 mt-1">Rendimiento</p>
+              </div>
+            </div>
+            
+            <div className="group bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-2">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                  <span className="text-white font-bold text-xl">KG</span>
+                </div>
+                <h3 className="font-semibold text-secondary-800 text-sm">Kong</h3>
+                <p className="text-xs text-secondary-500 mt-1">Juguetes</p>
+              </div>
+            </div>
+            
+            <div className="group bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-2">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-pink-400 to-pink-600 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                  <span className="text-white font-bold text-xl">FL</span>
+                </div>
+                <h3 className="font-semibold text-secondary-800 text-sm">Flexi</h3>
+                <p className="text-xs text-secondary-500 mt-1">Correas</p>
+              </div>
+            </div>
+          </div>
+          
+          {/* Trust Indicators */}
+          <div className="bg-white rounded-2xl p-8 shadow-lg">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+              <div className="flex flex-col items-center">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                  <span className="text-2xl">✅</span>
+                </div>
+                <h3 className="font-semibold text-secondary-800 mb-2">Productos Originales</h3>
+                <p className="text-secondary-600 text-sm">Garantizamos la autenticidad de todas nuestras marcas</p>
+              </div>
+              
+              <div className="flex flex-col items-center">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                  <span className="text-2xl">🤝</span>
+                </div>
+                <h3 className="font-semibold text-secondary-800 mb-2">Proveedores Oficiales</h3>
+                <p className="text-secondary-600 text-sm">Trabajamos directamente con distribuidores autorizados</p>
+              </div>
+              
+              <div className="flex flex-col items-center">
+                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                  <span className="text-2xl">⭐</span>
+                </div>
+                <h3 className="font-semibold text-secondary-800 mb-2">Calidad Garantizada</h3>
+                <p className="text-secondary-600 text-sm">Más de 5 años trabajando con las mejores marcas</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
       {/* Featured Products */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
