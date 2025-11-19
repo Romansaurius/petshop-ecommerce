@@ -11,7 +11,7 @@ const Hero = () => {
       <div className="absolute bottom-20 right-10 w-16 h-16 bg-secondary-100 rounded-full opacity-40 animate-bounce"></div>
       <div className="absolute top-1/2 left-1/4 w-8 h-8 bg-primary-200 rounded-full opacity-30"></div>
       
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-6">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 lg:py-4">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Content */}
           <div className="text-center lg:text-left">
