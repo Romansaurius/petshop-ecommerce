@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 
 const Hero = () => {
   return (
-    <section className="relative overflow-hidden bg-white mt-8">
+    <section className="relative overflow-hidden bg-white mt-2">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary-50 via-white to-secondary-50"></div>
       
@@ -11,7 +11,7 @@ const Hero = () => {
       <div className="absolute bottom-20 right-10 w-16 h-16 bg-secondary-100 rounded-full opacity-40 animate-bounce"></div>
       <div className="absolute top-1/2 left-1/4 w-8 h-8 bg-primary-200 rounded-full opacity-30"></div>
       
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Content */}
           <div className="text-center lg:text-left">
