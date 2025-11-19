@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 
 const Hero = () => {
   return (
-    <section className="relative overflow-hidden bg-white mt-2">
+    <section className="relative overflow-hidden bg-white">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary-50 via-white to-secondary-50"></div>
       
@@ -11,7 +11,7 @@ const Hero = () => {
       <div className="absolute bottom-20 right-10 w-16 h-16 bg-secondary-100 rounded-full opacity-40 animate-bounce"></div>
       <div className="absolute top-1/2 left-1/4 w-8 h-8 bg-primary-200 rounded-full opacity-30"></div>
       
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-6">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Content */}
           <div className="text-center lg:text-left">
@@ -55,11 +55,39 @@ const Hero = () => {
             </div>
           </div>
           
-          {/* Image/Visual - Placeholder for future logo */}
-          <div className="relative hidden lg:block">
-            <div className="bg-gradient-to-br from-primary-100 to-primary-200 rounded-3xl p-12 text-center">
-              <div className="text-8xl mb-4 opacity-20">🐾</div>
-              <p className="text-secondary-500 text-lg">Espacio reservado para logo</p>
+          {/* Image/Visual */}
+          <div className="relative">
+            <div className="bg-gradient-to-br from-primary-400 to-primary-600 rounded-3xl p-8 shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500">
+              <div className="bg-white rounded-2xl p-6 text-center">
+                <div className="text-6xl mb-4">🐕🐱</div>
+                <h3 className="text-2xl font-bold text-secondary-800 mb-2">+1000 productos</h3>
+                <p className="text-secondary-600">Para perros y gatos</p>
+                <div className="flex justify-center space-x-4 mt-4">
+                  <div className="text-center">
+                    <div className="text-2xl mb-1">🍽️</div>
+                    <span className="text-sm text-secondary-500">Comederos</span>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl mb-1">🎾</div>
+                    <span className="text-sm text-secondary-500">Juguetes</span>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl mb-1">🛏️</div>
+                    <span className="text-sm text-secondary-500">Camas</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Floating Cards */}
+            <div className="absolute -top-4 -left-4 bg-white rounded-xl p-4 shadow-lg animate-float">
+              <div className="text-2xl mb-1">📱</div>
+              <p className="text-xs font-medium text-secondary-700">Wi-Fi</p>
+            </div>
+            
+            <div className="absolute -bottom-4 -right-4 bg-white rounded-xl p-4 shadow-lg animate-float-delayed">
+              <div className="text-2xl mb-1">🚚</div>
+              <p className="text-xs font-medium text-secondary-700">Envío</p>
             </div>
           </div>
         </div>
