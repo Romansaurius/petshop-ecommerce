@@ -12,17 +12,12 @@ export const useCart = () => {
 
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([])
-  const [peopleCount, setPeopleCount] = useState(1)
 
   // Cargar carrito desde localStorage al iniciar
   useEffect(() => {
     const savedCart = localStorage.getItem('cart')
-    const savedPeopleCount = localStorage.getItem('peopleCount')
     if (savedCart) {
       setCart(JSON.parse(savedCart))
-    }
-    if (savedPeopleCount) {
-      setPeopleCount(parseInt(savedPeopleCount))
     }
   }, [])
 
@@ -31,23 +26,15 @@ export const CartProvider = ({ children }) => {
     localStorage.setItem('cart', JSON.stringify(cart))
   }, [cart])
 
-  useEffect(() => {
-    localStorage.setItem('peopleCount', peopleCount.toString())
-  }, [peopleCount])
-
   const addToCart = (product) => {
-    const maxItemsPerPerson = 4
-    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0)
-    const maxTotalItems = peopleCount * maxItemsPerPerson
-
-    if (totalItems >= maxTotalItems) {
-      alert(`No puedes agregar más de ${maxItemsPerPerson} artículos por comensal. Total máximo: ${maxTotalItems}`)
-      return
-    }
-
     setCart(prevCart => {
       const existingItem = prevCart.find(item => item.id === product.id)
       if (existingItem) {
+        // Límite máximo de 10 unidades por producto
+        if (existingItem.quantity >= 10) {
+          alert('Máximo 10 unidades por producto')
+          return prevCart
+        }
         return prevCart.map(item =>
           item.id === product.id
             ? { ...item, quantity: item.quantity + 1 }
@@ -92,8 +79,6 @@ export const CartProvider = ({ children }) => {
 
   const value = {
     cart,
-    peopleCount,
-    setPeopleCount,
     addToCart,
     removeFromCart,
     updateQuantity,
