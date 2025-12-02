@@ -6,8 +6,6 @@ import { ArrowLeft, CreditCard, Check } from 'lucide-react'
 const Checkout = () => {
   const {
     cart,
-    peopleCount,
-    setPeopleCount,
     getTotalPrice,
     clearCart,
     updateQuantity,
@@ -61,16 +59,6 @@ const Checkout = () => {
     e.preventDefault()
     setIsProcessing(true)
 
-    const maxItemsPerPerson = 4
-    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0)
-    const maxTotalItems = peopleCount * maxItemsPerPerson
-
-    if (totalItems > maxTotalItems) {
-      alert(`No puedes tener más de ${maxItemsPerPerson} artículos por comensal. Total máximo: ${maxTotalItems}`)
-      setIsProcessing(false)
-      return
-    }
-
     if (!customerInfo.name || !customerInfo.email || !customerInfo.phone) {
       alert('Por favor completa toda la información requerida')
       setIsProcessing(false)
@@ -82,7 +70,6 @@ const Checkout = () => {
     const orderData = {
       customer: customerInfo,
       items: cart,
-      peopleCount,
       subtotal,
       discount,
       total,
@@ -170,31 +157,9 @@ const Checkout = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="space-y-6">
-            <div className="card p-6">
-              <h2 className="text-xl font-semibold text-secondary-800 mb-4">Configuración de Mesa</h2>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-secondary-700 mb-2">
-                    Número de personas por mesa:
-                  </label>
-                  <select
-                    value={peopleCount}
-                    onChange={(e) => setPeopleCount(parseInt(e.target.value))}
-                    className="input w-full"
-                  >
-                    {[1,2,3,4,5,6,7,8].map(num => (
-                      <option key={num} value={num}>{num} personas</option>
-                    ))}
-                  </select>
-                  <p className="text-sm text-secondary-500 mt-1">
-                    Límite: {peopleCount * 4} artículos máximo
-                  </p>
-                </div>
-              </div>
-            </div>
 
             <div className="card p-6">
-              <h2 className="text-xl font-semibold text-secondary-800 mb-4">Tu Pedido</h2>
+              <h2 className="text-xl font-semibold text-secondary-800 mb-4">Tu Carrito de Compras</h2>
               <div className="space-y-4">
                 {cart.map(item => (
                   <div key={item.id} className="flex items-center justify-between p-4 bg-secondary-50 rounded-lg">
