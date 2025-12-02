@@ -1,13 +1,12 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vite.dev/config/
 export default defineConfig({
-  root: './client',
   plugins: [react()],
+  publicDir: 'public',
   esbuild: {
     loader: 'jsx',
-    include: /src.*\.[jt]sx?$/,
+    include: /src\/.*\.[jt]sx?$/,
     exclude: []
   },
   optimizeDeps: {
@@ -15,6 +14,12 @@ export default defineConfig({
       loader: {
         '.js': 'jsx'
       }
+    }
+  },
+  server: {
+    port: 3000,
+    proxy: {
+      '/api': 'http://localhost:5000'
     }
   }
 })
