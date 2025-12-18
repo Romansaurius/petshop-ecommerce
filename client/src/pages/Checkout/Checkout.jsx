@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useCart } from '../../context/CartContext'
+import { useAuth } from '../../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, CreditCard, Check } from 'lucide-react'
+import { ArrowLeft, CreditCard, Check, Lock } from 'lucide-react'
+import LoyaltyCard from '../../components/LoyaltyCard/LoyaltyCard'
 
 const Checkout = () => {
   const {
@@ -11,6 +13,7 @@ const Checkout = () => {
     updateQuantity,
     removeFromCart
   } = useCart()
+  const { user, isAuthenticated } = useAuth()
   const navigate = useNavigate()
 
   const [discountCode, setDiscountCode] = useState('')
@@ -25,6 +28,24 @@ const Checkout = () => {
     phone: '',
     address: ''
   })
+
+  // Verificar autenticación
+  useEffect(() => {
+    if (!isAuthenticated) {
+      // Mostrar modal de login requerido por 3 segundos, luego redirigir
+      const timer = setTimeout(() => {
+        navigate('/login', { state: { from: '/checkout' } })
+      }, 3000)
+      return () => clearTimeout(timer)
+    } else {
+      // Pre-llenar datos del usuario autenticado
+      setCustomerInfo(prev => ({
+        ...prev,
+        name: user.name || '',
+        email: user.email || ''
+      }))
+    }
+  }, [isAuthenticated, navigate, user])
 
   const validDiscounts = {
     'DESCUENTO10': 0.1,
@@ -55,6 +76,9 @@ const Checkout = () => {
   const discount = appliedDiscount
   const total = subtotal - discount
 
+  const [showLoyaltyCard, setShowLoyaltyCard] = useState(false)
+  const [userPurchases, setUserPurchases] = useState(3) // Simulado
+
   const handleSubmitOrder = async (e) => {
     e.preventDefault()
     setIsProcessing(true)
@@ -80,13 +104,21 @@ const Checkout = () => {
 
     console.log('Pedido enviado:', orderData)
     
+    // Incrementar compras del usuario
+    setUserPurchases(prev => prev + 1)
+    
     setOrderComplete(true)
     setIsProcessing(false)
+    
+    // Mostrar tarjeta de fidelidad después de completar pedido
+    setTimeout(() => {
+      setShowLoyaltyCard(true)
+    }, 1500)
     
     setTimeout(() => {
       clearCart()
       navigate('/')
-    }, 3000)
+    }, 8000) // Más tiempo para ver la tarjeta
   }
 
   const formatPrice = (price) => {
@@ -99,18 +131,64 @@ const Checkout = () => {
 
   if (orderComplete) {
     return (
+      <>
+        <div className="min-h-screen bg-secondary-50 flex items-center justify-center">
+          <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full mx-4 text-center">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Check className="w-8 h-8 text-green-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-secondary-800 mb-2">¡Pedido Confirmado!</h2>
+            <p className="text-secondary-600 mb-4">
+              Tu pedido ha sido procesado exitosamente. Te contactaremos pronto para confirmar los detalles.
+            </p>
+            <div className="bg-primary-50 rounded-lg p-4 mb-4">
+              <p className="text-primary-700 font-medium">¡Felicitaciones!</p>
+              <p className="text-sm text-primary-600">
+                Has ganado puntos de fidelidad. ¡Revisa tu tarjeta de recompensas!
+              </p>
+            </div>
+            <p className="text-sm text-secondary-500">
+              Redirigiendo al inicio en unos segundos...
+            </p>
+          </div>
+        </div>
+        
+        {showLoyaltyCard && (
+          <LoyaltyCard 
+            userPurchases={userPurchases}
+            onClose={() => setShowLoyaltyCard(false)}
+          />
+        )}
+      </>
+    )
+  }
+
+  // Mostrar pantalla de login requerido
+  if (!isAuthenticated) {
+    return (
       <div className="min-h-screen bg-secondary-50 flex items-center justify-center">
         <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full mx-4 text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Check className="w-8 h-8 text-green-600" />
+          <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Lock className="w-8 h-8 text-primary-600" />
           </div>
-          <h2 className="text-2xl font-bold text-secondary-800 mb-2">¡Pedido Confirmado!</h2>
-          <p className="text-secondary-600 mb-4">
-            Tu pedido ha sido procesado exitosamente. Te contactaremos pronto para confirmar los detalles.
+          <h2 className="text-2xl font-bold text-secondary-800 mb-2">Inicia sesión para continuar</h2>
+          <p className="text-secondary-600 mb-6">
+            Necesitas estar logueado para realizar una compra. Te redirigiremos al login en unos segundos.
           </p>
-          <p className="text-sm text-secondary-500">
-            Redirigiendo al inicio en unos segundos...
-          </p>
+          <div className="flex space-x-3">
+            <button 
+              onClick={() => navigate('/login', { state: { from: '/checkout' } })}
+              className="btn btn-primary flex-1"
+            >
+              Iniciar Sesión
+            </button>
+            <button 
+              onClick={() => navigate('/register', { state: { from: '/checkout' } })}
+              className="btn btn-secondary flex-1"
+            >
+              Registrarse
+            </button>
+          </div>
         </div>
       </div>
     )
