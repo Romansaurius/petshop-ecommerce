@@ -14,10 +14,15 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
+    // Validación de admin
+    if (email === 'admin@petshop.com' && password !== 'Ranucci2007:)Roman2007') {
+      return { success: false, error: 'Contraseña incorrecta' };
+    }
+    
     // Simulación de login
     const mockUser = {
       id: 1,
-      name: 'Usuario Demo',
+      name: email === 'admin@petshop.com' ? 'Administrador' : 'Usuario Demo',
       email: email,
       role: email === 'admin@petshop.com' ? 'admin' : 'user'
     };
