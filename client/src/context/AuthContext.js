@@ -14,40 +14,77 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    // Validación de admin
-    if (email === 'admin@petshop.com' && password !== 'Ranucci2007:)Roman2007') {
-      return { success: false, error: 'Contraseña incorrecta' };
+    setLoading(true);
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        return { success: false, error: data.error };
+      }
+      
+      const userData = {
+        ...data.user,
+        name: data.user.nombre
+      };
+      
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('token', data.token);
+      
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: 'Error de conexión' };
+    } finally {
+      setLoading(false);
     }
-    
-    // Simulación de login
-    const mockUser = {
-      id: 1,
-      name: email === 'admin@petshop.com' ? 'Administrador' : 'Usuario Demo',
-      email: email,
-      role: email === 'admin@petshop.com' ? 'admin' : 'user'
-    };
-    
-    setUser(mockUser);
-    localStorage.setItem('user', JSON.stringify(mockUser));
-    return { success: true };
   };
 
   const register = async (userData) => {
-    // Simulación de registro
-    const newUser = {
-      id: Date.now(),
-      ...userData,
-      role: 'user'
-    };
-    
-    setUser(newUser);
-    localStorage.setItem('user', JSON.stringify(newUser));
-    return { success: true };
+    setLoading(true);
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        return { success: false, error: data.error };
+      }
+      
+      const userDataFormatted = {
+        ...data.user,
+        name: data.user.nombre
+      };
+      
+      setUser(userDataFormatted);
+      localStorage.setItem('user', JSON.stringify(userDataFormatted));
+      localStorage.setItem('token', data.token);
+      
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: 'Error de conexión' };
+    } finally {
+      setLoading(false);
+    }
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
   };
 
   return (

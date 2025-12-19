@@ -9,6 +9,8 @@ CREATE TABLE usuarios (
   password VARCHAR(255) NOT NULL,
   telefono VARCHAR(20),
   direccion TEXT,
+  role ENUM('user', 'admin') DEFAULT 'user',
+  compras_realizadas INT DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
