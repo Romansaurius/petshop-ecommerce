@@ -16,7 +16,10 @@ const Admin = () => {
     name: '',
     price: '',
     category: 'comederos',
-    description: ''
+    description: '',
+    image: null,
+    featured: false,
+    discount: 0
   })
 
   useEffect(() => {
@@ -26,44 +29,89 @@ const Admin = () => {
   }, [isAuthenticated, user, navigate])
 
   useEffect(() => {
-    const mockProducts = [
-      { id: 1, name: 'Comedero Automático Wi-Fi Premium', price: 89999, category: 'comederos', description: 'Comedero automático con Wi-Fi' },
-      { id: 2, name: 'Juguete Interactivo', price: 15999, category: 'juguetes', description: 'Pelota interactiva con LED' },
-      { id: 3, name: 'Cama Ortopédica', price: 45999, category: 'camas', description: 'Cama con memoria viscoelástica' }
-    ]
-    setProducts(mockProducts)
+    loadProducts()
+    loadOrders()
+    loadLoyaltyPrograms()
+  }, [])
 
-    const mockOrders = [
-      { id: 1, customer: 'Juan Pérez', items: 3, total: 150000, status: 'pendiente', date: '2024-01-15' },
-      { id: 2, customer: 'María García', items: 2, total: 105000, status: 'completado', date: '2024-01-15' },
-      { id: 3, customer: 'Carlos López', items: 5, total: 200000, status: 'en-preparacion', date: '2024-01-15' }
-    ]
-    setOrders(mockOrders)
-    
+  const loadProducts = async () => {
+    try {
+      const response = await fetch('/api/products')
+      const data = await response.json()
+      setProducts(data)
+    } catch (error) {
+      console.error('Error cargando productos:', error)
+    }
+  }
+
+  const loadOrders = async () => {
+    try {
+      const response = await fetch('/api/orders', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      const data = await response.json()
+      setOrders(data)
+    } catch (error) {
+      console.error('Error cargando pedidos:', error)
+      // Fallback a datos mock
+      const mockOrders = [
+        { id: 1, customer: 'Juan Pérez', items: 3, total: 150000, status: 'pendiente', date: '2024-01-15' },
+        { id: 2, customer: 'María García', items: 2, total: 105000, status: 'completado', date: '2024-01-15' }
+      ]
+      setOrders(mockOrders)
+    }
+  }
+
+  const loadLoyaltyPrograms = async () => {
+    // Por ahora usar datos mock, luego conectar a BD
     const mockLoyaltyPrograms = [
       { id: 1, name: 'Baño y Corte Gratis', requiredPurchases: 5, reward: 'Servicio de peluquería', active: true },
       { id: 2, name: 'Cupón $40.000', requiredPurchases: 10, reward: '$40.000 en compras', active: true }
     ]
     setLoyaltyPrograms(mockLoyaltyPrograms)
-  }, [])
+  }
 
-  const handleProductSubmit = (e) => {
+  const handleProductSubmit = async (e) => {
     e.preventDefault()
-    const newProduct = {
-      id: editingProduct ? editingProduct.id : Date.now(),
-      ...productForm,
-      price: parseInt(productForm.price)
+    
+    const formData = new FormData()
+    formData.append('nombre', productForm.name)
+    formData.append('descripcion', productForm.description)
+    formData.append('precio', productForm.price)
+    formData.append('categoria', productForm.category)
+    formData.append('destacado', productForm.featured || false)
+    formData.append('descuento_porcentaje', productForm.discount || 0)
+    
+    if (productForm.image) {
+      formData.append('imagen', productForm.image)
     }
 
-    if (editingProduct) {
-      setProducts(products.map(p => p.id === editingProduct.id ? newProduct : p))
-    } else {
-      setProducts([...products, newProduct])
-    }
+    try {
+      const url = editingProduct ? `/api/products/${editingProduct.id}` : '/api/products'
+      const method = editingProduct ? 'PUT' : 'POST'
+      
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: formData
+      })
 
-    setProductForm({ name: '', price: '', category: 'comederos', description: '' })
-    setEditingProduct(null)
-    setShowProductForm(false)
+      if (response.ok) {
+        loadProducts()
+        setProductForm({ name: '', price: '', category: 'comederos', description: '', image: null, featured: false, discount: 0 })
+        setEditingProduct(null)
+        setShowProductForm(false)
+      } else {
+        alert('Error al guardar producto')
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      alert('Error al guardar producto')
+    }
   }
 
   const handleEditProduct = (product) => {
@@ -299,6 +347,46 @@ const Admin = () => {
                         onChange={(e) => setProductForm({...productForm, description: e.target.value})}
                         className="input w-full h-20 resize-none"
                       />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-secondary-700 mb-1">
+                        Imagen
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setProductForm({...productForm, image: e.target.files[0]})}
+                        className="input w-full"
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-secondary-700 mb-1">
+                          Descuento (%)
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={productForm.discount}
+                          onChange={(e) => setProductForm({...productForm, discount: e.target.value})}
+                          className="input w-full"
+                        />
+                      </div>
+                      
+                      <div className="flex items-center">
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={productForm.featured}
+                            onChange={(e) => setProductForm({...productForm, featured: e.target.checked})}
+                            className="rounded"
+                          />
+                          <span className="text-sm font-medium text-secondary-700">Producto destacado</span>
+                        </label>
+                      </div>
                     </div>
                     
                     <div className="flex space-x-3">

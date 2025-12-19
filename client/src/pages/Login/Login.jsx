@@ -26,7 +26,12 @@ const Login = () => {
     const result = await login(formData.email, formData.password)
     
     if (result.success) {
-      navigate('/')
+      // Redirigir según el rol del usuario
+      if (result.user?.role === 'admin') {
+        navigate('/admin')
+      } else {
+        navigate('/')
+      }
     } else {
       alert(result.error || 'Error al iniciar sesión')
     }

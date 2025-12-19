@@ -126,6 +126,93 @@ class Product {
       throw error;
     }
   }
+
+  static async create(productData) {
+    try {
+      const { nombre, descripcion, precio, categoria, imagen, destacado, descuento_porcentaje } = productData;
+      
+      // Obtener categoria_id
+      const [categoryRows] = await db.execute('SELECT id FROM categorias WHERE nombre = ?', [categoria]);
+      const categoria_id = categoryRows[0]?.id || 1; // Default a primera categoría
+      
+      const [result] = await db.execute(`
+        INSERT INTO productos (nombre, descripcion, precio, categoria_id, imagen, destacado, descuento_porcentaje, stock)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `, [nombre, descripcion, precio, categoria_id, imagen, destacado || false, descuento_porcentaje || 0, 100]);
+      
+      return result.insertId;
+    } catch (error) {
+      console.error('Error en create:', error);
+      throw error;
+    }
+  }
+
+  static async update(id, productData) {
+    try {
+      const { nombre, descripcion, precio, categoria, imagen, destacado, descuento_porcentaje } = productData;
+      
+      let query = 'UPDATE productos SET nombre = ?, descripcion = ?, precio = ?, destacado = ?, descuento_porcentaje = ?';
+      let params = [nombre, descripcion, precio, destacado || false, descuento_porcentaje || 0];
+      
+      if (categoria) {
+        const [categoryRows] = await db.execute('SELECT id FROM categorias WHERE nombre = ?', [categoria]);
+        const categoria_id = categoryRows[0]?.id;
+        if (categoria_id) {
+          query += ', categoria_id = ?';
+          params.push(categoria_id);
+        }
+      }
+      
+      if (imagen) {
+        query += ', imagen = ?';
+        params.push(imagen);
+      }
+      
+      query += ' WHERE id = ?';
+      params.push(id);
+      
+      await db.execute(query, params);
+    } catch (error) {
+      console.error('Error en update:', error);
+      throw error;
+    }
+  }
+
+  static async delete(id) {
+    try {
+      await db.execute('UPDATE productos SET activo = FALSE WHERE id = ?', [id]);
+    } catch (error) {
+      console.error('Error en delete:', error);
+      throw error;
+    }
+  }
+
+  static async getStats() {
+    try {
+      const [totalProducts] = await db.execute('SELECT COUNT(*) as total FROM productos WHERE activo = TRUE');
+      const [lowStock] = await db.execute('SELECT COUNT(*) as total FROM productos WHERE stock < 10 AND activo = TRUE');
+      const [featured] = await db.execute('SELECT COUNT(*) as total FROM productos WHERE destacado = TRUE AND activo = TRUE');
+      
+      return {
+        totalProducts: totalProducts[0].total,
+        lowStock: lowStock[0].total,
+        featured: featured[0].total
+      };
+    } catch (error) {
+      console.error('Error en getStats:', error);
+      throw error;
+    }
+  }
+
+  static async getCategories() {
+    try {
+      const [rows] = await db.execute('SELECT * FROM categorias ORDER BY nombre');
+      return rows;
+    } catch (error) {
+      console.error('Error en getCategories:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = Product;
