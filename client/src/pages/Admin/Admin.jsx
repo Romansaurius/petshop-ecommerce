@@ -27,11 +27,13 @@ const Admin = () => {
     name: '',
     price: '',
     category: 'comederos',
+    brand: '',
     description: '',
     image: null,
     featured: false,
     discount: 0
   })
+  const [brands, setBrands] = useState([])
 
   useEffect(() => {
     if (!isAuthenticated || user?.role !== 'admin') {
@@ -45,7 +47,18 @@ const Admin = () => {
     loadLoyaltyPrograms()
     loadLoyaltyStats()
     loadCoupons()
+    loadBrands()
   }, [])
+
+  const loadBrands = async () => {
+    try {
+      const response = await fetch('/api/products/brands')
+      const data = await response.json()
+      setBrands(data)
+    } catch (error) {
+      console.error('Error cargando marcas:', error)
+    }
+  }
 
   const loadLoyaltyStats = async () => {
     try {
@@ -127,6 +140,7 @@ const Admin = () => {
     formData.append('descripcion', productForm.description)
     formData.append('precio', productForm.price)
     formData.append('categoria', productForm.category)
+    formData.append('marca', productForm.brand)
     formData.append('destacado', productForm.featured)
     formData.append('descuento_porcentaje', productForm.discount || 0)
     
@@ -150,7 +164,7 @@ const Admin = () => {
       
       if (response.ok) {
         loadProducts()
-        setProductForm({ name: '', price: '', category: 'comederos', description: '', image: null, featured: false, discount: 0 })
+        setProductForm({ name: '', price: '', category: 'comederos', brand: '', description: '', image: null, featured: false, discount: 0 })
         setEditingProduct(null)
         setShowProductForm(false)
       } else {
@@ -389,6 +403,24 @@ const Admin = () => {
                     
                     <div>
                       <label className="block text-sm font-medium text-secondary-700 mb-1">
+                        Marca (opcional)
+                      </label>
+                      <input
+                        type="text"
+                        value={productForm.brand}
+                        onChange={(e) => setProductForm({...productForm, brand: e.target.value})}
+                        placeholder="Ej: Royal Canin, Pedigree, etc."
+                        className="input w-full"
+                      />
+                      {brands.length > 0 && (
+                        <div className="mt-1 text-xs text-secondary-500">
+                          Marcas existentes: {brands.map(b => b.nombre).join(', ')}
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-secondary-700 mb-1">
                         Descripción
                       </label>
                       <textarea
@@ -470,6 +502,9 @@ const Admin = () => {
                       Categoría
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
+                      Marca
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
                       Precio
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
@@ -488,6 +523,9 @@ const Admin = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-900">
                         {product.categoria || product.category}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-900">
+                        {product.marca || 'Sin marca'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-900">
                         {formatPrice(product.precio || product.price || 0)}

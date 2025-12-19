@@ -91,6 +91,7 @@ router.post('/', auth, upload.single('imagen'), async (req, res) => {
       descripcion: req.body.descripcion || '',
       precio: req.body.precio,
       categoria: req.body.categoria,
+      marca: req.body.marca || null,
       imagen: req.file ? `/uploads/${req.file.filename}` : null,
       destacado: req.body.destacado === 'true',
       descuento_porcentaje: req.body.descuento_porcentaje || 0
@@ -115,7 +116,13 @@ router.put('/:id', auth, upload.single('imagen'), async (req, res) => {
 
     const { id } = req.params;
     const productData = {
-      ...req.body,
+      nombre: req.body.nombre,
+      descripcion: req.body.descripcion,
+      precio: req.body.precio,
+      categoria: req.body.categoria,
+      marca: req.body.marca,
+      destacado: req.body.destacado === 'true',
+      descuento_porcentaje: req.body.descuento_porcentaje || 0,
       ...(req.file && { imagen: `/uploads/${req.file.filename}` })
     };
 
@@ -141,6 +148,16 @@ router.delete('/:id', auth, async (req, res) => {
     res.json({ message: 'Producto eliminado correctamente' });
   } catch (error) {
     res.status(500).json({ error: 'Error al eliminar producto' });
+  }
+});
+
+// GET /api/products/brands - Obtener marcas
+router.get('/brands', async (req, res) => {
+  try {
+    const brands = await Product.getBrands();
+    res.json(brands);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener marcas' });
   }
 });
 

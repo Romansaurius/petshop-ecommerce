@@ -129,7 +129,7 @@ class Product {
 
   static async create(productData) {
     try {
-      const { nombre, descripcion, precio, categoria, imagen, destacado, descuento_porcentaje } = productData;
+      const { nombre, descripcion, precio, categoria, marca, imagen, destacado, descuento_porcentaje } = productData;
       
       // Obtener categoria_id por nombre
       const [categoryRows] = await db.execute('SELECT id FROM categorias WHERE nombre = ?', [categoria]);
@@ -139,14 +139,28 @@ class Product {
         throw new Error(`Categoría '${categoria}' no encontrada`);
       }
       
+      // Obtener marca_id si se proporciona marca
+      let marca_id = null;
+      if (marca && marca.trim()) {
+        const [marcaRows] = await db.execute('SELECT id FROM marcas WHERE nombre = ?', [marca]);
+        marca_id = marcaRows[0]?.id;
+        
+        // Si no existe la marca, crearla
+        if (!marca_id) {
+          const [newMarca] = await db.execute('INSERT INTO marcas (nombre) VALUES (?)', [marca]);
+          marca_id = newMarca.insertId;
+        }
+      }
+      
       const [result] = await db.execute(`
-        INSERT INTO productos (nombre, descripcion, precio, categoria_id, imagen, destacado, descuento_porcentaje, stock, activo)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO productos (nombre, descripcion, precio, categoria_id, marca_id, imagen, destacado, descuento_porcentaje, stock, activo)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `, [
         nombre, 
         descripcion || '', 
         parseFloat(precio), 
-        categoria_id, 
+        categoria_id,
+        marca_id, 
         imagen || null, 
         destacado ? 1 : 0, 
         parseInt(descuento_porcentaje) || 0, 
@@ -163,7 +177,7 @@ class Product {
 
   static async update(id, productData) {
     try {
-      const { nombre, descripcion, precio, categoria, imagen, destacado, descuento_porcentaje } = productData;
+      const { nombre, descripcion, precio, categoria, marca, imagen, destacado, descuento_porcentaje } = productData;
       
       let query = 'UPDATE productos SET nombre = ?, descripcion = ?, precio = ?, destacado = ?, descuento_porcentaje = ?';
       let params = [
@@ -181,6 +195,22 @@ class Product {
           query += ', categoria_id = ?';
           params.push(categoria_id);
         }
+      }
+      
+      if (marca !== undefined) {
+        let marca_id = null;
+        if (marca && marca.trim()) {
+          const [marcaRows] = await db.execute('SELECT id FROM marcas WHERE nombre = ?', [marca]);
+          marca_id = marcaRows[0]?.id;
+          
+          // Si no existe la marca, crearla
+          if (!marca_id) {
+            const [newMarca] = await db.execute('INSERT INTO marcas (nombre) VALUES (?)', [marca]);
+            marca_id = newMarca.insertId;
+          }
+        }
+        query += ', marca_id = ?';
+        params.push(marca_id);
       }
       
       if (imagen) {
@@ -230,6 +260,16 @@ class Product {
       return rows;
     } catch (error) {
       console.error('Error en getCategories:', error);
+      throw error;
+    }
+  }
+
+  static async getBrands() {
+    try {
+      const [rows] = await db.execute('SELECT * FROM marcas ORDER BY nombre');
+      return rows;
+    } catch (error) {
+      console.error('Error en getBrands:', error);
       throw error;
     }
   }
