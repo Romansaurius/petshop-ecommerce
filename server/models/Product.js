@@ -131,14 +131,28 @@ class Product {
     try {
       const { nombre, descripcion, precio, categoria, imagen, destacado, descuento_porcentaje } = productData;
       
-      // Obtener categoria_id
+      // Obtener categoria_id por nombre
       const [categoryRows] = await db.execute('SELECT id FROM categorias WHERE nombre = ?', [categoria]);
-      const categoria_id = categoryRows[0]?.id || 1; // Default a primera categoría
+      const categoria_id = categoryRows[0]?.id;
+      
+      if (!categoria_id) {
+        throw new Error(`Categoría '${categoria}' no encontrada`);
+      }
       
       const [result] = await db.execute(`
-        INSERT INTO productos (nombre, descripcion, precio, categoria_id, imagen, destacado, descuento_porcentaje, stock)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `, [nombre, descripcion, precio, categoria_id, imagen, destacado || false, descuento_porcentaje || 0, 100]);
+        INSERT INTO productos (nombre, descripcion, precio, categoria_id, imagen, destacado, descuento_porcentaje, stock, activo)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        nombre, 
+        descripcion || '', 
+        parseFloat(precio), 
+        categoria_id, 
+        imagen || null, 
+        destacado ? 1 : 0, 
+        parseInt(descuento_porcentaje) || 0, 
+        100, // stock por defecto
+        1    // activo por defecto
+      ]);
       
       return result.insertId;
     } catch (error) {
@@ -152,7 +166,13 @@ class Product {
       const { nombre, descripcion, precio, categoria, imagen, destacado, descuento_porcentaje } = productData;
       
       let query = 'UPDATE productos SET nombre = ?, descripcion = ?, precio = ?, destacado = ?, descuento_porcentaje = ?';
-      let params = [nombre, descripcion, precio, destacado || false, descuento_porcentaje || 0];
+      let params = [
+        nombre, 
+        descripcion || '', 
+        parseFloat(precio), 
+        destacado ? 1 : 0, 
+        parseInt(descuento_porcentaje) || 0
+      ];
       
       if (categoria) {
         const [categoryRows] = await db.execute('SELECT id FROM categorias WHERE nombre = ?', [categoria]);

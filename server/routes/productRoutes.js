@@ -83,9 +83,17 @@ router.post('/', auth, upload.single('imagen'), async (req, res) => {
       return res.status(403).json({ error: 'Acceso denegado' });
     }
 
+    console.log('Datos recibidos:', req.body);
+    console.log('Archivo:', req.file);
+
     const productData = {
-      ...req.body,
-      imagen: req.file ? `/uploads/${req.file.filename}` : null
+      nombre: req.body.nombre,
+      descripcion: req.body.descripcion || '',
+      precio: req.body.precio,
+      categoria: req.body.categoria,
+      imagen: req.file ? `/uploads/${req.file.filename}` : null,
+      destacado: req.body.destacado === 'true',
+      descuento_porcentaje: req.body.descuento_porcentaje || 0
     };
 
     const productId = await Product.create(productData);
@@ -93,7 +101,8 @@ router.post('/', auth, upload.single('imagen'), async (req, res) => {
     
     res.status(201).json(newProduct);
   } catch (error) {
-    res.status(500).json({ error: 'Error al crear producto' });
+    console.error('Error creando producto:', error);
+    res.status(500).json({ error: error.message || 'Error al crear producto' });
   }
 });
 
