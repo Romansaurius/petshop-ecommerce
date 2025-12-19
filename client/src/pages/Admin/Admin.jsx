@@ -8,6 +8,17 @@ const Admin = () => {
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [loyaltyPrograms, setLoyaltyPrograms] = useState([])
+  const [loyaltyStats, setLoyaltyStats] = useState({})
+  const [coupons, setCoupons] = useState([])
+  const [showCouponForm, setShowCouponForm] = useState(false)
+  const [couponForm, setCouponForm] = useState({
+    codigo: '',
+    nombre: '',
+    tipo: 'monto_fijo',
+    valor: '',
+    fecha_expiracion: '',
+    usos_maximos: ''
+  })
   const [products, setProducts] = useState([])
   const [orders, setOrders] = useState([])
   const [showProductForm, setShowProductForm] = useState(false)
@@ -32,7 +43,37 @@ const Admin = () => {
     loadProducts()
     loadOrders()
     loadLoyaltyPrograms()
+    loadLoyaltyStats()
+    loadCoupons()
   }, [])
+
+  const loadLoyaltyStats = async () => {
+    try {
+      const response = await fetch('/api/loyalty/stats', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      const data = await response.json()
+      setLoyaltyStats(data)
+    } catch (error) {
+      console.error('Error cargando estadísticas:', error)
+    }
+  }
+
+  const loadCoupons = async () => {
+    try {
+      const response = await fetch('/api/loyalty/coupons', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      const data = await response.json()
+      setCoupons(data)
+    } catch (error) {
+      console.error('Error cargando cupones:', error)
+    }
+  }
 
   const loadProducts = async () => {
     try {
@@ -65,12 +106,17 @@ const Admin = () => {
   }
 
   const loadLoyaltyPrograms = async () => {
-    // Por ahora usar datos mock, luego conectar a BD
-    const mockLoyaltyPrograms = [
-      { id: 1, name: 'Baño y Corte Gratis', requiredPurchases: 5, reward: 'Servicio de peluquería', active: true },
-      { id: 2, name: 'Cupón $40.000', requiredPurchases: 10, reward: '$40.000 en compras', active: true }
-    ]
-    setLoyaltyPrograms(mockLoyaltyPrograms)
+    try {
+      const response = await fetch('/api/loyalty/programs', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      const data = await response.json()
+      setLoyaltyPrograms(data)
+    } catch (error) {
+      console.error('Error cargando programas:', error)
+    }
   }
 
   const handleProductSubmit = async (e) => {
@@ -259,11 +305,11 @@ const Admin = () => {
                   {products.slice(0, 3).map(product => (
                     <div key={product.id} className="flex items-center justify-between p-3 bg-secondary-50 rounded-lg">
                       <div>
-                        <p className="font-medium">{product.name}</p>
-                        <p className="text-sm text-secondary-600">{product.category}</p>
+                        <p className="font-medium">{product.nombre || product.name}</p>
+                        <p className="text-sm text-secondary-600">{product.categoria || product.category}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-medium">{formatPrice(product.price)}</p>
+                        <p className="font-medium">{formatPrice(product.precio || product.price || 0)}</p>
                         <p className="text-sm text-secondary-600">15 vendidos</p>
                       </div>
                     </div>
@@ -433,15 +479,15 @@ const Admin = () => {
                     <tr key={product.id}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-secondary-900">{product.name}</div>
-                          <div className="text-sm text-secondary-500">{product.description}</div>
+                          <div className="text-sm font-medium text-secondary-900">{product.nombre || product.name}</div>
+                          <div className="text-sm text-secondary-500">{product.descripcion || product.description}</div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-900">
-                        {product.category}
+                        {product.categoria || product.category}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-900">
-                        {formatPrice(product.price)}
+                        {formatPrice(product.precio || product.price || 0)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button
@@ -550,20 +596,20 @@ const Admin = () => {
               {loyaltyPrograms.map(program => (
                 <div key={program.id} className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-primary-500">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold">{program.name}</h3>
+                    <h3 className="text-lg font-semibold">{program.nombre}</h3>
                     <Gift className="w-6 h-6 text-primary-500" />
                   </div>
                   <p className="text-secondary-600 mb-2">
-                    <strong>Requisito:</strong> {program.requiredPurchases} compras
+                    <strong>Requisito:</strong> {program.compras_requeridas} compras
                   </p>
                   <p className="text-secondary-600 mb-4">
-                    <strong>Recompensa:</strong> {program.reward}
+                    <strong>Recompensa:</strong> {program.recompensa}
                   </p>
                   <div className="flex items-center justify-between">
                     <span className={`px-3 py-1 text-sm font-medium rounded-full ${
-                      program.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      program.activo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                     }`}>
-                      {program.active ? 'Activo' : 'Inactivo'}
+                      {program.activo ? 'Activo' : 'Inactivo'}
                     </span>
                     <div className="flex space-x-2">
                       <button className="text-blue-600 hover:text-blue-900">
@@ -582,17 +628,78 @@ const Admin = () => {
               <h3 className="text-lg font-semibold mb-4">Estadísticas de Fidelización</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-primary-600">156</div>
+                  <div className="text-3xl font-bold text-primary-600">{loyaltyStats.usuariosActivos || 0}</div>
                   <div className="text-sm text-secondary-600">Usuarios Activos</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-green-600">89</div>
+                  <div className="text-3xl font-bold text-green-600">{loyaltyStats.recompensasCanjeadas || 0}</div>
                   <div className="text-sm text-secondary-600">Recompensas Canjeadas</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-600">67%</div>
+                  <div className="text-3xl font-bold text-blue-600">{loyaltyStats.tasaRetencion || 0}%</div>
                   <div className="text-sm text-secondary-600">Tasa de Retención</div>
                 </div>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Cupones de Descuento</h3>
+                <button 
+                  onClick={() => setShowCouponForm(true)}
+                  className="btn btn-primary flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Nuevo Cupón
+                </button>
+              </div>
+              
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-secondary-50">
+                    <tr>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-secondary-500 uppercase">Código</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-secondary-500 uppercase">Nombre</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-secondary-500 uppercase">Tipo</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-secondary-500 uppercase">Valor</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-secondary-500 uppercase">Estado</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-secondary-500 uppercase">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-secondary-200">
+                    {coupons.map(coupon => (
+                      <tr key={coupon.id}>
+                        <td className="px-4 py-2 font-mono text-sm">{coupon.codigo}</td>
+                        <td className="px-4 py-2">{coupon.nombre}</td>
+                        <td className="px-4 py-2">
+                          <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
+                            {coupon.tipo === 'porcentaje' ? 'Porcentaje' : 'Monto Fijo'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2">
+                          {coupon.tipo === 'porcentaje' ? `${coupon.valor}%` : formatPrice(coupon.valor)}
+                        </td>
+                        <td className="px-4 py-2">
+                          <span className={`px-2 py-1 text-xs rounded ${
+                            coupon.activo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          }`}>
+                            {coupon.activo ? 'Activo' : 'Inactivo'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2">
+                          <div className="flex space-x-2">
+                            <button className="text-blue-600 hover:text-blue-900">
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button className="text-red-600 hover:text-red-900">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
