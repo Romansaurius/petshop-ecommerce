@@ -15,13 +15,20 @@ router.post('/register', async (req, res) => {
     }
     
     const userId = await User.create({ nombre, email, password, telefono, direccion });
+    const newUser = await User.findById(userId);
     
     const token = jwt.sign({ userId }, process.env.JWT_SECRET || 'secret', { expiresIn: '7d' });
     
     res.status(201).json({ 
       message: 'Usuario registrado exitosamente',
       token,
-      user: { id: userId, nombre, email }
+      user: { 
+        id: userId, 
+        nombre, 
+        email, 
+        role: newUser.role,
+        compras_realizadas: newUser.compras_realizadas 
+      }
     });
   } catch (error) {
     res.status(500).json({ error: 'Error al registrar usuario' });
@@ -48,7 +55,13 @@ router.post('/login', async (req, res) => {
     res.json({
       message: 'Inicio de sesión exitoso',
       token,
-      user: { id: user.id, nombre: user.nombre, email: user.email }
+      user: { 
+        id: user.id, 
+        nombre: user.nombre, 
+        email: user.email,
+        role: user.role,
+        compras_realizadas: user.compras_realizadas
+      }
     });
   } catch (error) {
     res.status(500).json({ error: 'Error al iniciar sesión' });
