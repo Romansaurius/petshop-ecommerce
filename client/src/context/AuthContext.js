@@ -39,7 +39,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('token', data.token);
       
-      return { success: true };
+      return { success: true, user: userData };
     } catch (error) {
       return { success: false, error: 'Error de conexión' };
     } finally {
