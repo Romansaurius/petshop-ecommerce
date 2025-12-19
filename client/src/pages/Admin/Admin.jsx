@@ -127,7 +127,7 @@ const Admin = () => {
     formData.append('descripcion', productForm.description)
     formData.append('precio', productForm.price)
     formData.append('categoria', productForm.category)
-    formData.append('destacado', productForm.featured || false)
+    formData.append('destacado', productForm.featured)
     formData.append('descuento_porcentaje', productForm.discount || 0)
     
     if (productForm.image) {
@@ -146,17 +146,20 @@ const Admin = () => {
         body: formData
       })
 
+      const result = await response.json()
+      
       if (response.ok) {
         loadProducts()
         setProductForm({ name: '', price: '', category: 'comederos', description: '', image: null, featured: false, discount: 0 })
         setEditingProduct(null)
         setShowProductForm(false)
       } else {
-        alert('Error al guardar producto')
+        console.error('Error del servidor:', result)
+        alert(`Error: ${result.error || 'Error desconocido'}`)
       }
     } catch (error) {
-      console.error('Error:', error)
-      alert('Error al guardar producto')
+      console.error('Error de red:', error)
+      alert('Error de conexión')
     }
   }
 
