@@ -18,8 +18,10 @@ const authenticateToken = async (req, res, next) => {
     }
     
     req.user = user;
+    console.log('Usuario autenticado:', { id: user.id, email: user.email, role: user.role });
     next();
   } catch (error) {
+    console.error('Error en auth middleware:', error);
     return res.status(403).json({ error: 'Token inválido' });
   }
 };
