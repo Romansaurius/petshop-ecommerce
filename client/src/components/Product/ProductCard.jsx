@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Plus, Eye, Star, Heart, ShoppingCart } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import ProductPreview from './ProductPreview';
 
-const ProductCard = ({ product, onAddToCart, viewMode = 'grid' }) => {
+const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = [] }) => {
   const { addToCart } = useCart();
   const [showPreview, setShowPreview] = useState(false);
+  const [showQuickPreview, setShowQuickPreview] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
 
@@ -159,7 +161,8 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid' }) => {
 
   return (
     <>
-      <div className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-secondary-100 group">
+      <div className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-secondary-100 group cursor-pointer"
+           onClick={() => setShowPreview(true)}>
         <div className="relative overflow-hidden">
           <div className="w-full h-56 bg-secondary-100 flex items-center justify-center">
             {getProductImage() ? (
@@ -205,7 +208,10 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid' }) => {
               <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
             </button>
             <button
-              onClick={() => setShowPreview(true)}
+              onClick={(e) => {
+                e.stopPropagation()
+                setShowQuickPreview(true)
+              }}
               className="p-2 bg-white/90 hover:bg-white text-secondary-600 hover:text-primary-500 rounded-full shadow-lg transition-all duration-200"
             >
               <Eye className="w-4 h-4" />
@@ -244,7 +250,10 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid' }) => {
             </div>
             
             <button
-              onClick={handleAddToCart}
+              onClick={(e) => {
+                e.stopPropagation()
+                handleAddToCart()
+              }}
               disabled={isAdding}
               className="btn btn-primary flex items-center gap-2 px-4 py-2 disabled:opacity-50 transform hover:scale-105 transition-all duration-200"
             >
@@ -259,113 +268,12 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid' }) => {
         </div>
       </div>
 
-      {/* Enhanced Preview Modal */}
-      {showPreview && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div className="p-8">
-              <div className="flex justify-between items-start mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-secondary-800 mb-2">
-                    {getProductName()}
-                  </h2>
-                  <div className="flex items-center space-x-2">
-                    <div className="flex items-center space-x-1">
-                      {renderStars(product.rating || 0)}
-                    </div>
-                    <span className="text-sm text-secondary-500">({product.reviews || 0} reseñas)</span>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowPreview(false)}
-                  className="p-2 text-secondary-400 hover:text-secondary-600 hover:bg-secondary-100 rounded-full transition-colors"
-                >
-                  ✕
-                </button>
-              </div>
-              
-              <div className="grid md:grid-cols-2 gap-8">
-                <div className="relative">
-                  <div className="w-full h-80 bg-secondary-100 rounded-xl flex items-center justify-center overflow-hidden">
-                    {getProductImage() ? (
-                      <img 
-                        src={getProductImage()} 
-                        alt={getProductName()}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="text-9xl">
-                        {getProductCategory() === 'comederos' ? '🍽️' : 
-                         getProductCategory() === 'juguetes' ? '🎾' :
-                         getProductCategory() === 'camas' ? '🛏️' :
-                         getProductCategory() === 'collares' ? '🦴' : 
-                         getProductCategory() === 'rascadores' ? '🪜' : '🎒'}
-                      </div>
-                    )}
-                  </div>
-                  
-                  {getProductDiscount() > 0 && (
-                    <div className="absolute top-4 left-4 bg-red-500 text-white text-sm font-bold px-3 py-1 rounded-full">
-                      -{getProductDiscount()}%
-                    </div>
-                  )}
-                </div>
-                
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-lg font-semibold text-secondary-800 mb-2">Descripción</h3>
-                    <p className="text-secondary-600 leading-relaxed">
-                      {getProductDescription()}
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-lg font-semibold text-secondary-800 mb-2">Precio</h3>
-                    <div className="flex items-center space-x-3">
-                      {originalPrice && (
-                        <span className="text-lg text-secondary-400 line-through">
-                          {formatPrice(originalPrice)}
-                        </span>
-                      )}
-                      <span className="text-3xl font-bold text-primary-500">
-                        {formatPrice(getProductPrice())}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex space-x-3">
-                    <button
-                      onClick={() => {
-                        handleAddToCart();
-                        setShowPreview(false);
-                      }}
-                      disabled={isAdding}
-                      className="flex-1 btn btn-primary flex items-center justify-center gap-2 py-3 disabled:opacity-50"
-                    >
-                      {isAdding ? (
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <ShoppingCart className="w-5 h-5" />
-                      )}
-                      {isAdding ? 'Agregando...' : 'Agregar al Carrito'}
-                    </button>
-                    <button
-                      onClick={() => setIsLiked(!isLiked)}
-                      className={`p-3 rounded-lg border-2 transition-colors ${
-                        isLiked 
-                          ? 'border-red-500 bg-red-50 text-red-500' 
-                          : 'border-secondary-200 text-secondary-600 hover:border-red-500 hover:text-red-500'
-                      }`}
-                    >
-                      <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <ProductPreview 
+        product={product}
+        isOpen={showPreview}
+        onClose={() => setShowPreview(false)}
+        allProducts={allProducts}
+      />
     </>
   );
 };
