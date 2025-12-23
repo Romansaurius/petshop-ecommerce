@@ -31,7 +31,8 @@ const Admin = () => {
     description: '',
     image: null,
     featured: false,
-    discount: 0
+    discount: 0,
+    stock: 100
   })
   const [brands, setBrands] = useState([])
   const [categories, setCategories] = useState([])
@@ -159,6 +160,7 @@ const Admin = () => {
     formData.append('marca', productForm.brand)
     formData.append('destacado', productForm.featured)
     formData.append('descuento_porcentaje', productForm.discount || 0)
+    formData.append('stock', productForm.stock || 100)
     
     if (productForm.image) {
       formData.append('imagen', productForm.image)
@@ -180,7 +182,7 @@ const Admin = () => {
       
       if (response.ok) {
         loadProducts()
-        setProductForm({ name: '', price: '', category: categories[0]?.nombre || '', brand: '', description: '', image: null, featured: false, discount: 0 })
+        setProductForm({ name: '', price: '', category: categories[0]?.nombre || '', brand: '', description: '', image: null, featured: false, discount: 0, stock: 100 })
         setEditingProduct(null)
         setShowProductForm(false)
       } else {
@@ -196,17 +198,38 @@ const Admin = () => {
   const handleEditProduct = (product) => {
     setEditingProduct(product)
     setProductForm({
-      name: product.name,
-      price: product.price.toString(),
-      category: product.category,
-      description: product.description
+      name: product.nombre || product.name,
+      price: (product.precio || product.price || 0).toString(),
+      category: product.categoria || product.category,
+      brand: product.marca || '',
+      description: product.descripcion || product.description || '',
+      image: null,
+      featured: product.destacado || product.featured || false,
+      discount: product.descuento_porcentaje || product.discount || 0,
+      stock: product.stock || 0
     })
     setShowProductForm(true)
   }
 
-  const handleDeleteProduct = (id) => {
+  const handleDeleteProduct = async (id) => {
     if (confirm('¿Estás seguro de eliminar este producto?')) {
-      setProducts(products.filter(p => p.id !== id))
+      try {
+        const response = await fetch(`/api/products/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        })
+        
+        if (response.ok) {
+          loadProducts()
+        } else {
+          alert('Error al eliminar el producto')
+        }
+      } catch (error) {
+        console.error('Error:', error)
+        alert('Error de conexión')
+      }
     }
   }
 
@@ -460,6 +483,19 @@ const Admin = () => {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-secondary-700 mb-1">
+                          Stock
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={productForm.stock}
+                          onChange={(e) => setProductForm({...productForm, stock: e.target.value})}
+                          className="input w-full"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-secondary-700 mb-1">
                           Descuento (%)
                         </label>
                         <input
@@ -471,18 +507,18 @@ const Admin = () => {
                           className="input w-full"
                         />
                       </div>
-                      
-                      <div className="flex items-center">
-                        <label className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            checked={productForm.featured}
-                            onChange={(e) => setProductForm({...productForm, featured: e.target.checked})}
-                            className="rounded"
-                          />
-                          <span className="text-sm font-medium text-secondary-700">Producto destacado</span>
-                        </label>
-                      </div>
+                    </div>
+                    
+                    <div className="flex items-center">
+                      <label className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={productForm.featured}
+                          onChange={(e) => setProductForm({...productForm, featured: e.target.checked})}
+                          className="rounded"
+                        />
+                        <span className="text-sm font-medium text-secondary-700">Producto destacado</span>
+                      </label>
                     </div>
                     
                     <div className="flex space-x-3">
@@ -494,7 +530,7 @@ const Admin = () => {
                         onClick={() => {
                           setShowProductForm(false)
                           setEditingProduct(null)
-                          setProductForm({ name: '', price: '', category: 'comederos', description: '' })
+                          setProductForm({ name: '', price: '', category: 'comederos', description: '', image: null, featured: false, discount: 0, stock: 100 })
                         }}
                         className="btn btn-secondary flex-1"
                       >
@@ -517,10 +553,13 @@ const Admin = () => {
                       Categoría
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
-                      Marca
+                      Stock
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
                       Precio
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
+                      Estado
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
                       Acciones
@@ -529,35 +568,79 @@ const Admin = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-secondary-200">
                   {products.map((product) => (
-                    <tr key={product.id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-secondary-900">{product.nombre || product.name}</div>
-                          <div className="text-sm text-secondary-500">{product.descripcion || product.description}</div>
+                    <tr key={product.id} className="hover:bg-secondary-50">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center">
+                          {product.imagen && (
+                            <img 
+                              src={product.imagen} 
+                              alt={product.nombre || product.name}
+                              className="w-12 h-12 rounded-lg object-cover mr-4"
+                            />
+                          )}
+                          <div>
+                            <div className="text-sm font-medium text-secondary-900">
+                              {product.nombre || product.name}
+                              {(product.destacado || product.featured) && (
+                                <span className="ml-2 px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">
+                                  ⭐ Destacado
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-xs text-secondary-500">
+                              {product.marca || 'Sin marca'}
+                            </div>
+                          </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-900">
-                        {product.categoria || product.category}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                          {product.categoria || product.category}
+                        </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-900">
-                        {product.marca || 'Sin marca'}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 text-xs rounded-full ${
+                          (product.stock || 0) > 10 
+                            ? 'bg-green-100 text-green-800' 
+                            : (product.stock || 0) > 0 
+                              ? 'bg-yellow-100 text-yellow-800' 
+                              : 'bg-red-100 text-red-800'
+                        }`}>
+                          {product.stock || 0} unidades
+                        </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-900">
-                        {formatPrice(product.precio || product.price || 0)}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-secondary-900">
+                          {formatPrice(product.precio || product.price || 0)}
+                        </div>
+                        {(product.descuento_porcentaje || product.discount) > 0 && (
+                          <div className="text-xs text-green-600">
+                            {product.descuento_porcentaje || product.discount}% OFF
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
+                          Activo
+                        </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button
-                          onClick={() => handleEditProduct(product)}
-                          className="text-primary-600 hover:text-primary-900 mr-4"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteProduct(product.id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleEditProduct(product)}
+                            className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                          >
+                            <Edit className="w-3 h-3 mr-1" />
+                            Editar
+                          </button>
+                          <button
+                            onClick={() => handleDeleteProduct(product.id)}
+                            className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                          >
+                            <Trash2 className="w-3 h-3 mr-1" />
+                            Borrar
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
