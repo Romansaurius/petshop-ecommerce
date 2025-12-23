@@ -129,7 +129,7 @@ class Product {
 
   static async create(productData) {
     try {
-      const { nombre, descripcion, precio, categoria, marca, imagen, destacado, descuento_porcentaje } = productData;
+      const { nombre, descripcion, precio, categoria, marca, imagen, destacado, descuento_porcentaje, stock } = productData;
       
       // Obtener categoria_id por nombre
       const [categoryRows] = await db.execute('SELECT id FROM categorias WHERE nombre = ?', [categoria]);
@@ -164,7 +164,7 @@ class Product {
         imagen || null, 
         destacado ? 1 : 0, 
         parseInt(descuento_porcentaje) || 0, 
-        100, // stock por defecto
+        parseInt(stock) || 100, // usar el stock proporcionado o 100 por defecto
         1    // activo por defecto
       ]);
       
@@ -177,7 +177,7 @@ class Product {
 
   static async update(id, productData) {
     try {
-      const { nombre, descripcion, precio, categoria, marca, imagen, destacado, descuento_porcentaje } = productData;
+      const { nombre, descripcion, precio, categoria, marca, imagen, destacado, descuento_porcentaje, stock } = productData;
       
       let query = 'UPDATE productos SET nombre = ?, descripcion = ?, precio = ?, destacado = ?, descuento_porcentaje = ?';
       let params = [
@@ -187,6 +187,11 @@ class Product {
         destacado ? 1 : 0, 
         parseInt(descuento_porcentaje) || 0
       ];
+      
+      if (stock !== undefined) {
+        query += ', stock = ?';
+        params.push(parseInt(stock) || 0);
+      }
       
       if (categoria) {
         const [categoryRows] = await db.execute('SELECT id FROM categorias WHERE nombre = ?', [categoria]);

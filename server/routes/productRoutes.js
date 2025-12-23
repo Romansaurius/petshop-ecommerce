@@ -30,6 +30,50 @@ const upload = multer({
   }
 });
 
+// GET /api/products/categories - Obtener categorías
+router.get('/categories', async (req, res) => {
+  try {
+    const categories = await Product.getCategories();
+    res.json(categories);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener categorías' });
+  }
+});
+
+// GET /api/products/brands - Obtener marcas
+router.get('/brands', async (req, res) => {
+  try {
+    const brands = await Product.getBrands();
+    res.json(brands);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener marcas' });
+  }
+});
+
+// GET /api/products/featured - Obtener productos destacados
+router.get('/featured', async (req, res) => {
+  try {
+    const products = await Product.getFeatured();
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener productos destacados' });
+  }
+});
+
+// GET /api/products/stats/dashboard - Estadísticas para admin
+router.get('/stats/dashboard', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Acceso denegado' });
+    }
+
+    const stats = await Product.getStats();
+    res.json(stats);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener estadísticas' });
+  }
+});
+
 // GET /api/products - Obtener todos los productos
 router.get('/', async (req, res) => {
   try {
@@ -47,16 +91,6 @@ router.get('/', async (req, res) => {
     res.json(products);
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener productos' });
-  }
-});
-
-// GET /api/products/featured - Obtener productos destacados
-router.get('/featured', async (req, res) => {
-  try {
-    const products = await Product.getFeatured();
-    res.json(products);
-  } catch (error) {
-    res.status(500).json({ error: 'Error al obtener productos destacados' });
   }
 });
 
@@ -94,7 +128,8 @@ router.post('/', auth, upload.single('imagen'), async (req, res) => {
       marca: req.body.marca || null,
       imagen: req.file ? `/uploads/${req.file.filename}` : null,
       destacado: req.body.destacado === 'true',
-      descuento_porcentaje: req.body.descuento_porcentaje || 0
+      descuento_porcentaje: req.body.descuento_porcentaje || 0,
+      stock: req.body.stock || 100
     };
 
     const productId = await Product.create(productData);
@@ -123,6 +158,7 @@ router.put('/:id', auth, upload.single('imagen'), async (req, res) => {
       marca: req.body.marca,
       destacado: req.body.destacado === 'true',
       descuento_porcentaje: req.body.descuento_porcentaje || 0,
+      stock: req.body.stock,
       ...(req.file && { imagen: `/uploads/${req.file.filename}` })
     };
 
@@ -148,40 +184,6 @@ router.delete('/:id', auth, async (req, res) => {
     res.json({ message: 'Producto eliminado correctamente' });
   } catch (error) {
     res.status(500).json({ error: 'Error al eliminar producto' });
-  }
-});
-
-// GET /api/products/categories - Obtener categorías
-router.get('/categories', async (req, res) => {
-  try {
-    const categories = await Product.getCategories();
-    res.json(categories);
-  } catch (error) {
-    res.status(500).json({ error: 'Error al obtener categorías' });
-  }
-});
-
-// GET /api/products/brands - Obtener marcas
-router.get('/brands', async (req, res) => {
-  try {
-    const brands = await Product.getBrands();
-    res.json(brands);
-  } catch (error) {
-    res.status(500).json({ error: 'Error al obtener marcas' });
-  }
-});
-
-// GET /api/products/stats/dashboard - Estadísticas para admin
-router.get('/stats/dashboard', auth, async (req, res) => {
-  try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Acceso denegado' });
-    }
-
-    const stats = await Product.getStats();
-    res.json(stats);
-  } catch (error) {
-    res.status(500).json({ error: 'Error al obtener estadísticas' });
   }
 });
 
