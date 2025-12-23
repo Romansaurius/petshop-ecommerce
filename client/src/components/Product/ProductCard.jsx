@@ -16,6 +16,14 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid' }) => {
     }).format(price);
   };
 
+  const getProductName = () => product.nombre || product.name || 'Producto sin nombre';
+  const getProductPrice = () => product.precio || product.price || 0;
+  const getProductDescription = () => product.descripcion || product.description || 'Sin descripción';
+  const getProductCategory = () => product.categoria || product.category || 'general';
+  const getProductImage = () => product.imagen || product.image;
+  const getProductDiscount = () => product.descuento_porcentaje || product.discount || 0;
+  const getProductFeatured = () => product.destacado || product.featured || false;
+
   const handleAddToCart = async () => {
     setIsAdding(true);
     
@@ -44,8 +52,8 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid' }) => {
     ));
   };
 
-  const originalPrice = product.discount 
-    ? Math.round(product.price / (1 - product.discount / 100))
+  const originalPrice = getProductDiscount() 
+    ? Math.round(getProductPrice() / (1 - getProductDiscount() / 100))
     : null;
 
   if (viewMode === 'list') {
@@ -54,30 +62,30 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid' }) => {
         <div className="flex p-6">
           <div className="relative w-32 h-32 flex-shrink-0 mr-6">
             <div className="w-full h-full bg-secondary-100 rounded-xl flex items-center justify-center overflow-hidden">
-              {product.image ? (
+              {getProductImage() ? (
                 <img 
-                  src={product.image} 
-                  alt={product.name}
+                  src={getProductImage()} 
+                  alt={getProductName()}
                   className="w-full h-full object-cover"
                 />
               ) : (
                 <div className="text-4xl">
-                  {product.category === 'comederos' ? '🍽️' : 
-                   product.category === 'juguetes' ? '🎾' :
-                   product.category === 'camas' ? '🛏️' :
-                   product.category === 'collares' ? '🦴' : 
-                   product.category === 'rascadores' ? '🪜' : '🎒'}
+                  {getProductCategory() === 'comederos' ? '🍽️' : 
+                   getProductCategory() === 'juguetes' ? '🎾' :
+                   getProductCategory() === 'camas' ? '🛏️' :
+                   getProductCategory() === 'collares' ? '🦴' : 
+                   getProductCategory() === 'rascadores' ? '🪜' : '🎒'}
                 </div>
               )}
             </div>
             
-            {product.discount && (
+            {getProductDiscount() > 0 && (
               <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                -{product.discount}%
+                -{getProductDiscount()}%
               </div>
             )}
             
-            {product.featured && (
+            {getProductFeatured() && (
               <div className="absolute -top-2 -left-2 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                 ⭐
               </div>
@@ -87,7 +95,7 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid' }) => {
           <div className="flex-1">
             <div className="flex justify-between items-start mb-2">
               <h3 className="text-xl font-bold text-secondary-800 line-clamp-1">
-                {product.name}
+                {getProductName()}
               </h3>
               <button
                 onClick={() => setIsLiked(!isLiked)}
@@ -100,7 +108,7 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid' }) => {
             </div>
             
             <p className="text-secondary-600 mb-3 line-clamp-2">
-              {product.description}
+              {getProductDescription()}
             </p>
             
             <div className="flex items-center space-x-2 mb-3">
@@ -118,7 +126,7 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid' }) => {
                   </span>
                 )}
                 <span className="text-2xl font-bold text-primary-500">
-                  {formatPrice(product.price)}
+                  {formatPrice(getProductPrice())}
                 </span>
               </div>
               
@@ -154,31 +162,31 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid' }) => {
       <div className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-secondary-100 group">
         <div className="relative overflow-hidden">
           <div className="w-full h-56 bg-secondary-100 flex items-center justify-center">
-            {product.image ? (
+            {getProductImage() ? (
               <img 
-                src={product.image} 
-                alt={product.name}
+                src={getProductImage()} 
+                alt={getProductName()}
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
               />
             ) : (
               <div className="text-7xl group-hover:scale-110 transition-transform duration-300">
-                {product.category === 'comederos' ? '🍽️' : 
-                 product.category === 'juguetes' ? '🎾' :
-                 product.category === 'camas' ? '🛏️' :
-                 product.category === 'collares' ? '🦴' : 
-                 product.category === 'rascadores' ? '🪜' : '🎒'}
+                {getProductCategory() === 'comederos' ? '🍽️' : 
+                 getProductCategory() === 'juguetes' ? '🎾' :
+                 getProductCategory() === 'camas' ? '🛏️' :
+                 getProductCategory() === 'collares' ? '🦴' : 
+                 getProductCategory() === 'rascadores' ? '🪜' : '🎒'}
               </div>
             )}
           </div>
           
           {/* Badges */}
-          {product.discount && (
+          {getProductDiscount() > 0 && (
             <div className="absolute top-3 left-3 bg-red-500 text-white text-sm font-bold px-3 py-1 rounded-full shadow-lg">
-              -{product.discount}%
+              -{getProductDiscount()}%
             </div>
           )}
           
-          {product.featured && (
+          {getProductFeatured() && (
             <div className="absolute top-3 right-3 bg-yellow-500 text-white text-sm font-bold px-3 py-1 rounded-full shadow-lg">
               ⭐ Destacado
             </div>
@@ -207,11 +215,11 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid' }) => {
 
         <div className="p-6">
           <h3 className="font-bold text-lg text-secondary-800 mb-2 line-clamp-2 group-hover:text-primary-600 transition-colors">
-            {product.name}
+            {getProductName()}
           </h3>
           
           <p className="text-sm text-secondary-600 mb-4 line-clamp-2">
-            {product.description}
+            {getProductDescription()}
           </p>
           
           {/* Rating */}
@@ -231,7 +239,7 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid' }) => {
                 </span>
               )}
               <span className="text-xl font-bold text-primary-500">
-                {formatPrice(product.price)}
+                {formatPrice(getProductPrice())}
               </span>
             </div>
             
@@ -259,7 +267,7 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid' }) => {
               <div className="flex justify-between items-start mb-6">
                 <div>
                   <h2 className="text-2xl font-bold text-secondary-800 mb-2">
-                    {product.name}
+                    {getProductName()}
                   </h2>
                   <div className="flex items-center space-x-2">
                     <div className="flex items-center space-x-1">
@@ -279,26 +287,26 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid' }) => {
               <div className="grid md:grid-cols-2 gap-8">
                 <div className="relative">
                   <div className="w-full h-80 bg-secondary-100 rounded-xl flex items-center justify-center overflow-hidden">
-                    {product.image ? (
+                    {getProductImage() ? (
                       <img 
-                        src={product.image} 
-                        alt={product.name}
+                        src={getProductImage()} 
+                        alt={getProductName()}
                         className="w-full h-full object-cover"
                       />
                     ) : (
                       <div className="text-9xl">
-                        {product.category === 'comederos' ? '🍽️' : 
-                         product.category === 'juguetes' ? '🎾' :
-                         product.category === 'camas' ? '🛏️' :
-                         product.category === 'collares' ? '🦴' : 
-                         product.category === 'rascadores' ? '🪜' : '🎒'}
+                        {getProductCategory() === 'comederos' ? '🍽️' : 
+                         getProductCategory() === 'juguetes' ? '🎾' :
+                         getProductCategory() === 'camas' ? '🛏️' :
+                         getProductCategory() === 'collares' ? '🦴' : 
+                         getProductCategory() === 'rascadores' ? '🪜' : '🎒'}
                       </div>
                     )}
                   </div>
                   
-                  {product.discount && (
+                  {getProductDiscount() > 0 && (
                     <div className="absolute top-4 left-4 bg-red-500 text-white text-sm font-bold px-3 py-1 rounded-full">
-                      -{product.discount}%
+                      -{getProductDiscount()}%
                     </div>
                   )}
                 </div>
@@ -307,7 +315,7 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid' }) => {
                   <div>
                     <h3 className="text-lg font-semibold text-secondary-800 mb-2">Descripción</h3>
                     <p className="text-secondary-600 leading-relaxed">
-                      {product.description}
+                      {getProductDescription()}
                     </p>
                   </div>
                   
@@ -320,7 +328,7 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid' }) => {
                         </span>
                       )}
                       <span className="text-3xl font-bold text-primary-500">
-                        {formatPrice(product.price)}
+                        {formatPrice(getProductPrice())}
                       </span>
                     </div>
                   </div>

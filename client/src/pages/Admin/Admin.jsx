@@ -390,12 +390,15 @@ const Admin = () => {
             </div>
 
             {showProductForm && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-                <div className="bg-white rounded-xl max-w-md w-full p-6">
-                  <h3 className="text-lg font-semibold mb-4">
-                    {editingProduct ? 'Editar Producto' : 'Agregar Producto'}
-                  </h3>
-                  <form onSubmit={handleProductSubmit} className="space-y-4">
+              <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
+                <div className="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto my-8">
+                  <div className="sticky top-0 bg-white p-6 border-b border-secondary-200 rounded-t-xl">
+                    <h3 className="text-lg font-semibold">
+                      {editingProduct ? 'Editar Producto' : 'Agregar Producto'}
+                    </h3>
+                  </div>
+                  <div className="p-6">
+                    <form onSubmit={handleProductSubmit} className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-secondary-700 mb-1">
                         Nombre
@@ -521,7 +524,7 @@ const Admin = () => {
                       </label>
                     </div>
                     
-                    <div className="flex space-x-3">
+                    <div className="sticky bottom-0 bg-white pt-4 border-t border-secondary-200 flex space-x-3">
                       <button type="submit" className="btn btn-primary flex-1">
                         {editingProduct ? 'Actualizar' : 'Agregar'}
                       </button>
@@ -537,7 +540,8 @@ const Admin = () => {
                         Cancelar
                       </button>
                     </div>
-                  </form>
+                    </form>
+                  </div>
                 </div>
               </div>
             )}
