@@ -151,6 +151,16 @@ router.delete('/:id', auth, async (req, res) => {
   }
 });
 
+// GET /api/products/categories - Obtener categorías
+router.get('/categories', async (req, res) => {
+  try {
+    const categories = await Product.getCategories();
+    res.json(categories);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener categorías' });
+  }
+});
+
 // GET /api/products/brands - Obtener marcas
 router.get('/brands', async (req, res) => {
   try {

@@ -26,7 +26,7 @@ const Admin = () => {
   const [productForm, setProductForm] = useState({
     name: '',
     price: '',
-    category: 'comederos',
+    category: '',
     brand: '',
     description: '',
     image: null,
@@ -34,6 +34,7 @@ const Admin = () => {
     discount: 0
   })
   const [brands, setBrands] = useState([])
+  const [categories, setCategories] = useState([])
 
   useEffect(() => {
     if (!isAuthenticated || user?.role !== 'admin') {
@@ -48,7 +49,22 @@ const Admin = () => {
     loadLoyaltyStats()
     loadCoupons()
     loadBrands()
+    loadCategories()
   }, [])
+
+  const loadCategories = async () => {
+    try {
+      const response = await fetch('/api/products/categories')
+      const data = await response.json()
+      setCategories(data)
+      // Establecer primera categoría como default si no hay una seleccionada
+      if (data.length > 0 && !productForm.category) {
+        setProductForm(prev => ({ ...prev, category: data[0].nombre }))
+      }
+    } catch (error) {
+      console.error('Error cargando categorías:', error)
+    }
+  }
 
   const loadBrands = async () => {
     try {
@@ -164,7 +180,7 @@ const Admin = () => {
       
       if (response.ok) {
         loadProducts()
-        setProductForm({ name: '', price: '', category: 'comederos', brand: '', description: '', image: null, featured: false, discount: 0 })
+        setProductForm({ name: '', price: '', category: categories[0]?.nombre || '', brand: '', description: '', image: null, featured: false, discount: 0 })
         setEditingProduct(null)
         setShowProductForm(false)
       } else {
@@ -392,12 +408,11 @@ const Admin = () => {
                         onChange={(e) => setProductForm({...productForm, category: e.target.value})}
                         className="input w-full"
                       >
-                        <option value="comederos">Comederos</option>
-                        <option value="juguetes">Juguetes</option>
-                        <option value="camas">Camas</option>
-                        <option value="collares">Collares</option>
-                        <option value="rascadores">Rascadores</option>
-                        <option value="accesorios">Accesorios</option>
+                        {categories.map(category => (
+                          <option key={category.id} value={category.nombre}>
+                            {category.nombre.charAt(0).toUpperCase() + category.nombre.slice(1)}
+                          </option>
+                        ))}
                       </select>
                     </div>
                     
