@@ -267,6 +267,7 @@ const Menu = () => {
               product={product}
               onAddToCart={addToCart}
               viewMode={viewMode}
+              allProducts={products}
             />
           ))}
         </div>
