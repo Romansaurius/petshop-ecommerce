@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Plus, Eye, Star, Heart, ShoppingCart } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import ProductPreview from './ProductPreview';
+import ProductImageGallery from './ProductImageGallery';
 
 const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = [] }) => {
   const { addToCart } = useCart();
@@ -22,7 +23,24 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
   const getProductPrice = () => product.precio || product.price || 0;
   const getProductDescription = () => product.descripcion || product.description || 'Sin descripción';
   const getProductCategory = () => product.categoria || product.category || 'general';
-  const getProductImage = () => product.imagen || product.image;
+  const getProductImages = () => {
+    // Si tiene múltiples imágenes en formato JSON
+    if (product.imagenes) {
+      try {
+        const images = typeof product.imagenes === 'string' 
+          ? JSON.parse(product.imagenes) 
+          : product.imagenes;
+        return Array.isArray(images) ? images : [];
+      } catch (e) {
+        console.error('Error parsing images:', e);
+      }
+    }
+    // Si solo tiene una imagen
+    if (product.imagen || product.image) {
+      return [product.imagen || product.image];
+    }
+    return [];
+  };
   const getProductDiscount = () => product.descuento_porcentaje || product.discount || 0;
   const getProductFeatured = () => product.destacado || product.featured || false;
 
@@ -63,23 +81,11 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
       <div className="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-secondary-100">
         <div className="flex p-6">
           <div className="relative w-32 h-32 flex-shrink-0 mr-6">
-            <div className="w-full h-full bg-secondary-100 rounded-xl flex items-center justify-center overflow-hidden">
-              {getProductImage() ? (
-                <img 
-                  src={getProductImage()} 
-                  alt={getProductName()}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="text-4xl">
-                  {getProductCategory() === 'comederos' ? '🍽️' : 
-                   getProductCategory() === 'juguetes' ? '🎾' :
-                   getProductCategory() === 'camas' ? '🛏️' :
-                   getProductCategory() === 'collares' ? '🦴' : 
-                   getProductCategory() === 'rascadores' ? '🪜' : '🎒'}
-                </div>
-              )}
-            </div>
+            <ProductImageGallery 
+              images={getProductImages()}
+              productName={getProductName()}
+              className="w-full h-full rounded-xl"
+            />
             
             {getProductDiscount() > 0 && (
               <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
@@ -164,23 +170,11 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
       <div className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-secondary-100 group cursor-pointer"
            onClick={() => setShowPreview(true)}>
         <div className="relative overflow-hidden">
-          <div className="w-full h-56 bg-secondary-100 flex items-center justify-center">
-            {getProductImage() ? (
-              <img 
-                src={getProductImage()} 
-                alt={getProductName()}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-              />
-            ) : (
-              <div className="text-7xl group-hover:scale-110 transition-transform duration-300">
-                {getProductCategory() === 'comederos' ? '🍽️' : 
-                 getProductCategory() === 'juguetes' ? '🎾' :
-                 getProductCategory() === 'camas' ? '🛏️' :
-                 getProductCategory() === 'collares' ? '🦴' : 
-                 getProductCategory() === 'rascadores' ? '🪜' : '🎒'}
-              </div>
-            )}
-          </div>
+          <ProductImageGallery 
+            images={getProductImages()}
+            productName={getProductName()}
+            className="w-full h-56"
+          />
           
           {/* Badges */}
           {getProductDiscount() > 0 && (

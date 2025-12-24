@@ -29,6 +29,16 @@ export const CartProvider = ({ children }) => {
   const addToCart = (product) => {
     setCart(prevCart => {
       const existingItem = prevCart.find(item => item.id === product.id)
+      
+      // Normalizar el producto para asegurar que tenga las propiedades correctas
+      const normalizedProduct = {
+        ...product,
+        precio: product.precio || product.price || 0,
+        nombre: product.nombre || product.name || 'Producto sin nombre',
+        imagen: product.imagen || product.image || (product.imagenes && product.imagenes.length > 0 ? product.imagenes[0] : null),
+        imagenes: product.imagenes || (product.imagen ? [product.imagen] : [])
+      }
+      
       if (existingItem) {
         // Límite máximo de 10 unidades por producto
         if (existingItem.quantity >= 10) {
@@ -41,7 +51,7 @@ export const CartProvider = ({ children }) => {
             : item
         )
       } else {
-        return [...prevCart, { ...product, quantity: 1 }]
+        return [...prevCart, { ...normalizedProduct, quantity: 1 }]
       }
     })
   }
@@ -75,7 +85,7 @@ export const CartProvider = ({ children }) => {
 
   const getTotalPrice = () => {
     return cart.reduce((sum, item) => {
-      const price = item.precio || item.price || 0
+      const price = item.precio || 0
       return sum + (price * item.quantity)
     }, 0)
   }

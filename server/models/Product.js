@@ -129,7 +129,7 @@ class Product {
 
   static async create(productData) {
     try {
-      const { nombre, descripcion, precio, categoria, marca, imagen, destacado, descuento_porcentaje, stock } = productData;
+      const { nombre, descripcion, precio, categoria, marca, imagenes, destacado, descuento_porcentaje, stock } = productData;
       
       // Obtener categoria_id por nombre
       const [categoryRows] = await db.execute('SELECT id FROM categorias WHERE nombre = ?', [categoria]);
@@ -152,20 +152,25 @@ class Product {
         }
       }
       
+      // Preparar imágenes para JSON
+      const imagenesJson = imagenes && imagenes.length > 0 ? JSON.stringify(imagenes) : JSON.stringify([]);
+      const imagenPrincipal = imagenes && imagenes.length > 0 ? imagenes[0] : null;
+      
       const [result] = await db.execute(`
-        INSERT INTO productos (nombre, descripcion, precio, categoria_id, marca_id, imagen, destacado, descuento_porcentaje, stock, activo)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO productos (nombre, descripcion, precio, categoria_id, marca_id, imagen, imagenes, destacado, descuento_porcentaje, stock, activo)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `, [
         nombre, 
         descripcion || '', 
         parseFloat(precio), 
         categoria_id,
         marca_id, 
-        imagen || null, 
+        imagenPrincipal, 
+        imagenesJson,
         destacado ? 1 : 0, 
         parseInt(descuento_porcentaje) || 0, 
-        parseInt(stock) || 100, // usar el stock proporcionado o 100 por defecto
-        1    // activo por defecto
+        parseInt(stock) || 100,
+        1
       ]);
       
       return result.insertId;
@@ -177,7 +182,7 @@ class Product {
 
   static async update(id, productData) {
     try {
-      const { nombre, descripcion, precio, categoria, marca, imagen, destacado, descuento_porcentaje, stock } = productData;
+      const { nombre, descripcion, precio, categoria, marca, imagenes, destacado, descuento_porcentaje, stock } = productData;
       
       let query = 'UPDATE productos SET nombre = ?, descripcion = ?, precio = ?, destacado = ?, descuento_porcentaje = ?';
       let params = [
@@ -218,9 +223,11 @@ class Product {
         params.push(marca_id);
       }
       
-      if (imagen) {
-        query += ', imagen = ?';
-        params.push(imagen);
+      if (imagenes && imagenes.length > 0) {
+        const imagenesJson = JSON.stringify(imagenes);
+        const imagenPrincipal = imagenes[0];
+        query += ', imagen = ?, imagenes = ?';
+        params.push(imagenPrincipal, imagenesJson);
       }
       
       query += ' WHERE id = ?';
