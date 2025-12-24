@@ -54,6 +54,38 @@ router.put('/programs/:id', auth, async (req, res) => {
   }
 });
 
+// DELETE /api/loyalty/programs/:id - Eliminar programa
+router.delete('/programs/:id', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Acceso denegado' });
+    }
+
+    const { id } = req.params;
+    
+    // Verificar si hay usuarios usando este programa
+    const [users] = await db.execute(
+      'SELECT COUNT(*) as count FROM usuario_programa_progreso WHERE programa_id = ?',
+      [id]
+    );
+    
+    if (users[0].count > 0) {
+      // Si hay usuarios, solo desactivar
+      await db.execute(
+        'UPDATE programas_fidelizacion SET activo = FALSE WHERE id = ?',
+        [id]
+      );
+      res.json({ message: 'Programa desactivado (hay usuarios asociados)' });
+    } else {
+      // Si no hay usuarios, eliminar completamente
+      await db.execute('DELETE FROM programas_fidelizacion WHERE id = ?', [id]);
+      res.json({ message: 'Programa eliminado' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Error al eliminar programa' });
+  }
+});
+
 // GET /api/loyalty/stats - Estadísticas de fidelización
 router.get('/stats', auth, async (req, res) => {
   try {
@@ -112,6 +144,63 @@ router.post('/coupons', auth, async (req, res) => {
     } else {
       res.status(500).json({ error: 'Error al crear cupón' });
     }
+  }
+});
+
+// PUT /api/loyalty/coupons/:id - Actualizar cupón
+router.put('/coupons/:id', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Acceso denegado' });
+    }
+
+    const { id } = req.params;
+    const { codigo, nombre, tipo, valor, fecha_expiracion, usos_maximos, activo } = req.body;
+    
+    await db.execute(
+      'UPDATE cupones SET codigo = ?, nombre = ?, tipo = ?, valor = ?, fecha_expiracion = ?, usos_maximos = ?, activo = ? WHERE id = ?',
+      [codigo, nombre, tipo, valor, fecha_expiracion || null, usos_maximos || null, activo, id]
+    );
+    
+    res.json({ message: 'Cupón actualizado' });
+  } catch (error) {
+    if (error.code === 'ER_DUP_ENTRY') {
+      res.status(400).json({ error: 'El código del cupón ya existe' });
+    } else {
+      res.status(500).json({ error: 'Error al actualizar cupón' });
+    }
+  }
+});
+
+// DELETE /api/loyalty/coupons/:id - Eliminar cupón
+router.delete('/coupons/:id', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Acceso denegado' });
+    }
+
+    const { id } = req.params;
+    
+    // Verificar si el cupón ha sido usado
+    const [usage] = await db.execute(
+      'SELECT COUNT(*) as count FROM pedidos WHERE cupon_id = ?',
+      [id]
+    );
+    
+    if (usage[0].count > 0) {
+      // Si ha sido usado, solo desactivar
+      await db.execute(
+        'UPDATE cupones SET activo = FALSE WHERE id = ?',
+        [id]
+      );
+      res.json({ message: 'Cupón desactivado (ya fue utilizado)' });
+    } else {
+      // Si no ha sido usado, eliminar completamente
+      await db.execute('DELETE FROM cupones WHERE id = ?', [id]);
+      res.json({ message: 'Cupón eliminado' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Error al eliminar cupón' });
   }
 });
 

@@ -67,19 +67,19 @@ const Cart = ({ isOpen, onClose }) => {
               {cart.map((item) => (
                 <div key={item.id} className="flex items-center space-x-4 p-4 bg-secondary-50 rounded-lg">
                   {/* Product Image */}
-                  <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center flex-shrink-0">
-                    {item.image ? (
+                  <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    {item.imagen ? (
                       <img 
-                        src={item.image} 
-                        alt={item.name || item.nombre}
+                        src={item.imagen} 
+                        alt={item.nombre}
                         className="w-full h-full object-cover rounded-lg"
                       />
                     ) : (
                       <div className="text-2xl">
-                        {item.category === 'comederos' ? '🍽️' : 
-                         item.category === 'juguetes' ? '🎾' :
-                         item.category === 'camas' ? '🛏️' :
-                         item.category === 'collares' ? '🦴' : '🐾'}
+                        {item.categoria === 'comederos' ? '🍽️' : 
+                         item.categoria === 'juguetes' ? '🎾' :
+                         item.categoria === 'camas' ? '🛏️' :
+                         item.categoria === 'collares' ? '🦴' : '🐾'}
                       </div>
                     )}
                   </div>
@@ -87,10 +87,10 @@ const Cart = ({ isOpen, onClose }) => {
                   {/* Product Info */}
                   <div className="flex-1 min-w-0">
                     <h4 className="font-medium text-secondary-800 truncate">
-                      {item.name || item.nombre}
+                      {item.nombre}
                     </h4>
                     <p className="text-sm text-secondary-600">
-                      {formatPrice(item.price || item.precio)}
+                      {formatPrice(item.precio || 0)}
                     </p>
                   </div>
 

@@ -1,23 +1,13 @@
 const express = require('express');
 const Product = require('../models/Product');
 const multer = require('multer');
-const path = require('path');
+const cloudinary = require('../config/cloudinary');
 const auth = require('../middlewares/auth');
 const router = express.Router();
 
-// Configuración de multer para subida de imágenes
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/')
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-    cb(null, 'product-' + uniqueSuffix + path.extname(file.originalname))
-  }
-});
-
+// Configuración de multer para memoria (Cloudinary)
 const upload = multer({ 
-  storage: storage,
+  storage: multer.memoryStorage(),
   fileFilter: function (req, file, cb) {
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
@@ -111,14 +101,29 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST /api/products - Crear producto (solo admin)
-router.post('/', auth, upload.single('imagen'), async (req, res) => {
+router.post('/', auth, upload.array('imagenes', 5), async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Acceso denegado' });
     }
 
-    console.log('Datos recibidos:', req.body);
-    console.log('Archivo:', req.file);
+    let imageUrls = [];
+    
+    // Subir imágenes a Cloudinary si existen
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        const result = await new Promise((resolve, reject) => {
+          cloudinary.uploader.upload_stream(
+            { folder: 'ecommerce-mascotas' },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          ).end(file.buffer);
+        });
+        imageUrls.push(result.secure_url);
+      }
+    }
 
     const productData = {
       nombre: req.body.nombre,
@@ -126,7 +131,7 @@ router.post('/', auth, upload.single('imagen'), async (req, res) => {
       precio: req.body.precio,
       categoria: req.body.categoria,
       marca: req.body.marca || null,
-      imagen: req.file ? `/uploads/${req.file.filename}` : null,
+      imagenes: imageUrls,
       destacado: req.body.destacado === 'true',
       descuento_porcentaje: req.body.descuento_porcentaje || 0,
       stock: req.body.stock || 100
@@ -143,7 +148,7 @@ router.post('/', auth, upload.single('imagen'), async (req, res) => {
 });
 
 // PUT /api/products/:id - Actualizar producto (solo admin)
-router.put('/:id', auth, upload.single('imagen'), async (req, res) => {
+router.put('/:id', auth, upload.array('imagenes', 5), async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Acceso denegado' });
@@ -158,9 +163,26 @@ router.put('/:id', auth, upload.single('imagen'), async (req, res) => {
       marca: req.body.marca,
       destacado: req.body.destacado === 'true',
       descuento_porcentaje: req.body.descuento_porcentaje || 0,
-      stock: req.body.stock,
-      ...(req.file && { imagen: `/uploads/${req.file.filename}` })
+      stock: req.body.stock
     };
+
+    // Subir nuevas imágenes a Cloudinary si existen
+    if (req.files && req.files.length > 0) {
+      let imageUrls = [];
+      for (const file of req.files) {
+        const result = await new Promise((resolve, reject) => {
+          cloudinary.uploader.upload_stream(
+            { folder: 'ecommerce-mascotas' },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          ).end(file.buffer);
+        });
+        imageUrls.push(result.secure_url);
+      }
+      productData.imagenes = imageUrls;
+    }
 
     await Product.update(id, productData);
     const updatedProduct = await Product.getById(id);

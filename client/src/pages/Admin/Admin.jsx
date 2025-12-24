@@ -11,6 +11,7 @@ const Admin = () => {
   const [loyaltyStats, setLoyaltyStats] = useState({})
   const [coupons, setCoupons] = useState([])
   const [showCouponForm, setShowCouponForm] = useState(false)
+  const [editingCoupon, setEditingCoupon] = useState(null)
   const [couponForm, setCouponForm] = useState({
     codigo: '',
     nombre: '',
@@ -18,6 +19,14 @@ const Admin = () => {
     valor: '',
     fecha_expiracion: '',
     usos_maximos: ''
+  })
+  const [showProgramForm, setShowProgramForm] = useState(false)
+  const [editingProgram, setEditingProgram] = useState(null)
+  const [programForm, setProgramForm] = useState({
+    nombre: '',
+    descripcion: '',
+    compras_requeridas: '',
+    recompensa: ''
   })
   const [products, setProducts] = useState([])
   const [orders, setOrders] = useState([])
@@ -225,6 +234,144 @@ const Admin = () => {
           loadProducts()
         } else {
           alert('Error al eliminar el producto')
+        }
+      } catch (error) {
+        console.error('Error:', error)
+        alert('Error de conexión')
+      }
+    }
+  }
+
+  const handleCouponSubmit = async (e) => {
+    e.preventDefault()
+    
+    try {
+      const url = editingCoupon ? `/api/loyalty/coupons/${editingCoupon.id}` : '/api/loyalty/coupons'
+      const method = editingCoupon ? 'PUT' : 'POST'
+      
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          ...couponForm,
+          activo: editingCoupon ? editingCoupon.activo : true
+        })
+      })
+      
+      if (response.ok) {
+        loadCoupons()
+        setCouponForm({ codigo: '', nombre: '', tipo: 'monto_fijo', valor: '', fecha_expiracion: '', usos_maximos: '' })
+        setEditingCoupon(null)
+        setShowCouponForm(false)
+      } else {
+        const error = await response.json()
+        alert(error.error || 'Error al guardar cupón')
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      alert('Error de conexión')
+    }
+  }
+
+  const handleEditCoupon = (coupon) => {
+    setEditingCoupon(coupon)
+    setCouponForm({
+      codigo: coupon.codigo,
+      nombre: coupon.nombre,
+      tipo: coupon.tipo,
+      valor: coupon.valor.toString(),
+      fecha_expiracion: coupon.fecha_expiracion ? coupon.fecha_expiracion.split('T')[0] : '',
+      usos_maximos: coupon.usos_maximos ? coupon.usos_maximos.toString() : ''
+    })
+    setShowCouponForm(true)
+  }
+
+  const handleDeleteCoupon = async (id) => {
+    if (confirm('¿Estás seguro de eliminar este cupón?')) {
+      try {
+        const response = await fetch(`/api/loyalty/coupons/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        })
+        
+        if (response.ok) {
+          loadCoupons()
+        } else {
+          const error = await response.json()
+          alert(error.error || 'Error al eliminar cupón')
+        }
+      } catch (error) {
+        console.error('Error:', error)
+        alert('Error de conexión')
+      }
+    }
+  }
+
+  const handleProgramSubmit = async (e) => {
+    e.preventDefault()
+    
+    try {
+      const url = editingProgram ? `/api/loyalty/programs/${editingProgram.id}` : '/api/loyalty/programs'
+      const method = editingProgram ? 'PUT' : 'POST'
+      
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          ...programForm,
+          activo: editingProgram ? editingProgram.activo : true
+        })
+      })
+      
+      if (response.ok) {
+        loadLoyaltyPrograms()
+        setProgramForm({ nombre: '', descripcion: '', compras_requeridas: '', recompensa: '' })
+        setEditingProgram(null)
+        setShowProgramForm(false)
+      } else {
+        const error = await response.json()
+        alert(error.error || 'Error al guardar programa')
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      alert('Error de conexión')
+    }
+  }
+
+  const handleEditProgram = (program) => {
+    setEditingProgram(program)
+    setProgramForm({
+      nombre: program.nombre,
+      descripcion: program.descripcion,
+      compras_requeridas: program.compras_requeridas.toString(),
+      recompensa: program.recompensa
+    })
+    setShowProgramForm(true)
+  }
+
+  const handleDeleteProgram = async (id) => {
+    if (confirm('¿Estás seguro de eliminar este programa?')) {
+      try {
+        const response = await fetch(`/api/loyalty/programs/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        })
+        
+        if (response.ok) {
+          loadLoyaltyPrograms()
+        } else {
+          const error = await response.json()
+          alert(error.error || 'Error al eliminar programa')
         }
       } catch (error) {
         console.error('Error:', error)
@@ -729,7 +876,10 @@ const Admin = () => {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold text-secondary-800">Sistema de Fidelización</h2>
-              <button className="btn btn-primary flex items-center gap-2">
+              <button 
+                onClick={() => setShowProgramForm(true)}
+                className="btn btn-primary flex items-center gap-2"
+              >
                 <Plus className="w-4 h-4" />
                 Nuevo Programa
               </button>
@@ -755,10 +905,16 @@ const Admin = () => {
                       {program.activo ? 'Activo' : 'Inactivo'}
                     </span>
                     <div className="flex space-x-2">
-                      <button className="text-blue-600 hover:text-blue-900">
+                      <button 
+                        onClick={() => handleEditProgram(program)}
+                        className="text-blue-600 hover:text-blue-900"
+                      >
                         <Edit className="w-4 h-4" />
                       </button>
-                      <button className="text-red-600 hover:text-red-900">
+                      <button 
+                        onClick={() => handleDeleteProgram(program.id)}
+                        className="text-red-600 hover:text-red-900"
+                      >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -831,10 +987,16 @@ const Admin = () => {
                         </td>
                         <td className="px-4 py-2">
                           <div className="flex space-x-2">
-                            <button className="text-blue-600 hover:text-blue-900">
+                            <button 
+                              onClick={() => handleEditCoupon(coupon)}
+                              className="text-blue-600 hover:text-blue-900"
+                            >
                               <Edit className="w-4 h-4" />
                             </button>
-                            <button className="text-red-600 hover:text-red-900">
+                            <button 
+                              onClick={() => handleDeleteCoupon(coupon.id)}
+                              className="text-red-600 hover:text-red-900"
+                            >
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
@@ -845,6 +1007,215 @@ const Admin = () => {
                 </table>
               </div>
             </div>
+            
+            {/* Modal para Programa de Fidelización */}
+            {showProgramForm && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                <div className="bg-white rounded-xl max-w-md w-full">
+                  <div className="p-6 border-b border-secondary-200">
+                    <h3 className="text-lg font-semibold">
+                      {editingProgram ? 'Editar Programa' : 'Nuevo Programa de Fidelización'}
+                    </h3>
+                  </div>
+                  <div className="p-6">
+                    <form onSubmit={handleProgramSubmit} className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-secondary-700 mb-1">
+                          Nombre del Programa
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={programForm.nombre}
+                          onChange={(e) => setProgramForm({...programForm, nombre: e.target.value})}
+                          className="input w-full"
+                          placeholder="Ej: Cliente VIP"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-secondary-700 mb-1">
+                          Descripción
+                        </label>
+                        <textarea
+                          required
+                          value={programForm.descripcion}
+                          onChange={(e) => setProgramForm({...programForm, descripcion: e.target.value})}
+                          className="input w-full h-20 resize-none"
+                          placeholder="Describe los beneficios del programa"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-secondary-700 mb-1">
+                          Compras Requeridas
+                        </label>
+                        <input
+                          type="number"
+                          required
+                          min="1"
+                          value={programForm.compras_requeridas}
+                          onChange={(e) => setProgramForm({...programForm, compras_requeridas: e.target.value})}
+                          className="input w-full"
+                          placeholder="Número de compras necesarias"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-secondary-700 mb-1">
+                          Recompensa
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={programForm.recompensa}
+                          onChange={(e) => setProgramForm({...programForm, recompensa: e.target.value})}
+                          className="input w-full"
+                          placeholder="Ej: 15% de descuento en la próxima compra"
+                        />
+                      </div>
+                      
+                      <div className="flex space-x-3 pt-4">
+                        <button type="submit" className="btn btn-primary flex-1">
+                          {editingProgram ? 'Actualizar' : 'Crear'} Programa
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowProgramForm(false)
+                            setEditingProgram(null)
+                            setProgramForm({ nombre: '', descripcion: '', compras_requeridas: '', recompensa: '' })
+                          }}
+                          className="btn btn-secondary flex-1"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Modal para Cupón */}
+            {showCouponForm && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                <div className="bg-white rounded-xl max-w-md w-full">
+                  <div className="p-6 border-b border-secondary-200">
+                    <h3 className="text-lg font-semibold">
+                      {editingCoupon ? 'Editar Cupón' : 'Nuevo Cupón de Descuento'}
+                    </h3>
+                  </div>
+                  <div className="p-6">
+                    <form onSubmit={handleCouponSubmit} className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-secondary-700 mb-1">
+                          Código del Cupón
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={couponForm.codigo}
+                          onChange={(e) => setCouponForm({...couponForm, codigo: e.target.value.toUpperCase()})}
+                          className="input w-full font-mono"
+                          placeholder="Ej: DESCUENTO20"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-secondary-700 mb-1">
+                          Nombre del Cupón
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={couponForm.nombre}
+                          onChange={(e) => setCouponForm({...couponForm, nombre: e.target.value})}
+                          className="input w-full"
+                          placeholder="Ej: Descuento de Bienvenida"
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-secondary-700 mb-1">
+                            Tipo de Descuento
+                          </label>
+                          <select
+                            value={couponForm.tipo}
+                            onChange={(e) => setCouponForm({...couponForm, tipo: e.target.value})}
+                            className="input w-full"
+                          >
+                            <option value="monto_fijo">Monto Fijo</option>
+                            <option value="porcentaje">Porcentaje</option>
+                          </select>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-secondary-700 mb-1">
+                            Valor
+                          </label>
+                          <input
+                            type="number"
+                            required
+                            min="1"
+                            value={couponForm.valor}
+                            onChange={(e) => setCouponForm({...couponForm, valor: e.target.value})}
+                            className="input w-full"
+                            placeholder={couponForm.tipo === 'porcentaje' ? '20' : '5000'}
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-secondary-700 mb-1">
+                            Fecha de Expiración (opcional)
+                          </label>
+                          <input
+                            type="date"
+                            value={couponForm.fecha_expiracion}
+                            onChange={(e) => setCouponForm({...couponForm, fecha_expiracion: e.target.value})}
+                            className="input w-full"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-secondary-700 mb-1">
+                            Usos Máximos (opcional)
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={couponForm.usos_maximos}
+                            onChange={(e) => setCouponForm({...couponForm, usos_maximos: e.target.value})}
+                            className="input w-full"
+                            placeholder="Ilimitado"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="flex space-x-3 pt-4">
+                        <button type="submit" className="btn btn-primary flex-1">
+                          {editingCoupon ? 'Actualizar' : 'Crear'} Cupón
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowCouponForm(false)
+                            setEditingCoupon(null)
+                            setCouponForm({ codigo: '', nombre: '', tipo: 'monto_fijo', valor: '', fecha_expiracion: '', usos_maximos: '' })
+                          }}
+                          className="btn btn-secondary flex-1"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
