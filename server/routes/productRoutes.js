@@ -1,13 +1,29 @@
 const express = require('express');
 const Product = require('../models/Product');
 const multer = require('multer');
-const cloudinary = require('../config/cloudinary');
+const path = require('path');
+const fs = require('fs');
 const auth = require('../middlewares/auth');
 const router = express.Router();
 
-// Configuración de multer para memoria (Cloudinary)
+// Crear directorio uploads si no existe
+if (!fs.existsSync('uploads')) {
+  fs.mkdirSync('uploads');
+}
+
+// Configuración de multer para almacenamiento local temporal
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/')
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+    cb(null, 'product-' + uniqueSuffix + path.extname(file.originalname))
+  }
+});
+
 const upload = multer({ 
-  storage: multer.memoryStorage(),
+  storage: storage,
   fileFilter: function (req, file, cb) {
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
@@ -109,20 +125,9 @@ router.post('/', auth, upload.array('imagenes', 5), async (req, res) => {
 
     let imageUrls = [];
     
-    // Subir imágenes a Cloudinary si existen
+    // Procesar imágenes subidas
     if (req.files && req.files.length > 0) {
-      for (const file of req.files) {
-        const result = await new Promise((resolve, reject) => {
-          cloudinary.uploader.upload_stream(
-            { folder: 'ecommerce-mascotas' },
-            (error, result) => {
-              if (error) reject(error);
-              else resolve(result);
-            }
-          ).end(file.buffer);
-        });
-        imageUrls.push(result.secure_url);
-      }
+      imageUrls = req.files.map(file => `/uploads/${file.filename}`);
     }
 
     const productData = {
@@ -166,21 +171,9 @@ router.put('/:id', auth, upload.array('imagenes', 5), async (req, res) => {
       stock: req.body.stock
     };
 
-    // Subir nuevas imágenes a Cloudinary si existen
+    // Procesar nuevas imágenes si existen
     if (req.files && req.files.length > 0) {
-      let imageUrls = [];
-      for (const file of req.files) {
-        const result = await new Promise((resolve, reject) => {
-          cloudinary.uploader.upload_stream(
-            { folder: 'ecommerce-mascotas' },
-            (error, result) => {
-              if (error) reject(error);
-              else resolve(result);
-            }
-          ).end(file.buffer);
-        });
-        imageUrls.push(result.secure_url);
-      }
+      const imageUrls = req.files.map(file => `/uploads/${file.filename}`);
       productData.imagenes = imageUrls;
     }
 

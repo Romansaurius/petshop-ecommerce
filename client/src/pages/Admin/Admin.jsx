@@ -171,8 +171,10 @@ const Admin = () => {
     formData.append('descuento_porcentaje', productForm.discount || 0)
     formData.append('stock', productForm.stock || 100)
     
-    if (productForm.image) {
-      formData.append('imagen', productForm.image)
+    if (productForm.image && productForm.image.length > 0) {
+      for (let i = 0; i < productForm.image.length; i++) {
+        formData.append('imagenes', productForm.image[i])
+      }
     }
 
     try {
@@ -620,14 +622,18 @@ const Admin = () => {
                     
                     <div>
                       <label className="block text-sm font-medium text-secondary-700 mb-1">
-                        Imagen
+                        Imágenes (máximo 5)
                       </label>
                       <input
                         type="file"
                         accept="image/*"
-                        onChange={(e) => setProductForm({...productForm, image: e.target.files[0]})}
+                        multiple
+                        onChange={(e) => setProductForm({...productForm, image: e.target.files})}
                         className="input w-full"
                       />
+                      <p className="text-xs text-secondary-500 mt-1">
+                        Puedes seleccionar hasta 5 imágenes
+                      </p>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
