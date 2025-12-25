@@ -23,6 +23,16 @@ class Product {
         WHERE p.activo = TRUE
         ORDER BY p.destacado DESC, p.created_at DESC
       `);
+      
+      // Agregar imágenes de Cloudinary a cada producto
+      for (let product of rows) {
+        const [images] = await db.execute(
+          'SELECT imagen_url, es_principal, orden FROM producto_imagenes WHERE producto_id = ? ORDER BY orden',
+          [product.id]
+        );
+        product.imagenes = images;
+      }
+      
       return rows;
     } catch (error) {
       console.error('Error en getAll:', error);
@@ -42,6 +52,16 @@ class Product {
         LEFT JOIN marcas m ON p.marca_id = m.id
         WHERE p.id = ? AND p.activo = TRUE
       `, [id]);
+      
+      if (rows[0]) {
+        // Agregar imágenes de Cloudinary
+        const [images] = await db.execute(
+          'SELECT imagen_url, es_principal, orden FROM producto_imagenes WHERE producto_id = ? ORDER BY orden',
+          [id]
+        );
+        rows[0].imagenes = images;
+      }
+      
       return rows[0];
     } catch (error) {
       console.error('Error en getById:', error);
