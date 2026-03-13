@@ -21,9 +21,7 @@ async function testConnection() {
     console.log('✅ Conexión exitosa');
     
     // Verificar estructura actual
-    const [tables] = await connection.execute(`
-      SHOW TABLES
-    `);
+    const [tables] = await connection.execute(`SHOW TABLES`);
     
     console.log('📋 Tablas existentes:');
     tables.forEach(table => {
@@ -31,10 +29,8 @@ async function testConnection() {
     });
     
     // Verificar estructura de productos
-    console.log('\\n🔍 Estructura de tabla productos:');
-    const [columns] = await connection.execute(`
-      DESCRIBE productos
-    `);
+    console.log('\n🔍 Estructura de tabla productos:');
+    const [columns] = await connection.execute(`DESCRIBE productos`);
     
     columns.forEach(col => {
       console.log(`  - ${col.Field}: ${col.Type} ${col.Null === 'YES' ? '(NULL)' : '(NOT NULL)'}`);
@@ -42,6 +38,15 @@ async function testConnection() {
     
     // Contar productos
     const [count] = await connection.execute('SELECT COUNT(*) as total FROM productos');
-    console.log(`\\n📦 Total productos: ${count[0].total}`);
+    console.log(`\n📦 Total productos: ${count[0].total}`);
     
-  } catch (error) {\n    console.error('❌ Error:', error.message);\n  } finally {\n    if (connection) {\n      await connection.end();\n    }\n  }\n}\n\ntestConnection();
+  } catch (error) {
+    console.error('❌ Error:', error.message);
+  } finally {
+    if (connection) {
+      await connection.end();
+    }
+  }
+}
+
+testConnection();

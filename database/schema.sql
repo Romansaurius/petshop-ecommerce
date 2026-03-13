@@ -14,18 +14,54 @@ CREATE TABLE usuarios (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tabla de productos
+-- Tabla de categorías
+CREATE TABLE categorias (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  nombre VARCHAR(100) NOT NULL UNIQUE,
+  descripcion TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabla de marcas
+CREATE TABLE marcas (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  nombre VARCHAR(100) NOT NULL UNIQUE,
+  descripcion TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabla de productos (actualizada)
 CREATE TABLE productos (
   id INT PRIMARY KEY AUTO_INCREMENT,
   nombre VARCHAR(200) NOT NULL,
   descripcion TEXT,
+  descripcion_corta TEXT,
   precio DECIMAL(10,2) NOT NULL,
-  categoria ENUM('comederos', 'juguetes', 'camas', 'collares', 'rascadores', 'otros') NOT NULL,
+  precio_oferta DECIMAL(10,2),
+  categoria_id INT,
+  marca_id INT,
   imagen VARCHAR(255),
+  imagenes JSON,
   destacado BOOLEAN DEFAULT FALSE,
-  stock INT DEFAULT 0,
+  descuento_porcentaje INT DEFAULT 0,
+  stock INT DEFAULT 100,
+  activo BOOLEAN DEFAULT TRUE,
   especificaciones JSON,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (categoria_id) REFERENCES categorias(id),
+  FOREIGN KEY (marca_id) REFERENCES marcas(id)
+);
+
+-- Tabla de imágenes de productos
+CREATE TABLE producto_imagenes (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  producto_id INT NOT NULL,
+  imagen_url VARCHAR(500) NOT NULL,
+  es_principal BOOLEAN DEFAULT FALSE,
+  orden INT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (producto_id) REFERENCES productos(id) ON DELETE CASCADE
 );
 
 -- Tabla de pedidos
