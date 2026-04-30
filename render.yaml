@@ -17,3 +17,9 @@ services:
         value: anJkMDnhTJoXaMDjgYFpfmkMBUskRZFu
       - key: DB_NAME
         value: ecommerce_mascotas
+      - key: CLOUDINARY_CLOUD_NAME
+        value: djkl0swu2
+      - key: CLOUDINARY_API_KEY
+        value: 816256627638173
+      - key: CLOUDINARY_API_SECRET
+        value: W47P54JMJjyIy9c6Wv2jmeyxb0A

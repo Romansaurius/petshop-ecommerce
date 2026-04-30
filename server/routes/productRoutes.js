@@ -1,39 +1,31 @@
 const express = require('express');
 const Product = require('../models/Product');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const auth = require('../middlewares/auth');
 const router = express.Router();
 
-// Crear directorio uploads si no existe
-if (!fs.existsSync('uploads')) {
-  fs.mkdirSync('uploads');
-}
+// Configurar Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
-// Configuración de multer para almacenamiento local temporal
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/')
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-    cb(null, 'product-' + uniqueSuffix + path.extname(file.originalname))
+// Multer con Cloudinary - las imágenes se suben directamente a la nube
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'ecommerce-mascotas',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+    transformation: [{ width: 800, height: 800, crop: 'limit', quality: 'auto' }]
   }
 });
 
-const upload = multer({ 
-  storage: storage,
-  fileFilter: function (req, file, cb) {
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Solo se permiten imágenes'), false);
-    }
-  },
-  limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB
-  }
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB
 });
 
 // GET /api/products/categories - Obtener categorías
@@ -123,12 +115,15 @@ router.post('/', auth, upload.array('imagenes', 5), async (req, res) => {
       return res.status(403).json({ error: 'Acceso denegado' });
     }
 
+    // URLs de Cloudinary (permanentes)
     let imageUrls = [];
-    
-    // Procesar imágenes subidas
     if (req.files && req.files.length > 0) {
-      imageUrls = req.files.map(file => `/uploads/${file.filename}`);
+      imageUrls = req.files.map(file => file.path);
     }
+
+    // Generar SKU automático
+    const categoria = (req.body.categoria || 'otros').substring(0, 3).toUpperCase();
+    const sku = `${categoria}-${Date.now().toString().slice(-6)}`;
 
     const productData = {
       nombre: req.body.nombre,
@@ -139,7 +134,8 @@ router.post('/', auth, upload.array('imagenes', 5), async (req, res) => {
       imagenes: imageUrls,
       destacado: req.body.destacado === 'true',
       descuento_porcentaje: req.body.descuento_porcentaje || 0,
-      stock: req.body.stock || 100
+      stock: req.body.stock || 100,
+      sku
     };
 
     const productId = await Product.create(productData);
@@ -171,10 +167,9 @@ router.put('/:id', auth, upload.array('imagenes', 5), async (req, res) => {
       stock: req.body.stock
     };
 
-    // Procesar nuevas imágenes si existen
+    // URLs de Cloudinary para actualización
     if (req.files && req.files.length > 0) {
-      const imageUrls = req.files.map(file => `/uploads/${file.filename}`);
-      productData.imagenes = imageUrls;
+      productData.imagenes = req.files.map(file => file.path);
     }
 
     await Product.update(id, productData);
