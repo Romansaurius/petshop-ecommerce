@@ -138,20 +138,16 @@ class Product {
 
   static async create(productData) {
     try {
-      const { nombre, descripcion, precio, categoria, marca, imagenes, destacado, descuento_porcentaje, stock } = productData;
+      const { nombre, descripcion, precio, categoria, marca, imagenes, destacado, descuento_porcentaje, stock, sku } = productData;
       
-      // Obtener categoria_id por nombre
-      let categoria_id = 1; // Default a primera categoría
+      let categoria_id = 1;
       try {
         const [categoryRows] = await db.execute('SELECT id FROM categorias WHERE nombre = ?', [categoria]);
-        if (categoryRows[0]) {
-          categoria_id = categoryRows[0].id;
-        }
+        if (categoryRows[0]) categoria_id = categoryRows[0].id;
       } catch (err) {
         console.log('Usando categoría por defecto');
       }
       
-      // Obtener marca_id si se proporciona marca
       let marca_id = null;
       if (marca && marca.trim()) {
         try {
@@ -159,7 +155,6 @@ class Product {
           if (marcaRows[0]) {
             marca_id = marcaRows[0].id;
           } else {
-            // Crear marca si no existe
             const [newMarca] = await db.execute('INSERT INTO marcas (nombre) VALUES (?)', [marca]);
             marca_id = newMarca.insertId;
           }
@@ -168,27 +163,27 @@ class Product {
         }
       }
       
-      // Preparar imágenes
       const imagenesJson = imagenes && imagenes.length > 0 ? JSON.stringify(imagenes) : null;
       const imagenPrincipal = imagenes && imagenes.length > 0 ? imagenes[0] : null;
       
       const [result] = await db.execute(`
-        INSERT INTO productos (nombre, descripcion, precio, categoria_id, marca_id, imagen, imagenes, destacado, descuento_porcentaje, stock, activo)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+        INSERT INTO productos (nombre, descripcion, precio, categoria_id, marca_id, imagen, imagenes, destacado, descuento_porcentaje, stock, sku, activo)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
       `, [
-        nombre, 
-        descripcion || '', 
-        parseFloat(precio), 
+        nombre,
+        descripcion || '',
+        parseFloat(precio),
         categoria_id,
-        marca_id, 
-        imagenPrincipal, 
+        marca_id,
+        imagenPrincipal,
         imagenesJson,
-        destacado ? 1 : 0, 
-        parseInt(descuento_porcentaje) || 0, 
-        parseInt(stock) || 100
+        destacado ? 1 : 0,
+        parseInt(descuento_porcentaje) || 0,
+        parseInt(stock) || 100,
+        sku || null
       ]);
       
-      console.log(`✅ Producto creado con ID: ${result.insertId}`);
+      console.log(`✅ Producto creado con ID: ${result.insertId}, SKU: ${sku}`);
       return result.insertId;
     } catch (error) {
       console.error('❌ Error en create:', error);
