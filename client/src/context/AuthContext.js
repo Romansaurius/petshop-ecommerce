@@ -8,8 +8,25 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
-    if (userData) {
-      setUser(JSON.parse(userData));
+    const token = localStorage.getItem('token');
+    if (userData && token) {
+      // Verificar que el token sigue siendo válido
+      fetch('/api/auth/verify', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+        .then(res => {
+          if (res.ok) {
+            setUser(JSON.parse(userData));
+          } else {
+            // Token inválido, limpiar sesión
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+          }
+        })
+        .catch(() => {
+          // Error de red, mantener sesión local
+          setUser(JSON.parse(userData));
+        });
     }
   }, []);
 

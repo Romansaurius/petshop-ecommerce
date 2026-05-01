@@ -68,4 +68,11 @@ router.post('/login', async (req, res) => {
   }
 });
 
+const auth = require('../middlewares/auth');
+
+// GET /api/auth/verify - Verificar token
+router.get('/verify', auth, (req, res) => {
+  res.json({ valid: true, user: req.user });
+});
+
 module.exports = router;
