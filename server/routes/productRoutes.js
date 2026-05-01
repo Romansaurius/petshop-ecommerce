@@ -1,19 +1,11 @@
 const express = require('express');
 const Product = require('../models/Product');
 const multer = require('multer');
-const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('../config/cloudinary');
 const auth = require('../middlewares/auth');
 const router = express.Router();
 
-// Configurar Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
-});
-
-// Multer con Cloudinary - las imágenes se suben directamente a la nube
 const storage = new CloudinaryStorage({
   cloudinary,
   params: {
@@ -25,7 +17,7 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 } // 5MB
+  limits: { fileSize: 5 * 1024 * 1024 }
 });
 
 // GET /api/products/categories - Obtener categorías
