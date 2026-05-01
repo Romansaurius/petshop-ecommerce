@@ -23,3 +23,5 @@ services:
         value: 816256627638173
       - key: CLOUDINARY_API_SECRET
         value: W47P54JMJjyIy9c6Wv2jmeyxb0A
+      - key: JWT_SECRET
+        value: tu_clave_secreta_jwt_muy_segura_2024

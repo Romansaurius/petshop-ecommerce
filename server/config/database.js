@@ -1,15 +1,17 @@
 const mysql = require('mysql2/promise');
 
 const dbConfig = {
-  host: 'shuttle.proxy.rlwy.net',
-  port: 21840,
-  user: 'root',
-  password: 'anJkMDnhTJoXaMDjgYFpfmkMBUskRZFu',
-  database: 'ecommerce_mascotas',
+  host: process.env.DB_HOST || 'shuttle.proxy.rlwy.net',
+  port: process.env.DB_PORT || 21840,
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || 'anJkMDnhTJoXaMDjgYFpfmkMBUskRZFu',
+  database: process.env.DB_NAME || 'ecommerce_mascotas',
   waitForConnections: true,
   connectionLimit: 5,
   queueLimit: 0,
-  ssl: false
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 10000,
+  connectTimeout: 60000
 };
 
 const pool = mysql.createPool(dbConfig);
