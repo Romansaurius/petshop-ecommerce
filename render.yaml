@@ -10,7 +10,7 @@ services:
       - key: DB_HOST
         value: shuttle.proxy.rlwy.net
       - key: DB_PORT
-        value: 21840
+        value: 3306
       - key: DB_USER
         value: root
       - key: DB_PASSWORD

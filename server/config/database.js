@@ -2,7 +2,7 @@ const mysql = require('mysql2/promise');
 
 const dbConfig = {
   host: process.env.DB_HOST || 'shuttle.proxy.rlwy.net',
-  port: parseInt(process.env.DB_PORT) || 21840,
+  port: parseInt(process.env.DB_PORT) || 3306,
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || 'anJkMDnhTJoXaMDjgYFpfmkMBUskRZFu',
   database: process.env.DB_NAME || 'ecommerce_mascotas',
