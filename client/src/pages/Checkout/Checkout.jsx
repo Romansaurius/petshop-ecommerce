@@ -242,8 +242,8 @@ const Checkout = () => {
                 {cart.map(item => (
                   <div key={item.id} className="flex items-center justify-between p-4 bg-secondary-50 rounded-lg">
                     <div className="flex-1">
-                      <h4 className="font-medium text-secondary-800">{item.name}</h4>
-                      <p className="text-sm text-secondary-600">{formatPrice(item.price)} c/u</p>
+                      <h4 className="font-medium text-secondary-800">{item.nombre || item.name}</h4>
+                      <p className="text-sm text-secondary-600">{formatPrice(item.precio || item.price || 0)} c/u</p>
                     </div>
                     <div className="flex items-center space-x-3">
                       <div className="flex items-center space-x-2">
@@ -263,7 +263,7 @@ const Checkout = () => {
                       </div>
                       <div className="text-right">
                         <div className="font-medium text-secondary-800">
-                          {formatPrice(item.price * item.quantity)}
+                          {formatPrice((item.precio || item.price || 0) * item.quantity)}
                         </div>
                         <button
                           onClick={() => removeFromCart(item.id)}

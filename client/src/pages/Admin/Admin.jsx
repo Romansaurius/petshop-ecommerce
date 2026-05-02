@@ -41,7 +41,8 @@ const Admin = () => {
     image: null,
     featured: false,
     discount: 0,
-    stock: 100
+    stock: 100,
+    tipo: 'normal'
   })
   const [brands, setBrands] = useState([])
   const [categories, setCategories] = useState([])
@@ -170,6 +171,7 @@ const Admin = () => {
     formData.append('destacado', productForm.featured)
     formData.append('descuento_porcentaje', productForm.discount || 0)
     formData.append('stock', productForm.stock || 100)
+    formData.append('tipo', productForm.tipo || 'normal')
     
     if (productForm.image && productForm.image.length > 0) {
       for (let i = 0; i < productForm.image.length; i++) {
@@ -193,7 +195,7 @@ const Admin = () => {
       
       if (response.ok) {
         loadProducts()
-        setProductForm({ name: '', price: '', category: categories[0]?.nombre || '', brand: '', description: '', image: null, featured: false, discount: 0, stock: 100 })
+        setProductForm({ name: '', price: '', category: categories[0]?.nombre || '', brand: '', description: '', image: null, featured: false, discount: 0, stock: 100, tipo: 'normal' })
         setEditingProduct(null)
         setShowProductForm(false)
       } else {
@@ -217,7 +219,8 @@ const Admin = () => {
       image: null,
       featured: product.destacado || product.featured || false,
       discount: product.descuento_porcentaje || product.discount || 0,
-      stock: product.stock || 0
+      stock: product.stock || 0,
+      tipo: product.tipo || 'normal'
     })
     setShowProductForm(true)
   }
@@ -675,6 +678,37 @@ const Admin = () => {
                         />
                         <span className="text-sm font-medium text-secondary-700">Producto destacado</span>
                       </label>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-secondary-700 mb-2">Tipo de producto</label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { value: 'normal', label: 'Normal', emoji: '📦' },
+                          { value: '2x1', label: '2x1', emoji: '🎁' },
+                          { value: 'importado', label: 'Importado', emoji: '✈️' }
+                        ].map(opt => (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => setProductForm({...productForm, tipo: opt.value})}
+                            className={`flex flex-col items-center p-3 rounded-xl border-2 transition-all ${
+                              productForm.tipo === opt.value
+                                ? 'border-primary-500 bg-primary-50 text-primary-700'
+                                : 'border-secondary-200 text-secondary-600 hover:border-secondary-300'
+                            }`}
+                          >
+                            <span className="text-xl mb-1">{opt.emoji}</span>
+                            <span className="text-xs font-medium">{opt.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                      {productForm.discount > 0 && productForm.tipo !== 'normal' && (
+                        <p className="text-xs text-green-600 mt-1">✅ Con descuento, aparecerá también en Ofertas</p>
+                      )}
+                      {productForm.discount > 0 && productForm.tipo === 'normal' && (
+                        <p className="text-xs text-green-600 mt-1">✅ Con descuento, aparecerá en la sección Ofertas</p>
+                      )}
                     </div>
                     
                     <div className="sticky bottom-0 bg-white pt-4 border-t border-secondary-200 flex space-x-3">

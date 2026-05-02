@@ -138,7 +138,7 @@ class Product {
 
   static async create(productData) {
     try {
-      const { nombre, descripcion, precio, categoria, marca, imagenes, destacado, descuento_porcentaje, stock, sku } = productData;
+      const { nombre, descripcion, precio, categoria, marca, imagenes, destacado, descuento_porcentaje, stock, sku, tipo } = productData;
       
       let categoria_id = 1;
       try {
@@ -167,8 +167,8 @@ class Product {
       const imagenPrincipal = imagenes && imagenes.length > 0 ? imagenes[0] : null;
       
       const [result] = await db.execute(`
-        INSERT INTO productos (nombre, descripcion, precio, categoria_id, marca_id, imagen, imagenes, destacado, descuento_porcentaje, stock, sku, activo)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+        INSERT INTO productos (nombre, descripcion, precio, categoria_id, marca_id, imagen, imagenes, destacado, descuento_porcentaje, stock, sku, tipo, activo)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
       `, [
         nombre,
         descripcion || '',
@@ -180,7 +180,8 @@ class Product {
         destacado ? 1 : 0,
         parseInt(descuento_porcentaje) || 0,
         parseInt(stock) || 100,
-        sku || null
+        sku || null,
+        tipo || 'normal'
       ]);
       
       console.log(`✅ Producto creado con ID: ${result.insertId}, SKU: ${sku}`);

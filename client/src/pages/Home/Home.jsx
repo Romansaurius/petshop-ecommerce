@@ -4,219 +4,174 @@ import { useCart } from '../../context/CartContext'
 import ProductCard from '../../components/Product/ProductCard'
 import Hero from '../../components/Hero/Hero'
 import OffersSlider from '../../components/OffersSlider/OffersSlider'
+import { Tag, Package, Globe } from 'lucide-react'
+
+const SectionHeader = ({ icon: Icon, title, subtitle, color }) => (
+  <div className="flex items-center space-x-4 mb-8">
+    <div className={`w-12 h-12 ${color} rounded-xl flex items-center justify-center shadow-md`}>
+      <Icon className="w-6 h-6 text-white" />
+    </div>
+    <div>
+      <h2 className="text-2xl font-bold text-secondary-900">{title}</h2>
+      {subtitle && <p className="text-secondary-500 text-sm">{subtitle}</p>}
+    </div>
+  </div>
+)
 
 const Home = () => {
-  const [featuredProducts, setFeaturedProducts] = useState([])
+  const [allProducts, setAllProducts] = useState([])
+  const [loading, setLoading] = useState(true)
   const { addToCart } = useCart()
 
   useEffect(() => {
-    // Productos destacados para mascotas con imágenes reales
-    const products = [
-      {
-        id: 1,
-        name: 'Comedero Automático Wi-Fi Premium',
-        price: 89999,
-        category: 'comederos',
-        image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=500&h=500&fit=crop',
-        description: 'Comedero automático con Wi-Fi, capacidad 2.5L, control por app móvil',
-        rating: 4.8,
-        reviews: 124,
-        featured: true,
-        discount: 15
-      },
-      {
-        id: 2,
-        name: 'Collar GPS Inteligente',
-        price: 35999,
-        category: 'collares',
-        image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=500&h=500&fit=crop',
-        description: 'Collar con GPS y monitor de actividad para mascotas',
-        rating: 4.6,
-        reviews: 92,
-        featured: true
-      },
-      {
-        id: 3,
-        name: 'Juguete Interactivo Pelota LED',
-        price: 15999,
-        category: 'juguetes',
-        image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=500&h=500&fit=crop',
-        description: 'Pelota interactiva con luces LED y sonidos para perros',
-        rating: 4.7,
-        reviews: 156,
-        featured: true,
-        discount: 20
-      },
-      {
-        id: 4,
-        name: 'Cama Térmica para Gatos',
-        price: 32999,
-        category: 'camas',
-        image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=500&h=500&fit=crop',
-        description: 'Cama con calefacción suave para gatos, perfecta para invierno',
-        rating: 4.8,
-        reviews: 56,
-        featured: true
-      }
-    ]
-    setFeaturedProducts(products)
+    fetch('/api/products')
+      .then(res => res.json())
+      .then(data => {
+        setAllProducts(Array.isArray(data) ? data : [])
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
   }, [])
+
+  const offerProducts = allProducts.filter(p => (p.descuento_porcentaje || p.discount || 0) > 0)
+  const products2x1 = allProducts.filter(p => p.tipo === '2x1')
+  const importedProducts = allProducts.filter(p => p.tipo === 'importado')
+  const featuredProducts = allProducts.filter(p => p.destacado || p.featured).slice(0, 4)
+
+  const renderSection = (products, emptyMsg) => {
+    if (loading) return (
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="bg-secondary-100 rounded-2xl h-72 animate-pulse" />
+        ))}
+      </div>
+    )
+    if (products.length === 0) return (
+      <div className="text-center py-10 text-secondary-400">{emptyMsg}</div>
+    )
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {products.map(product => (
+          <ProductCard key={product.id} product={product} onAddToCart={addToCart} allProducts={allProducts} />
+        ))}
+      </div>
+    )
+  }
 
   return (
     <div>
-      {/* Hero Section */}
       <Hero />
       
-      {/* Offers Slider */}
-      <OffersSlider />
-      
-      {/* Featured Products */}
-      <section className="py-16 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <OffersSlider />
+      </div>
+
+      {/* Sección Ofertas */}
+      <section className="py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-secondary-800 mb-4">
-              🐾 Productos Destacados para tu Mascota
-            </h2>
-            <p className="text-lg text-secondary-600">
-              Comederos automáticos Wi-Fi y los mejores productos para el cuidado de tu mascota
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredProducts.map(product => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={addToCart}
-              />
-            ))}
-          </div>
-          
-          <div className="text-center mt-12">
-            <Link 
-              to="/menu" 
-              className="btn btn-primary text-lg px-8 py-4"
-            >
-              Ver Todos los Productos
+          <div className="flex items-center justify-between mb-8">
+            <SectionHeader
+              icon={Tag}
+              title="🔥 Ofertas"
+              subtitle="Productos con descuento activo"
+              color="bg-red-500"
+            />
+            <Link to="/menu?filter=ofertas" className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors">
+              Ver todas →
             </Link>
           </div>
-        </div>
-      </section>
-      
-      {/* Featured Brands Section */}
-      <section className="py-12 bg-gradient-to-r from-secondary-50 to-primary-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-secondary-800 mb-3">
-              Marcas Destacadas
-            </h2>
-            <p className="text-secondary-600">
-              Trabajamos con los mejores proveedores para garantizar la calidad
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-4 mb-8">
-            <div className="group bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
-                  <span className="text-white font-bold text-sm">RC</span>
-                </div>
-                <h3 className="font-medium text-secondary-800 text-xs">Royal Canin</h3>
-              </div>
-            </div>
-            
-            <div className="group bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-red-400 to-red-600 rounded-lg flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
-                  <span className="text-white font-bold text-sm">HP</span>
-                </div>
-                <h3 className="font-medium text-secondary-800 text-xs">Hill's Pet</h3>
-              </div>
-            </div>
-            
-            <div className="group bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
-                  <span className="text-white font-bold text-sm">PR</span>
-                </div>
-                <h3 className="font-medium text-secondary-800 text-xs">Pro Plan</h3>
-              </div>
-            </div>
-            
-            <div className="group bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
-                  <span className="text-white font-bold text-sm">EU</span>
-                </div>
-                <h3 className="font-medium text-secondary-800 text-xs">Eukanuba</h3>
-              </div>
-            </div>
-            
-            <div className="group bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
-                  <span className="text-white font-bold text-sm">KG</span>
-                </div>
-                <h3 className="font-medium text-secondary-800 text-xs">Kong</h3>
-              </div>
-            </div>
-            
-            <div className="group bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-pink-600 rounded-lg flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
-                  <span className="text-white font-bold text-sm">FL</span>
-                </div>
-                <h3 className="font-medium text-secondary-800 text-xs">Flexi</h3>
-              </div>
-            </div>
+          <div className="bg-red-50 border border-red-100 rounded-2xl p-6">
+            {renderSection(offerProducts, 'No hay productos en oferta por el momento.')}
           </div>
         </div>
       </section>
-      
-      {/* Features Section */}
-      <section className="py-16 bg-secondary-50">
+
+      {/* Sección 2x1 */}
+      <section className="py-12 bg-secondary-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-secondary-800 mb-4">
-              ¿Por qué elegir nuestros productos?
-            </h2>
+          <div className="flex items-center justify-between mb-8">
+            <SectionHeader
+              icon={Package}
+              title="🎁 Productos 2x1"
+              subtitle="Llevá dos al precio de uno"
+              color="bg-purple-500"
+            />
+            <Link to="/menu?filter=2x1" className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors">
+              Ver todos →
+            </Link>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">📱</span>
+          <div className="bg-purple-50 border border-purple-100 rounded-2xl p-6">
+            {renderSection(products2x1, 'No hay productos 2x1 disponibles por el momento.')}
+          </div>
+        </div>
+      </section>
+
+      {/* Sección Importados */}
+      <section className="py-12 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-8">
+            <SectionHeader
+              icon={Globe}
+              title="✈️ Importados"
+              subtitle="Productos traídos directo del exterior"
+              color="bg-blue-500"
+            />
+            <Link to="/menu?filter=importados" className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors">
+              Ver todos →
+            </Link>
+          </div>
+          <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6">
+            {renderSection(importedProducts, 'No hay productos importados disponibles por el momento.')}
+          </div>
+        </div>
+      </section>
+
+      {/* Destacados */}
+      {featuredProducts.length > 0 && (
+        <section className="py-12 bg-secondary-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-2xl font-bold text-secondary-900">⭐ Destacados</h2>
+                <p className="text-secondary-500 text-sm">Los favoritos de nuestros clientes</p>
               </div>
-              <h3 className="text-xl font-semibold text-secondary-800 mb-2">
-                Tecnología Wi-Fi
-              </h3>
-              <p className="text-secondary-600">
-                Comederos automáticos con conectividad Wi-Fi y control desde tu smartphone
-              </p>
+              <Link to="/menu" className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors">
+                Ver todos →
+              </Link>
             </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {featuredProducts.map(product => (
+                <ProductCard key={product.id} product={product} onAddToCart={addToCart} allProducts={allProducts} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Features */}
+      <section className="py-12 bg-white border-t border-secondary-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+            <div>
+              <div className="w-14 h-14 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3">
                 <span className="text-2xl">🚚</span>
               </div>
-              <h3 className="text-xl font-semibold text-secondary-800 mb-2">
-                Envío Gratis
-              </h3>
-              <p className="text-secondary-600">
-                Envío gratuito en compras superiores a $100.000 en toda Argentina
-              </p>
+              <h3 className="font-semibold text-secondary-800 mb-1">Envío Gratis</h3>
+              <p className="text-sm text-secondary-500">En compras superiores a $75.000 en toda CABA y parte de GBA</p>
             </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div>
+              <div className="w-14 h-14 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <span className="text-2xl">📱</span>
+              </div>
+              <h3 className="font-semibold text-secondary-800 mb-1">Tecnología Wi-Fi</h3>
+              <p className="text-sm text-secondary-500">Comederos automáticos con control desde tu smartphone</p>
+            </div>
+            <div>
+              <div className="w-14 h-14 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3">
                 <span className="text-2xl">💝</span>
               </div>
-              <h3 className="text-xl font-semibold text-secondary-800 mb-2">
-                Calidad Premium
-              </h3>
-              <p className="text-secondary-600">
-                Productos de alta calidad seleccionados especialmente para el bienestar de tu mascota
-              </p>
+              <h3 className="font-semibold text-secondary-800 mb-1">Calidad Premium</h3>
+              <p className="text-sm text-secondary-500">Productos seleccionados para el bienestar de tu mascota</p>
             </div>
           </div>
         </div>

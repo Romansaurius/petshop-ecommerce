@@ -127,7 +127,8 @@ router.post('/', auth, upload.array('imagenes', 5), async (req, res) => {
       destacado: req.body.destacado === 'true',
       descuento_porcentaje: req.body.descuento_porcentaje || 0,
       stock: req.body.stock || 100,
-      sku
+      sku,
+      tipo: req.body.tipo || 'normal'
     };
 
     const productId = await Product.create(productData);

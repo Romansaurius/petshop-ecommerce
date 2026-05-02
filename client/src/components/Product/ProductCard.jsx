@@ -43,6 +43,7 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
   };
   const getProductDiscount = () => product.descuento_porcentaje || product.discount || 0;
   const getProductFeatured = () => product.destacado || product.featured || false;
+  const getProductTipo = () => product.tipo || 'normal';
 
   const handleAddToCart = async () => {
     setIsAdding(true);
@@ -178,14 +179,23 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
           
           {/* Badges */}
           {getProductDiscount() > 0 && (
-            <div className="absolute top-3 left-3 bg-red-500 text-white text-sm font-bold px-3 py-1 rounded-full shadow-lg">
+            <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
               -{getProductDiscount()}%
             </div>
           )}
-          
           {getProductFeatured() && (
-            <div className="absolute top-3 right-3 bg-yellow-500 text-white text-sm font-bold px-3 py-1 rounded-full shadow-lg">
+            <div className="absolute top-3 right-12 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
               ⭐ Destacado
+            </div>
+          )}
+          {getProductTipo() === '2x1' && (
+            <div className="absolute bottom-3 left-3 bg-purple-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+              🎁 2x1
+            </div>
+          )}
+          {getProductTipo() === 'importado' && (
+            <div className="absolute bottom-3 left-3 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+              ✈️ Importado
             </div>
           )}
           

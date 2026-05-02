@@ -36,7 +36,7 @@ const Header = () => {
         <div className="max-w-7xl mx-auto px-4 text-center">
           <div className="flex items-center justify-center space-x-2 text-sm font-medium">
             <Sparkles className="w-4 h-4 animate-pulse" />
-            <span>🚚 Envío GRATIS en compras superiores a $100.000</span>
+            <span>🚚 Envío GRATIS en compras superiores a $75.000 · Toda CABA y parte de GBA</span>
             <Sparkles className="w-4 h-4 animate-pulse" />
           </div>
         </div>
