@@ -175,13 +175,45 @@ const Checkout = () => {
           <div className="space-y-6">
             <div className="card p-6">
               <h2 className="text-xl font-semibold text-secondary-800 mb-4">Resumen del Pedido</h2>
-              <div className="space-y-2">
-                <div className="flex justify-between"><span>Subtotal:</span><span>{formatPrice(subtotal)}</span></div>
-                {discount > 0 && <div className="flex justify-between text-green-600"><span>Descuento:</span><span>-{formatPrice(discount)}</span></div>}
-                <div className="border-t border-secondary-200 pt-2 mt-4">
-                  <div className="flex justify-between text-lg font-semibold">
-                    <span>Total:</span>
-                    <span className="text-primary-500">{formatPrice(total)}</span>
+              <div className="space-y-3">
+                {cart.map(item => {
+                  const precio = item.precio || item.price || 0
+                  const is2x1 = item.is2x1
+                  const unidadesCobradas = is2x1 ? Math.ceil(item.quantity / 2) : item.quantity
+                  const subtotalItem = precio * unidadesCobradas
+                  return (
+                    <div key={item.id} className="flex justify-between items-start text-sm">
+                      <div>
+                        <span className="text-secondary-800 font-medium">{item.nombre || item.name}</span>
+                        {is2x1 ? (
+                          <p className="text-xs text-purple-600 mt-0.5">
+                            {item.quantity} unidades · paga {unidadesCobradas} x {formatPrice(precio)}
+                          </p>
+                        ) : (
+                          <p className="text-xs text-secondary-500 mt-0.5">
+                            {item.quantity} x {formatPrice(precio)}
+                          </p>
+                        )}
+                      </div>
+                      <span className="font-medium text-secondary-800">{formatPrice(subtotalItem)}</span>
+                    </div>
+                  )
+                })}
+
+                <div className="border-t border-secondary-200 pt-3 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-secondary-600">Subtotal</span>
+                    <span>{formatPrice(subtotal)}</span>
+                  </div>
+                  {discount > 0 && (
+                    <div className="flex justify-between text-sm text-green-600">
+                      <span>Descuento ({discountCode.toUpperCase()})</span>
+                      <span>- {formatPrice(discount)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-lg font-bold border-t border-secondary-200 pt-2">
+                    <span>Total</span>
+                    <span className="text-primary-600">{formatPrice(total)}</span>
                   </div>
                 </div>
               </div>
@@ -233,7 +265,7 @@ const Checkout = () => {
               </div>
 
               <button type="submit" disabled={isProcessing} className="w-full btn btn-primary py-4 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
-                {isProcessing ? 'Procesando...' : `Realizar Pedido - ${formatPrice(total)}`}
+                {isProcessing ? 'Procesando...' : `Realizar Pedido ${formatPrice(total)}`}
               </button>
             </form>
           </div>

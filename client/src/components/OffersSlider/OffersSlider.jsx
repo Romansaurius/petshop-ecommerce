@@ -9,7 +9,7 @@ const OffersSlider = () => {
       id: 1,
       title: "ENVÍO GRATIS",
       subtitle: "En compras +$35.000",
-      description: "A todo el país",
+      description: "Malvinas Argentinas, Pilar, San Isidro y alrededores",
       image: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800",
       buttonText: "Aprovechar",
       bgColor: "from-green-500 to-teal-500"

@@ -30,7 +30,7 @@ const faqs = [
   },
   {
     question: 'Como funciona el envio?',
-    answer: 'Realizamos envios a toda CABA y parte del GBA. Las compras superiores a $75.000 tienen envio gratis. Para compras menores, el costo se calcula segun la zona.'
+    answer: 'Realizamos envios a Malvinas Argentinas, Pilar, San Isidro y alrededores. Las compras superiores a $35.000 tienen envio gratis. Para compras menores, el costo se calcula segun la zona.'
   },
   {
     question: 'Puedo devolver un producto?',
