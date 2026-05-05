@@ -4,19 +4,7 @@ import { useCart } from '../../context/CartContext'
 import ProductCard from '../../components/Product/ProductCard'
 import Hero from '../../components/Hero/Hero'
 import OffersSlider from '../../components/OffersSlider/OffersSlider'
-import { Tag, Package, Globe } from 'lucide-react'
-
-const SectionHeader = ({ icon: Icon, title, subtitle, color }) => (
-  <div className="flex items-center space-x-4">
-    <div className={`w-12 h-12 ${color} rounded-xl flex items-center justify-center shadow-md`}>
-      <Icon className="w-6 h-6 text-white" />
-    </div>
-    <div>
-      <h2 className="text-2xl font-bold text-secondary-900">{title}</h2>
-      {subtitle && <p className="text-secondary-500 text-sm">{subtitle}</p>}
-    </div>
-  </div>
-)
+import { Tag, Package, Globe, ChevronDown, ChevronUp } from 'lucide-react'
 
 const brands = [
   { initials: 'RC', name: 'Royal Canin', color: 'from-blue-400 to-blue-600' },
@@ -27,10 +15,74 @@ const brands = [
   { initials: 'FL', name: 'Flexi', color: 'from-pink-400 to-pink-600' },
 ]
 
+const faqs = [
+  {
+    question: '¿Cómo realizo una compra?',
+    answer: 'Navegá por nuestro catálogo, elegí los productos que querés y agregálos al carrito. Luego completá tus datos de contacto y elegí el método de pago. ¡Listo!'
+  },
+  {
+    question: '¿Cuáles son los métodos de pago?',
+    answer: 'Aceptamos tarjetas de crédito y débito, transferencia bancaria y efectivo. Todos los pagos son procesados de forma segura.'
+  },
+  {
+    question: '¿Cómo funciona el envío?',
+    answer: 'Realizamos envíos a toda CABA y parte del GBA. Las compras superiores a $75.000 tienen envío gratis. Para compras menores, el costo se calcula según la zona.'
+  },
+  {
+    question: '¿Puedo devolver un producto?',
+    answer: 'Sí, aceptamos devoluciones dentro de los 30 días de recibido el producto, siempre que esté en su estado original y con el embalaje intacto.'
+  },
+]
+
+const FAQItem = ({ question, answer }) => {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="border-b border-gray-200 last:border-0">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between py-5 text-left"
+      >
+        <span className="font-medium text-gray-800 text-base">{question}</span>
+        {open
+          ? <ChevronUp className="w-5 h-5 text-gray-400 flex-shrink-0" />
+          : <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
+        }
+      </button>
+      {open && (
+        <p className="pb-5 text-gray-500 text-sm leading-relaxed">{answer}</p>
+      )}
+    </div>
+  )
+}
+
+const SectionBlock = ({ icon: Icon, iconColor, label, subtitle, bgColor, borderColor, children, link, linkLabel }) => (
+  <section className="py-14">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="flex items-end justify-between mb-8">
+        <div className="flex items-center space-x-3">
+          <div className={`w-1 h-10 ${iconColor} rounded-full`} />
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-0.5">{subtitle}</p>
+            <h2 className="text-2xl font-bold text-gray-900">{label}</h2>
+          </div>
+        </div>
+        {link && (
+          <Link to={link} className="text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors border-b border-gray-300 hover:border-gray-700 pb-0.5">
+            {linkLabel || 'Ver todos'}
+          </Link>
+        )}
+      </div>
+      <div className={`${bgColor} ${borderColor} border rounded-2xl p-6`}>
+        {children}
+      </div>
+    </div>
+  </section>
+)
+
 const Skeleton = () => (
   <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
     {[...Array(4)].map((_, i) => (
-      <div key={i} className="bg-secondary-100 rounded-2xl h-72 animate-pulse" />
+      <div key={i} className="bg-gray-100 rounded-2xl h-72 animate-pulse" />
     ))}
   </div>
 )
@@ -59,30 +111,22 @@ const Home = () => {
   const importedProducts = allProducts.filter(p => p.tipo === 'importado').slice(0, 4)
   const featuredProducts = allProducts.filter(p => p.destacado || p.featured).slice(0, 4)
 
-  const renderSection = (products, emptyMsg, link) => {
+  const renderProducts = (products, emptyMsg) => {
     if (loading) return <Skeleton />
     if (products.length === 0) return (
-      <div className="text-center py-10 text-secondary-400">{emptyMsg}</div>
+      <p className="text-center py-10 text-gray-400 text-sm">{emptyMsg}</p>
     )
     return (
-      <>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {products.map(product => (
-            <ProductCard key={product.id} product={product} onAddToCart={addToCart} allProducts={allProducts} />
-          ))}
-        </div>
-        <div className="text-center mt-6">
-          <Link to={link} className="inline-flex items-center space-x-2 btn btn-primary px-8 py-3">
-            <span>Ver todos</span>
-            <span>→</span>
-          </Link>
-        </div>
-      </>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {products.map(product => (
+          <ProductCard key={product.id} product={product} onAddToCart={addToCart} allProducts={allProducts} />
+        ))}
+      </div>
     )
   }
 
   return (
-    <div>
+    <div className="bg-white">
       <Hero />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -90,115 +134,123 @@ const Home = () => {
       </div>
 
       {/* Ofertas */}
-      <section className="py-12 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-8">
-            <SectionHeader icon={Tag} title="🔥 Ofertas" subtitle="Los mejores descuentos del momento" color="bg-red-500" />
-          </div>
-          <div className="bg-red-50 border border-red-100 rounded-2xl p-6">
-            {renderSection(offerProducts, 'No hay productos en oferta por el momento.', '/menu?filter=ofertas')}
-          </div>
-        </div>
-      </section>
+      <SectionBlock
+        iconColor="bg-red-500"
+        subtitle="Descuentos activos"
+        label="Ofertas"
+        bgColor="bg-red-50/50"
+        borderColor="border-red-100"
+        link="/menu?filter=ofertas"
+        linkLabel="Ver todas las ofertas"
+      >
+        {renderProducts(offerProducts, 'No hay productos en oferta por el momento.')}
+      </SectionBlock>
+
+      <div className="border-t border-gray-100" />
 
       {/* 2x1 */}
-      <section className="py-12 bg-secondary-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-8">
-            <SectionHeader icon={Package} title="🎁 Productos 2x1" subtitle="Llevá dos al precio de uno" color="bg-purple-500" />
-          </div>
-          <div className="bg-purple-50 border border-purple-100 rounded-2xl p-6">
-            {renderSection(products2x1, 'No hay productos 2x1 disponibles por el momento.', '/menu?filter=2x1')}
-          </div>
-        </div>
-      </section>
+      <SectionBlock
+        iconColor="bg-purple-500"
+        subtitle="Promociones especiales"
+        label="2 x 1"
+        bgColor="bg-purple-50/50"
+        borderColor="border-purple-100"
+        link="/menu?filter=2x1"
+        linkLabel="Ver todos los 2x1"
+      >
+        {renderProducts(products2x1, 'No hay productos 2x1 disponibles por el momento.')}
+      </SectionBlock>
+
+      <div className="border-t border-gray-100" />
 
       {/* Importados */}
-      <section className="py-12 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-8">
-            <SectionHeader icon={Globe} title="✈️ Importados" subtitle="Productos traídos directo del exterior" color="bg-blue-500" />
-          </div>
-          <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6">
-            {renderSection(importedProducts, 'No hay productos importados disponibles por el momento.', '/menu?filter=importados')}
-          </div>
-        </div>
-      </section>
+      <SectionBlock
+        iconColor="bg-blue-500"
+        subtitle="Directo del exterior"
+        label="Importados"
+        bgColor="bg-blue-50/50"
+        borderColor="border-blue-100"
+        link="/menu?filter=importados"
+        linkLabel="Ver todos los importados"
+      >
+        {renderProducts(importedProducts, 'No hay productos importados disponibles por el momento.')}
+      </SectionBlock>
+
+      <div className="border-t border-gray-100" />
 
       {/* Destacados */}
       {(loading || featuredProducts.length > 0) && (
-        <section className="py-12 bg-secondary-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h2 className="text-2xl font-bold text-secondary-900">⭐ Destacados</h2>
-                <p className="text-secondary-500 text-sm">Los favoritos de nuestros clientes</p>
-              </div>
+        <SectionBlock
+          iconColor="bg-amber-400"
+          subtitle="Los más elegidos"
+          label="Destacados"
+          bgColor="bg-amber-50/30"
+          borderColor="border-amber-100"
+          link="/menu"
+          linkLabel="Ver todos los productos"
+        >
+          {loading ? <Skeleton /> : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {featuredProducts.map(product => (
+                <ProductCard key={product.id} product={product} onAddToCart={addToCart} allProducts={allProducts} />
+              ))}
             </div>
-            {loading ? <Skeleton /> : (
-              <>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                  {featuredProducts.map(product => (
-                    <ProductCard key={product.id} product={product} onAddToCart={addToCart} allProducts={allProducts} />
-                  ))}
-                </div>
-                <div className="text-center mt-6">
-                  <Link to="/menu" className="inline-flex items-center space-x-2 btn btn-primary px-8 py-3">
-                    <span>Ver todos los productos</span>
-                    <span>→</span>
-                  </Link>
-                </div>
-              </>
-            )}
-          </div>
-        </section>
+          )}
+        </SectionBlock>
       )}
 
       {/* Marcas */}
-      <section className="py-12 bg-white border-t border-secondary-100">
+      <section className="py-14 bg-gray-50 border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-secondary-800 mb-2">Marcas con las que trabajamos</h2>
-            <p className="text-secondary-500 text-sm">Trabajamos con los mejores proveedores para garantizar la calidad</p>
+          <div className="text-center mb-10">
+            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">Nuestros proveedores</p>
+            <h2 className="text-2xl font-bold text-gray-900">Marcas con las que trabajamos</h2>
           </div>
           <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
             {brands.map(brand => (
-              <div key={brand.name} className="group bg-secondary-50 hover:bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300 text-center">
+              <div key={brand.name} className="group bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300 text-center border border-gray-100">
                 <div className={`w-12 h-12 bg-gradient-to-br ${brand.color} rounded-lg flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform`}>
                   <span className="text-white font-bold text-sm">{brand.initials}</span>
                 </div>
-                <h3 className="font-medium text-secondary-800 text-xs">{brand.name}</h3>
+                <h3 className="font-medium text-gray-700 text-xs">{brand.name}</h3>
               </div>
             ))}
           </div>
         </div>
       </section>
 
+      {/* FAQ */}
+      <section className="py-14 bg-white border-t border-gray-100">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">Ayuda</p>
+            <h2 className="text-2xl font-bold text-gray-900">Preguntas frecuentes</h2>
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-200 px-6 divide-y divide-gray-100">
+            {faqs.map((faq, i) => (
+              <FAQItem key={i} question={faq.question} answer={faq.answer} />
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Features */}
-      <section className="py-12 bg-secondary-50 border-t border-secondary-100">
+      <section className="py-12 bg-gray-50 border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-            <div>
-              <div className="w-14 h-14 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <span className="text-2xl">🚚</span>
+            {[
+              { icon: '🚚', title: 'Envío Gratis', desc: 'En compras superiores a $75.000 · Toda CABA y parte de GBA' },
+              { icon: '📱', title: 'Tecnología Wi-Fi', desc: 'Comederos automáticos con control desde tu smartphone' },
+              { icon: '💝', title: 'Calidad Premium', desc: 'Productos seleccionados para el bienestar de tu mascota' },
+            ].map(f => (
+              <div key={f.title}>
+                <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-2xl">{f.icon}</span>
+                </div>
+                <h3 className="font-semibold text-gray-800 mb-1">{f.title}</h3>
+                <p className="text-sm text-gray-500">{f.desc}</p>
               </div>
-              <h3 className="font-semibold text-secondary-800 mb-1">Envío Gratis</h3>
-              <p className="text-sm text-secondary-500">En compras superiores a $75.000 · Toda CABA y parte de GBA</p>
-            </div>
-            <div>
-              <div className="w-14 h-14 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <span className="text-2xl">📱</span>
-              </div>
-              <h3 className="font-semibold text-secondary-800 mb-1">Tecnología Wi-Fi</h3>
-              <p className="text-sm text-secondary-500">Comederos automáticos con control desde tu smartphone</p>
-            </div>
-            <div>
-              <div className="w-14 h-14 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <span className="text-2xl">💝</span>
-              </div>
-              <h3 className="font-semibold text-secondary-800 mb-1">Calidad Premium</h3>
-              <p className="text-sm text-secondary-500">Productos seleccionados para el bienestar de tu mascota</p>
-            </div>
+            ))}
           </div>
         </div>
       </section>

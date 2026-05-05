@@ -39,7 +39,6 @@ export const CartProvider = ({ children }) => {
       }
 
       const is2x1 = product.tipo === '2x1'
-      const addQty = is2x1 ? 2 : 1
       
       if (existingItem) {
         if (existingItem.quantity >= 10) {
@@ -48,11 +47,11 @@ export const CartProvider = ({ children }) => {
         }
         return prevCart.map(item =>
           item.id === product.id
-            ? { ...item, quantity: Math.min(10, item.quantity + addQty) }
+            ? { ...item, quantity: item.quantity + 1 }
             : item
         )
       } else {
-        return [...prevCart, { ...normalizedProduct, quantity: addQty }]
+        return [...prevCart, { ...normalizedProduct, quantity: 1, is2x1 }]
       }
     })
   }
@@ -87,7 +86,8 @@ export const CartProvider = ({ children }) => {
   const getTotalPrice = () => {
     return cart.reduce((sum, item) => {
       const price = item.precio || 0
-      return sum + (price * item.quantity)
+      const unidadesCobradas = item.is2x1 ? Math.ceil(item.quantity / 2) : item.quantity
+      return sum + (price * unidadesCobradas)
     }, 0)
   }
 

@@ -89,9 +89,19 @@ const Cart = ({ isOpen, onClose }) => {
                     <h4 className="font-medium text-secondary-800 truncate">
                       {item.nombre}
                     </h4>
-                    <p className="text-sm text-secondary-600">
-                      {formatPrice(item.precio || 0)}
-                    </p>
+                    {item.is2x1 ? (
+                      <div className="space-y-0.5">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-xs bg-purple-100 text-purple-700 font-bold px-2 py-0.5 rounded-full">🎁 2x1</span>
+                          <span className="text-sm text-secondary-600">{formatPrice(item.precio || 0)} c/u</span>
+                        </div>
+                        <p className="text-xs text-green-600 font-medium">
+                          Pagás {Math.ceil(item.quantity / 2)} × {formatPrice(item.precio || 0)} = {formatPrice((item.precio || 0) * Math.ceil(item.quantity / 2))}
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-secondary-600">{formatPrice(item.precio || 0)}</p>
+                    )}
                   </div>
 
                   {/* Quantity Controls */}
