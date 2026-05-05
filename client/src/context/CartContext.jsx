@@ -30,7 +30,6 @@ export const CartProvider = ({ children }) => {
     setCart(prevCart => {
       const existingItem = prevCart.find(item => item.id === product.id)
       
-      // Normalizar el producto para asegurar que tenga las propiedades correctas
       const normalizedProduct = {
         ...product,
         precio: product.precio || product.price || 0,
@@ -38,20 +37,22 @@ export const CartProvider = ({ children }) => {
         imagen: product.imagen || product.image || (product.imagenes && product.imagenes.length > 0 ? product.imagenes[0] : null),
         imagenes: product.imagenes || (product.imagen ? [product.imagen] : [])
       }
+
+      const is2x1 = product.tipo === '2x1'
+      const addQty = is2x1 ? 2 : 1
       
       if (existingItem) {
-        // Límite máximo de 10 unidades por producto
         if (existingItem.quantity >= 10) {
           alert('Máximo 10 unidades por producto')
           return prevCart
         }
         return prevCart.map(item =>
           item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: Math.min(10, item.quantity + addQty) }
             : item
         )
       } else {
-        return [...prevCart, { ...normalizedProduct, quantity: 1 }]
+        return [...prevCart, { ...normalizedProduct, quantity: addQty }]
       }
     })
   }

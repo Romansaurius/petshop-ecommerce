@@ -21,9 +21,12 @@ const Menu = () => {
   // Obtener parámetros de URL
   useEffect(() => {
     const categoryFromUrl = searchParams.get('category')
+    const filterFromUrl = searchParams.get('filter')
     const searchFromUrl = searchParams.get('search')
     
-    if (categoryFromUrl) {
+    if (filterFromUrl) {
+      setSelectedCategory(filterFromUrl)
+    } else if (categoryFromUrl) {
       setSelectedCategory(categoryFromUrl)
     }
     if (searchFromUrl) {
@@ -75,7 +78,14 @@ const Menu = () => {
   useEffect(() => {
     let filtered = products
 
-    if (selectedCategory !== 'todos') {
+    if (selectedCategory === 'ofertas') {
+      filtered = filtered.filter(p => (p.descuento_porcentaje || p.discount || 0) > 0)
+        .sort((a, b) => (b.descuento_porcentaje || b.discount || 0) - (a.descuento_porcentaje || a.discount || 0))
+    } else if (selectedCategory === '2x1') {
+      filtered = filtered.filter(p => p.tipo === '2x1')
+    } else if (selectedCategory === 'importados') {
+      filtered = filtered.filter(p => p.tipo === 'importado')
+    } else if (selectedCategory !== 'todos') {
       filtered = filtered.filter(product => 
         (product.categoria || product.category) === selectedCategory
       )
@@ -107,12 +117,18 @@ const Menu = () => {
   }, [products, selectedCategory, selectedBrand, sortBy, searchTerm])
 
   const getCategoryStats = () => {
-    return categories.map(cat => ({
+    const specialCats = [
+      { id: 'ofertas', nombre: 'ofertas', count: products.filter(p => (p.descuento_porcentaje || p.discount || 0) > 0).length },
+      { id: '2x1', nombre: '2x1', count: products.filter(p => p.tipo === '2x1').length },
+      { id: 'importados', nombre: 'importados', count: products.filter(p => p.tipo === 'importado').length },
+    ]
+    const normalCats = categories.map(cat => ({
       ...cat,
-      count: cat.nombre === 'todos' 
-        ? products.length 
+      count: cat.nombre === 'todos'
+        ? products.length
         : products.filter(p => (p.categoria || p.category) === cat.nombre).length
     }))
+    return [...normalCats, ...specialCats]
   }
 
   const getCategoryIcon = (categoryName) => {
@@ -126,7 +142,10 @@ const Menu = () => {
       'accesorios': '🎒',
       'alimentos': '🥘',
       'higiene': '🧼',
-      'salud': '💊'
+      'salud': '💊',
+      'ofertas': '🔥',
+      '2x1': '🎁',
+      'importados': '✈️'
     }
     return icons[categoryName] || '📦'
   }
