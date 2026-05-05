@@ -11,30 +11,11 @@ const Hero = () => {
               Envio gratis +$35.000 · Malvinas Argentinas, Pilar, San Isidro y alrededores
             </span>
 
-            <div className="flex items-center gap-4 mb-3">
-              {/* Logo placeholder */}
-              <div className="w-16 h-16 rounded-2xl bg-primary-50 border border-primary-100 flex items-center justify-center flex-shrink-0">
-                <svg viewBox="0 0 64 64" className="w-10 h-10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <ellipse cx="20" cy="14" rx="6" ry="8" fill="#ff6b35" opacity="0.85"/>
-                  <ellipse cx="44" cy="14" rx="6" ry="8" fill="#ff6b35" opacity="0.85"/>
-                  <ellipse cx="10" cy="30" rx="5" ry="7" fill="#ff6b35" opacity="0.85"/>
-                  <ellipse cx="54" cy="30" rx="5" ry="7" fill="#ff6b35" opacity="0.85"/>
-                  <ellipse cx="32" cy="42" rx="16" ry="14" fill="#ff6b35"/>
-                  <ellipse cx="26" cy="40" rx="3" ry="3.5" fill="white" opacity="0.6"/>
-                  <ellipse cx="38" cy="40" rx="3" ry="3.5" fill="white" opacity="0.6"/>
-                </svg>
-              </div>
-              <div className="text-left">
-                <h1 className="text-5xl lg:text-6xl font-bold leading-none tracking-tight">
-                  <span className="text-primary-600">MauLu</span>
-                </h1>
-                <p className="text-base font-medium text-gray-400 tracking-widest uppercase">PetShop</p>
-              </div>
-            </div>
-
-            <p className="text-base text-gray-500 max-w-xs text-center">
-              Todo lo que tu mascota necesita, en un solo lugar.
-            </p>
+            <img
+              src="/logo 2.png"
+              alt="MauLu PetShop"
+              className="w-64 sm:w-72 object-contain"
+            />
           </div>
 
           {/* Cuadro derecho */}
