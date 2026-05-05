@@ -6,35 +6,32 @@ const Hero = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
 
-          <div className="text-center lg:text-left">
-            <span className="inline-block text-xs font-semibold uppercase tracking-widest text-primary-600 bg-primary-50 px-3 py-1.5 rounded-full mb-6">
+          <div className="text-center flex flex-col items-center lg:items-start">
+            <span className="inline-block text-xs font-semibold uppercase tracking-widest text-primary-600 bg-primary-50 px-3 py-1.5 rounded-full mb-8">
               Envio gratis +$35.000 · Malvinas Argentinas, Pilar, San Isidro y alrededores
             </span>
 
-            <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-4 leading-tight tracking-tight">
-              <span className="text-primary-600">MauLu</span>
-              <br />
-              <span className="text-3xl lg:text-4xl font-medium text-gray-500">PetShop</span>
-            </h1>
+            {/* Logo placeholder */}
+            <div className="w-20 h-20 mb-6 rounded-2xl bg-primary-50 border border-primary-100 flex items-center justify-center">
+              <svg viewBox="0 0 64 64" className="w-12 h-12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <ellipse cx="20" cy="14" rx="6" ry="8" fill="#ff6b35" opacity="0.85"/>
+                <ellipse cx="44" cy="14" rx="6" ry="8" fill="#ff6b35" opacity="0.85"/>
+                <ellipse cx="10" cy="30" rx="5" ry="7" fill="#ff6b35" opacity="0.85"/>
+                <ellipse cx="54" cy="30" rx="5" ry="7" fill="#ff6b35" opacity="0.85"/>
+                <ellipse cx="32" cy="42" rx="16" ry="14" fill="#ff6b35"/>
+                <ellipse cx="26" cy="40" rx="3" ry="3.5" fill="white" opacity="0.6"/>
+                <ellipse cx="38" cy="40" rx="3" ry="3.5" fill="white" opacity="0.6"/>
+              </svg>
+            </div>
 
-            <p className="text-lg text-gray-500 mb-10 max-w-md mx-auto lg:mx-0">
+            <h1 className="text-6xl lg:text-7xl font-bold text-gray-900 mb-3 leading-none tracking-tight">
+              <span className="text-primary-600">MauLu</span>
+            </h1>
+            <p className="text-xl lg:text-2xl font-medium text-gray-400 mb-4 tracking-wide">PetShop</p>
+
+            <p className="text-base text-gray-500 max-w-sm text-center lg:text-left">
               Todo lo que tu mascota necesita, en un solo lugar.
             </p>
-
-            <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
-              <Link
-                to="/menu"
-                className="bg-primary-600 hover:bg-primary-700 text-white px-8 py-3.5 rounded-xl font-semibold text-base transition-all duration-200 shadow-sm hover:shadow-md"
-              >
-                Ver productos
-              </Link>
-              <Link
-                to="/register"
-                className="border border-gray-200 text-gray-700 hover:border-gray-400 hover:text-gray-900 px-8 py-3.5 rounded-xl font-semibold text-base transition-all duration-200"
-              >
-                Crear cuenta
-              </Link>
-            </div>
           </div>
 
           {/* Cuadro derecho */}
