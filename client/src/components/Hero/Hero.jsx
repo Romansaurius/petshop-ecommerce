@@ -7,15 +7,14 @@ const Hero = () => {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
 
           <div className="text-center flex flex-col items-center">
-            <span className="inline-block text-xs font-semibold uppercase tracking-widest text-primary-600 bg-primary-50 px-3 py-1.5 rounded-full mb-6">
-              Envio gratis +$35.000 · Malvinas Argentinas, Pilar, San Isidro y alrededores
-            </span>
-
             <img
               src="/logo2 (1).png"
               alt="MauLu PetShop"
-              className="w-64 sm:w-72 object-contain"
+              className="w-72 sm:w-96 lg:w-[420px] object-contain drop-shadow-sm"
             />
+            <span className="inline-block mt-6 text-xs font-semibold uppercase tracking-widest text-primary-600 bg-primary-50 px-4 py-2 rounded-full">
+              🚚 Envío gratis +$35.000 · Malvinas Argentinas, Pilar, San Isidro y alrededores
+            </span>
           </div>
 
           {/* Cuadro derecho */}
