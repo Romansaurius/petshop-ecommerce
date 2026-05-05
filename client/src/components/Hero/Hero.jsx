@@ -12,9 +12,6 @@ const Hero = () => {
               alt="MauLu PetShop"
               className="w-72 sm:w-96 lg:w-[420px] object-contain drop-shadow-sm"
             />
-            <span className="inline-block mt-6 text-xs font-semibold uppercase tracking-widest text-primary-600 bg-primary-50 px-4 py-2 rounded-full">
-              🚚 Envío gratis +$35.000 · Malvinas Argentinas, Pilar, San Isidro y alrededores
-            </span>
           </div>
 
           {/* Cuadro derecho */}
