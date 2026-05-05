@@ -9,7 +9,20 @@ const orderRoutes = require('./routes/orderRoutes');
 const loyaltyRoutes = require('./routes/loyaltyRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 
-dotenv.config();
+const db = require('./config/database');
+
+// Asegurar columnas necesarias en la DB al arrancar
+async function ensureDbColumns() {
+  try {
+    await db.execute(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS role ENUM('user','admin') DEFAULT 'user'`);
+    await db.execute(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS compras_realizadas INT DEFAULT 0`);
+    await db.execute(`ALTER TABLE productos ADD COLUMN IF NOT EXISTS tipo VARCHAR(50) DEFAULT 'normal'`);
+    console.log('✅ Columnas DB verificadas');
+  } catch (e) {
+    console.log('DB columns check:', e.message);
+  }
+}
+ensureDbColumns();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
