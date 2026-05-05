@@ -12,7 +12,7 @@ const Hero = () => {
             </span>
 
             <img
-              src="/logo 2.png"
+              src="/logo2 (1).png"
               alt="MauLu PetShop"
               className="w-64 sm:w-72 object-contain"
             />
