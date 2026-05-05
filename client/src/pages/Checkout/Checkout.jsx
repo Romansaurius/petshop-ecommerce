@@ -29,23 +29,16 @@ const Checkout = () => {
     address: ''
   })
 
-  // Verificar autenticación
+  // Pre-llenar datos del usuario autenticado si está logueado
   useEffect(() => {
-    if (!isAuthenticated) {
-      // Mostrar modal de login requerido por 3 segundos, luego redirigir
-      const timer = setTimeout(() => {
-        navigate('/login', { state: { from: '/checkout' } })
-      }, 3000)
-      return () => clearTimeout(timer)
-    } else {
-      // Pre-llenar datos del usuario autenticado
+    if (isAuthenticated && user) {
       setCustomerInfo(prev => ({
         ...prev,
         name: user.name || '',
         email: user.email || ''
       }))
     }
-  }, [isAuthenticated, navigate, user])
+  }, [isAuthenticated, user])
 
   const validDiscounts = {
     'DESCUENTO10': 0.1,
@@ -163,38 +156,7 @@ const Checkout = () => {
     )
   }
 
-  // Mostrar pantalla de login requerido
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-secondary-50 flex items-center justify-center">
-        <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full mx-4 text-center">
-          <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Lock className="w-8 h-8 text-primary-600" />
-          </div>
-          <h2 className="text-2xl font-bold text-secondary-800 mb-2">Inicia sesión para continuar</h2>
-          <p className="text-secondary-600 mb-6">
-            Necesitas estar logueado para realizar una compra. Te redirigiremos al login en unos segundos.
-          </p>
-          <div className="flex space-x-3">
-            <button 
-              onClick={() => navigate('/login', { state: { from: '/checkout' } })}
-              className="btn btn-primary flex-1"
-            >
-              Iniciar Sesión
-            </button>
-            <button 
-              onClick={() => navigate('/register', { state: { from: '/checkout' } })}
-              className="btn btn-secondary flex-1"
-            >
-              Registrarse
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
 
-  if (cart.length === 0) {
     return (
       <div className="min-h-screen bg-secondary-50 flex items-center justify-center">
         <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full mx-4 text-center">

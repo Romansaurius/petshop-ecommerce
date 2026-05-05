@@ -17,20 +17,24 @@ const brands = [
 
 const faqs = [
   {
-    question: '¿Cómo realizo una compra?',
-    answer: 'Navegá por nuestro catálogo, elegí los productos que querés y agregálos al carrito. Luego completá tus datos de contacto y elegí el método de pago. ¡Listo!'
+    question: 'Como realizo una compra?',
+    answer: 'Navega por nuestro catalogo, elegi los productos que queres y agregarlos al carrito. Luego completa tus datos de contacto y elegi el metodo de pago. No necesitas crear una cuenta para comprar.'
   },
   {
-    question: '¿Cuáles son los métodos de pago?',
-    answer: 'Aceptamos tarjetas de crédito y débito, transferencia bancaria y efectivo. Todos los pagos son procesados de forma segura.'
+    question: 'Por que crear una cuenta?',
+    answer: 'Crear una cuenta es opcional pero te da acceso al programa de fidelizacion de MauLu. Acumula puntos con cada compra, desbloquea recompensas, accede a descuentos exclusivos en peluqueria y recibe ofertas antes que nadie. Es gratis y vale la pena!'
   },
   {
-    question: '¿Cómo funciona el envío?',
-    answer: 'Realizamos envíos a toda CABA y parte del GBA. Las compras superiores a $75.000 tienen envío gratis. Para compras menores, el costo se calcula según la zona.'
+    question: 'Cuales son los metodos de pago?',
+    answer: 'Aceptamos tarjetas de credito y debito, transferencia bancaria y efectivo. Todos los pagos son procesados de forma segura.'
   },
   {
-    question: '¿Puedo devolver un producto?',
-    answer: 'Sí, aceptamos devoluciones dentro de los 30 días de recibido el producto, siempre que esté en su estado original y con el embalaje intacto.'
+    question: 'Como funciona el envio?',
+    answer: 'Realizamos envios a toda CABA y parte del GBA. Las compras superiores a $75.000 tienen envio gratis. Para compras menores, el costo se calcula segun la zona.'
+  },
+  {
+    question: 'Puedo devolver un producto?',
+    answer: 'Si, aceptamos devoluciones dentro de los 30 dias de recibido el producto, siempre que este en su estado original y con el embalaje intacto.'
   },
 ]
 
@@ -55,7 +59,7 @@ const FAQItem = ({ question, answer }) => {
   )
 }
 
-const SectionBlock = ({ icon: Icon, iconColor, label, subtitle, bgColor, borderColor, children, link, linkLabel }) => (
+const SectionBlock = ({ iconColor, label, subtitle, bgColor, borderColor, children, link, linkLabel }) => (
   <section className="py-14">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="flex items-end justify-between mb-8">
@@ -133,7 +137,6 @@ const Home = () => {
         <OffersSlider />
       </div>
 
-      {/* Ofertas */}
       <SectionBlock
         iconColor="bg-red-500"
         subtitle="Descuentos activos"
@@ -148,7 +151,6 @@ const Home = () => {
 
       <div className="border-t border-gray-100" />
 
-      {/* 2x1 */}
       <SectionBlock
         iconColor="bg-purple-500"
         subtitle="Promociones especiales"
@@ -163,7 +165,6 @@ const Home = () => {
 
       <div className="border-t border-gray-100" />
 
-      {/* Importados */}
       <SectionBlock
         iconColor="bg-blue-500"
         subtitle="Directo del exterior"
@@ -178,11 +179,10 @@ const Home = () => {
 
       <div className="border-t border-gray-100" />
 
-      {/* Destacados */}
       {(loading || featuredProducts.length > 0) && (
         <SectionBlock
           iconColor="bg-amber-400"
-          subtitle="Los más elegidos"
+          subtitle="Los mas elegidos"
           label="Destacados"
           bgColor="bg-amber-50/30"
           borderColor="border-amber-100"
@@ -239,8 +239,8 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             {[
-              { icon: '🚚', title: 'Envío Gratis', desc: 'En compras superiores a $75.000 · Toda CABA y parte de GBA' },
-              { icon: '📱', title: 'Tecnología Wi-Fi', desc: 'Comederos automáticos con control desde tu smartphone' },
+              { icon: '🚚', title: 'Envio Gratis', desc: 'En compras superiores a $75.000 - Toda CABA y parte de GBA' },
+              { icon: '📱', title: 'Tecnologia Wi-Fi', desc: 'Comederos automaticos con control desde tu smartphone' },
               { icon: '💝', title: 'Calidad Premium', desc: 'Productos seleccionados para el bienestar de tu mascota' },
             ].map(f => (
               <div key={f.title}>

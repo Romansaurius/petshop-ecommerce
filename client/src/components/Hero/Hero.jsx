@@ -37,23 +37,36 @@ const Hero = () => {
             </div>
           </div>
 
+          {/* Cuadro derecho */}
           <div className="relative hidden lg:block">
-            <div className="bg-gray-50 border border-gray-100 rounded-3xl p-10 text-center">
-              <div className="text-7xl mb-5">🐕🐱</div>
-              <h3 className="text-xl font-bold text-gray-800 mb-1">+1000 productos</h3>
-              <p className="text-gray-400 text-sm mb-6">Para perros y gatos</p>
-              <div className="grid grid-cols-3 gap-4">
+            <div className="bg-gray-50 border border-gray-100 rounded-3xl p-10">
+              <p className="text-xs font-semibold uppercase tracking-widest text-primary-500 mb-3">¿Por qué ser parte de MauLu?</p>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3 leading-snug">
+                Somos un petshop diferente a los demás.
+              </h3>
+              <p className="text-gray-500 text-sm leading-relaxed mb-6">
+                Recompensamos a quienes son fieles a nuestra tienda y peluquería. Ofertas exclusivas, programas de fidelización y beneficios reales para vos y tu mascota.
+              </p>
+
+              <div className="space-y-3 mb-8">
                 {[
-                  { icon: '🍽️', label: 'Comederos' },
-                  { icon: '🎾', label: 'Juguetes' },
-                  { icon: '🛏️', label: 'Camas' },
+                  '🎁 Acumulá puntos con cada compra',
+                  '✂️ Descuentos en peluquería para clientes frecuentes',
+                  '🔥 Acceso anticipado a ofertas exclusivas',
+                  '🚚 Envío gratis desde $75.000',
                 ].map(item => (
-                  <div key={item.label} className="bg-white rounded-xl p-3 border border-gray-100">
-                    <div className="text-2xl mb-1">{item.icon}</div>
-                    <span className="text-xs text-gray-500 font-medium">{item.label}</span>
+                  <div key={item} className="flex items-center space-x-2 text-sm text-gray-600">
+                    <span>{item}</span>
                   </div>
                 ))}
               </div>
+
+              <Link
+                to="/register"
+                className="block w-full text-center bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-200"
+              >
+                Crear cuenta para acceder a los beneficios
+              </Link>
             </div>
           </div>
 
