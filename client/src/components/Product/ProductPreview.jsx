@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { X, Star, Heart, ShoppingCart, Plus, Minus, ChevronLeft, ChevronRight, Truck } from 'lucide-react'
 import { useCart } from '../../context/CartContext'
 
-const FREE_SHIPPING_THRESHOLD = 75000
+const FREE_SHIPPING_THRESHOLD = 35000
 
 const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
   const { addToCart, cart } = useCart()

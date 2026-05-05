@@ -8,7 +8,7 @@ const Hero = () => {
 
           <div className="text-center lg:text-left">
             <span className="inline-block text-xs font-semibold uppercase tracking-widest text-primary-600 bg-primary-50 px-3 py-1.5 rounded-full mb-6">
-              Envío gratis +$75.000 · CABA y GBA
+              Envio gratis +$35.000 · Malvinas Argentinas, Pilar, San Isidro y alrededores
             </span>
 
             <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-4 leading-tight tracking-tight">
@@ -53,7 +53,7 @@ const Hero = () => {
                   '🎁 Acumulá puntos con cada compra',
                   '✂️ Descuentos en peluquería para clientes frecuentes',
                   '🔥 Acceso anticipado a ofertas exclusivas',
-                  '🚚 Envío gratis desde $75.000',
+                  '🚚 Envio gratis desde $35.000 en zonas seleccionadas',
                 ].map(item => (
                   <div key={item} className="flex items-center space-x-2 text-sm text-gray-600">
                     <span>{item}</span>

@@ -8,7 +8,7 @@ const OffersSlider = () => {
     {
       id: 1,
       title: "ENVÍO GRATIS",
-      subtitle: "En compras +$75.000",
+      subtitle: "En compras +$35.000",
       description: "A todo el país",
       image: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800",
       buttonText: "Aprovechar",

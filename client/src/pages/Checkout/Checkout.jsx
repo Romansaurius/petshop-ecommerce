@@ -156,25 +156,7 @@ const Checkout = () => {
     )
   }
 
-
-    return (
-      <div className="min-h-screen bg-secondary-50 flex items-center justify-center">
-        <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full mx-4 text-center">
-          <div className="text-6xl mb-4">🛒</div>
-          <h2 className="text-2xl font-bold text-secondary-800 mb-2">Tu carrito está vacío</h2>
-          <p className="text-secondary-600 mb-6">
-            Agrega algunos productos antes de proceder al checkout.
-          </p>
-          <button 
-            onClick={() => navigate('/menu')}
-            className="btn btn-primary"
-          >
-            Ver Productos
-          </button>
-        </div>
-      </div>
-    )
-  }
+  if (cart.length === 0) {
 
   return (
     <div className="min-h-screen bg-secondary-50">
