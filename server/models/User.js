@@ -11,7 +11,7 @@ class User {
     
     const [result] = await db.execute(
       'INSERT INTO usuarios (nombre, email, password, telefono, direccion, role) VALUES (?, ?, ?, ?, ?, ?)',
-      [nombre, email, hashedPassword, telefono, direccion, role]
+      [nombre, email, hashedPassword, telefono || null, direccion || null, role]
     );
     
     return result.insertId;

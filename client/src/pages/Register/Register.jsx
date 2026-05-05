@@ -72,7 +72,8 @@ const Register = () => {
       nombre: formData.name,
       email: formData.email,
       password: formData.password,
-      telefono: formData.phone
+      telefono: formData.phone,
+      direccion: null
     })
     
     if (result.success) {
