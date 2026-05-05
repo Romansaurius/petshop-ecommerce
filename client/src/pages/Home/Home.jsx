@@ -239,7 +239,7 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             {[
-              { icon: '🚚', title: 'Envio Gratis', desc: 'En compras superiores a $75.000 - Toda CABA y parte de GBA' },
+              { icon: '🚚', title: 'Envio Gratis', desc: 'A partir de $35.000 - Malvinas Argentinas, Pilar, San Isidro y alrededores' },
               { icon: '📱', title: 'Tecnologia Wi-Fi', desc: 'Comederos automaticos con control desde tu smartphone' },
               { icon: '💝', title: 'Calidad Premium', desc: 'Productos seleccionados para el bienestar de tu mascota' },
             ].map(f => (
