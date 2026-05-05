@@ -34,4 +34,13 @@ const testConnection = async (retries = 5) => {
 
 testConnection();
 
+// Ping cada 5 minutos para mantener la conexión activa
+setInterval(async () => {
+  try {
+    await pool.execute('SELECT 1');
+  } catch (err) {
+    console.error('⚠️ Ping fallido, reconectando...');
+  }
+}, 5 * 60 * 1000);
+
 module.exports = pool;
