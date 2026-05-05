@@ -47,9 +47,7 @@ const Header = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3 group">
-            <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center group-hover:scale-105 transition-all duration-200 shadow-lg">
-              <span className="text-white font-bold text-2xl">🐾</span>
-            </div>
+            <img src="/logosolo.png" alt="MauLu" className="w-12 h-12 object-contain group-hover:scale-105 transition-all duration-200" />
             <div className="flex flex-col">
               <span className="text-xl font-bold text-secondary-800 group-hover:text-primary-600 transition-colors">MauLu</span>
               <span className="text-xs text-secondary-500 -mt-1">PetShop</span>
@@ -86,10 +84,10 @@ const Header = () => {
             {/* Auth Section */}
             {isAuthenticated ? (
               <div className="hidden sm:flex items-center space-x-3">
-                <div className="flex items-center space-x-2 px-3 py-1.5 bg-primary-50 rounded-lg">
+                <Link to="/perfil" className="flex items-center space-x-2 px-3 py-1.5 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors">
                   <User className="w-4 h-4 text-primary-600" />
                   <span className="text-sm font-medium text-primary-700">Hola, {user?.name}</span>
-                </div>
+                </Link>
                 {user?.role === 'admin' && (
                   <Link to="/admin" className="p-2 text-secondary-600 hover:text-primary-500 transition-colors">
                     ⚙️
@@ -194,10 +192,10 @@ const Header = () => {
             <div className="pt-4 border-t border-secondary-100 space-y-3">
               {isAuthenticated ? (
                 <div className="space-y-2">
-                  <div className="flex items-center space-x-2 p-3 bg-primary-50 rounded-lg">
-                    <User className="w-5 h-5 text-primary-600" />
-                    <span className="font-medium text-primary-700">Hola, {user?.name}</span>
-                  </div>
+                  <Link to="/perfil" className="flex items-center space-x-2 p-3 text-secondary-600 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors">
+                    <User className="w-5 h-5" />
+                    <span className="font-medium">Mi perfil</span>
+                  </Link>
                   {user?.role === 'admin' && (
                     <Link to="/admin" className="flex items-center space-x-2 p-3 text-secondary-600 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors">
                       <span>⚙️</span>
