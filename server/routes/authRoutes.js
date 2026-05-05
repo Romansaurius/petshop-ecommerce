@@ -31,7 +31,8 @@ router.post('/register', async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ error: 'Error al registrar usuario' });
+    console.error('Error registro:', error.message);
+    res.status(500).json({ error: 'Error al registrar usuario: ' + error.message });
   }
 });
 
