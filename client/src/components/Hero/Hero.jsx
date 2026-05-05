@@ -17,7 +17,7 @@ const Hero = () => {
           <div className="text-center lg:text-left">
             <div className="inline-flex items-center px-4 py-2 bg-primary-100 text-primary-700 rounded-full text-sm font-medium mb-6">
               <span className="mr-2">🎉</span>
-              Envío gratis en compras +$75.000 · Toda CABA y parte de GBA a toda CABA y parte de GBA
+              Envío gratis en compras +$75.000 · Toda CABA y parte de GBA
             </div>
             
             <h1 className="text-5xl lg:text-7xl font-bold text-secondary-900 mb-6 leading-tight">
