@@ -58,22 +58,33 @@ const Checkout = () => {
 
   const handleSubmitOrder = async (e) => {
     e.preventDefault()
-    setIsProcessing(true)
-
     if (!customerInfo.name || !customerInfo.email || !customerInfo.phone) {
       alert('Por favor completa toda la informacion requerida')
-      setIsProcessing(false)
       return
     }
-
-    await new Promise(resolve => setTimeout(resolve, 2000))
-
-    setUserPurchases(prev => prev + 1)
-    setOrderComplete(true)
-    setIsProcessing(false)
-
-    setTimeout(() => setShowLoyaltyCard(true), 1500)
-    setTimeout(() => { clearCart(); navigate('/') }, 8000)
+    setIsProcessing(true)
+    try {
+      const res = await fetch('/api/payment/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: cart,
+          customerInfo,
+          usuario_id: user?.id || null,
+          discount: appliedDiscount
+        })
+      })
+      const data = await res.json()
+      if (data.init_point) {
+        window.location.href = data.init_point
+      } else {
+        alert('Error al iniciar el pago. Intenta de nuevo.')
+      }
+    } catch (err) {
+      alert('Error de conexion. Intenta de nuevo.')
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   const formatPrice = (price) => new Intl.NumberFormat('es-AR', {
@@ -264,8 +275,12 @@ const Checkout = () => {
                 </div>
               </div>
 
-              <button type="submit" disabled={isProcessing} className="w-full btn btn-primary py-4 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
-                {isProcessing ? 'Procesando...' : `Realizar Pedido ${formatPrice(total)}`}
+              <button type="submit" disabled={isProcessing} className="w-full bg-[#009ee3] hover:bg-[#0088cc] text-white py-4 rounded-xl text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-3">
+                {isProcessing ? (
+                  <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> Redirigiendo...</>
+                ) : (
+                  <><img src="https://http2.mlstatic.com/frontend-assets/mp-web-navigation/ui-navigation/5.21.22/mercadopago/logo__large@2x.png" alt="Mercado Pago" className="h-5 object-contain brightness-0 invert" /> Pagar {formatPrice(total)}</>
+                )}
               </button>
             </form>
           </div>
