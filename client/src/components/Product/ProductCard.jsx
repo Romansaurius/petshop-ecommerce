@@ -185,7 +185,8 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
           )}
           {getProductFeatured() && (
             <div className="absolute top-3 right-12 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
-              ⭐ Destacado
+              <span className="hidden sm:inline">⭐ Destacado</span>
+              <span className="sm:hidden">⭐</span>
             </div>
           )}
           {getProductTipo() === '2x1' && (
@@ -223,32 +224,31 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
           </div>
         </div>
 
-        <div className="p-6">
-          <h3 className="font-bold text-lg text-secondary-800 mb-2 line-clamp-2 group-hover:text-primary-600 transition-colors">
+        <div className="p-3 sm:p-6">
+          <h3 className="font-bold text-sm sm:text-lg text-secondary-800 mb-1 sm:mb-2 line-clamp-2 group-hover:text-primary-600 transition-colors">
             {getProductName()}
           </h3>
           
-          <p className="text-sm text-secondary-600 mb-4 line-clamp-2">
+          <p className="text-xs sm:text-sm text-secondary-600 mb-2 sm:mb-4 line-clamp-2">
             {getProductDescription()}
           </p>
           
-          {/* Rating */}
-          <div className="flex items-center space-x-2 mb-4">
+          {/* Rating - oculto en mobile */}
+          <div className="hidden sm:flex items-center space-x-2 mb-4">
             <div className="flex items-center space-x-1">
               {renderStars(product.rating || 0)}
             </div>
             <span className="text-sm text-secondary-500">({product.reviews || 0})</span>
           </div>
           
-          {/* Price and Add Button */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mt-2">
             <div className="flex flex-col">
               {originalPrice && (
-                <span className="text-sm text-secondary-400 line-through">
+                <span className="text-xs text-secondary-400 line-through">
                   {formatPrice(originalPrice)}
                 </span>
               )}
-              <span className="text-xl font-bold text-primary-500">
+              <span className="text-base sm:text-xl font-bold text-primary-500">
                 {formatPrice(getProductPrice())}
               </span>
             </div>
@@ -259,7 +259,7 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
                 handleAddToCart()
               }}
               disabled={isAdding}
-              className="btn btn-primary flex items-center gap-2 px-3 sm:px-4 py-2 disabled:opacity-50 transform hover:scale-105 transition-all duration-200"
+              className="btn btn-primary flex items-center gap-1 px-2 sm:px-4 py-1.5 sm:py-2 text-sm disabled:opacity-50 transform hover:scale-105 transition-all duration-200"
             >
               {isAdding ? (
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

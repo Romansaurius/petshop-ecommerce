@@ -142,6 +142,28 @@ const Cart = ({ isOpen, onClose }) => {
         {/* Footer */}
         {cart.length > 0 && (
           <div className="border-t border-secondary-100 p-6 space-y-4">
+            {/* Barra envío gratis */}
+            {(() => {
+              const FREE_SHIPPING = 35000
+              const total = getTotalPrice()
+              const falta = FREE_SHIPPING - total
+              const pct = Math.min((total / FREE_SHIPPING) * 100, 100)
+              return (
+                <div className="bg-orange-50 rounded-xl p-3">
+                  {falta > 0 ? (
+                    <p className="text-xs text-orange-700 font-medium mb-2">
+                      Te faltan <strong>{formatPrice(falta)}</strong> para envío gratis 🚚
+                    </p>
+                  ) : (
+                    <p className="text-xs text-green-700 font-medium mb-2">✅ ¡Tenés envío gratis!</p>
+                  )}
+                  <div className="w-full bg-orange-200 rounded-full h-1.5">
+                    <div className="bg-primary-500 h-1.5 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              )
+            })()}
+
             {/* Subtotal */}
             <div className="flex items-center justify-between text-lg font-semibold">
               <span className="text-secondary-700">Subtotal:</span>
