@@ -279,7 +279,7 @@ const Checkout = () => {
                 {isProcessing ? (
                   <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> Redirigiendo...</>
                 ) : (
-                  <><img src="https://http2.mlstatic.com/frontend-assets/mp-web-navigation/ui-navigation/5.21.22/mercadopago/logo__large@2x.png" alt="Mercado Pago" className="h-5 object-contain brightness-0 invert" /> Pagar {formatPrice(total)}</>
+                  <>🔒 Pagar {formatPrice(total)} con Mercado Pago</>
                 )}
               </button>
             </form>

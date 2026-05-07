@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
 import { CartProvider } from './context/CartContext'
 import { AuthProvider } from './context/AuthContext'
 import Header from './components/Header/Header'
@@ -12,12 +13,19 @@ import Admin from './pages/Admin/Admin'
 import Profile from './pages/Profile/Profile'
 import PaymentResult from './pages/Payment/PaymentResult'
 
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => { window.scrollTo(0, 0) }, [pathname])
+  return null
+}
+
 function App() {
   return (
     <AuthProvider>
       <CartProvider>
         <Router>
           <div className="min-h-screen bg-secondary-50">
+            <ScrollToTop />
             <Header />
             <main>
               <Routes>
