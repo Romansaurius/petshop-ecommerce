@@ -161,7 +161,7 @@ const Header = () => {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white border-t border-secondary-100 animate-slide-up">
+        <div className="md:hidden bg-white border-t border-secondary-100 animate-slide-up max-h-[80vh] overflow-y-auto">
           <div className="px-4 py-4 space-y-4">
             {/* Mobile Search */}
             <div className="relative">
