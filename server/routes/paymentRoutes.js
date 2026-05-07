@@ -13,13 +13,13 @@ router.post('/create', async (req, res) => {
     const { items, customerInfo, usuario_id, discount } = req.body;
 
     const mpItems = items.map(item => {
-      const precio = item.precio || item.price || 0;
+      const precio = parseFloat(item.precio || item.price || 0);
       const cantidad = item.is2x1 ? Math.ceil(item.quantity / 2) : item.quantity;
       return {
         id: String(item.id),
-        title: item.nombre || item.name || 'Producto',
-        quantity: cantidad,
-        unit_price: Number(precio),
+        title: String(item.nombre || item.name || 'Producto').slice(0, 256),
+        quantity: Number(cantidad),
+        unit_price: Number(precio.toFixed(2)),
         currency_id: 'ARS'
       };
     });
@@ -30,8 +30,7 @@ router.post('/create', async (req, res) => {
         items: mpItems,
         payer: {
           name: customerInfo.name,
-          email: customerInfo.email,
-          phone: { number: customerInfo.phone }
+          email: customerInfo.email
         },
         back_urls: {
           success: `${process.env.FRONTEND_URL}/pago/exitoso`,
@@ -50,8 +49,8 @@ router.post('/create', async (req, res) => {
 
     res.json({ init_point: response.init_point, preference_id: response.id });
   } catch (error) {
-    console.error('MP Error:', error);
-    res.status(500).json({ error: 'Error al crear preferencia de pago' });
+    console.error('MP Error completo:', JSON.stringify(error, null, 2));
+    res.status(500).json({ error: 'Error al crear preferencia de pago', detalle: error.message });
   }
 });
 
