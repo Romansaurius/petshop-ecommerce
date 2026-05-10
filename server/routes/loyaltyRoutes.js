@@ -3,205 +3,186 @@ const db = require('../config/database');
 const auth = require('../middlewares/auth');
 const router = express.Router();
 
-// GET /api/loyalty/programs - Obtener programas de fidelización
-router.get('/programs', async (req, res) => {
+const PUNTOS_POR_PESO = 1 / 100; // 1 punto cada $100
+
+// Calcular nivel activo del usuario
+function calcularNivel(usuario) {
+  if (usuario.nivel !== 'normal' && usuario.nivel_expira) {
+    const ahora = new Date();
+    const expira = new Date(usuario.nivel_expira);
+    if (ahora > expira) return 'normal';
+    return usuario.nivel;
+  }
+  return 'normal';
+}
+
+// GET /api/loyalty/canjes - Todos los canjes disponibles
+router.get('/canjes', async (req, res) => {
   try {
-    const [programs] = await db.execute('SELECT * FROM programas_fidelizacion ORDER BY id');
-    res.json(programs);
-  } catch (error) {
-    res.status(500).json({ error: 'Error al obtener programas' });
+    const [canjes] = await db.execute(`SELECT * FROM canjes WHERE activo = TRUE ORDER BY puntos_requeridos ASC`);
+    res.json(canjes);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
-// POST /api/loyalty/programs - Crear programa (solo admin)
-router.post('/programs', auth, async (req, res) => {
+// GET /api/loyalty/perfil - Puntos y nivel del usuario
+router.get('/perfil', auth, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Acceso denegado' });
-    }
-
-    const { nombre, descripcion, compras_requeridas, recompensa } = req.body;
-    
-    const [result] = await db.execute(
-      'INSERT INTO programas_fidelizacion (nombre, descripcion, compras_requeridas, recompensa) VALUES (?, ?, ?, ?)',
-      [nombre, descripcion, compras_requeridas, recompensa]
+    const [rows] = await db.execute(
+      `SELECT puntos, puntos_historicos, nivel, nivel_expira FROM usuarios WHERE id = ?`,
+      [req.user.id]
     );
-    
-    res.status(201).json({ id: result.insertId, message: 'Programa creado' });
-  } catch (error) {
-    res.status(500).json({ error: 'Error al crear programa' });
-  }
-});
+    if (!rows[0]) return res.status(404).json({ error: 'Usuario no encontrado' });
 
-// PUT /api/loyalty/programs/:id - Actualizar programa
-router.put('/programs/:id', auth, async (req, res) => {
-  try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Acceso denegado' });
+    const usuario = rows[0];
+    const nivelActivo = calcularNivel(usuario);
+
+    // Si el nivel expiró, actualizarlo en DB
+    if (nivelActivo === 'normal' && usuario.nivel !== 'normal') {
+      await db.execute(`UPDATE usuarios SET nivel = 'normal', nivel_expira = NULL WHERE id = ?`, [req.user.id]);
     }
 
-    const { id } = req.params;
-    const { nombre, descripcion, compras_requeridas, recompensa, activo } = req.body;
-    
-    await db.execute(
-      'UPDATE programas_fidelizacion SET nombre = ?, descripcion = ?, compras_requeridas = ?, recompensa = ?, activo = ? WHERE id = ?',
-      [nombre, descripcion, compras_requeridas, recompensa, activo, id]
-    );
-    
-    res.json({ message: 'Programa actualizado' });
-  } catch (error) {
-    res.status(500).json({ error: 'Error al actualizar programa' });
-  }
-});
-
-// DELETE /api/loyalty/programs/:id - Eliminar programa
-router.delete('/programs/:id', auth, async (req, res) => {
-  try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Acceso denegado' });
-    }
-
-    const { id } = req.params;
-    
-    // Verificar si hay usuarios usando este programa
-    const [users] = await db.execute(
-      'SELECT COUNT(*) as count FROM usuario_programa_progreso WHERE programa_id = ?',
-      [id]
-    );
-    
-    if (users[0].count > 0) {
-      // Si hay usuarios, solo desactivar
-      await db.execute(
-        'UPDATE programas_fidelizacion SET activo = FALSE WHERE id = ?',
-        [id]
-      );
-      res.json({ message: 'Programa desactivado (hay usuarios asociados)' });
-    } else {
-      // Si no hay usuarios, eliminar completamente
-      await db.execute('DELETE FROM programas_fidelizacion WHERE id = ?', [id]);
-      res.json({ message: 'Programa eliminado' });
-    }
-  } catch (error) {
-    res.status(500).json({ error: 'Error al eliminar programa' });
-  }
-});
-
-// GET /api/loyalty/stats - Estadísticas de fidelización
-router.get('/stats', auth, async (req, res) => {
-  try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Acceso denegado' });
-    }
-
-    const [activeUsers] = await db.execute('SELECT COUNT(*) as total FROM usuarios WHERE activo = 1');
-    const [completedRewards] = await db.execute('SELECT COUNT(*) as total FROM usuario_programa_progreso WHERE completado = TRUE');
-    const [totalUsers] = await db.execute('SELECT COUNT(*) as total FROM usuarios');
-    
-    const retentionRate = totalUsers[0].total > 0 ? Math.round((activeUsers[0].total / totalUsers[0].total) * 100) : 0;
-    
     res.json({
-      usuariosActivos: activeUsers[0].total,
-      recompensasCanjeadas: completedRewards[0].total,
-      tasaRetencion: retentionRate
+      puntos: usuario.puntos,
+      puntos_historicos: usuario.puntos_historicos,
+      nivel: nivelActivo,
+      nivel_expira: nivelActivo !== 'normal' ? usuario.nivel_expira : null
     });
-  } catch (error) {
-    res.status(500).json({ error: 'Error al obtener estadísticas' });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
-// GET /api/loyalty/coupons - Obtener cupones
-router.get('/coupons', auth, async (req, res) => {
+// GET /api/loyalty/historial - Historial de canjes del usuario
+router.get('/historial', auth, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Acceso denegado' });
-    }
-
-    const [coupons] = await db.execute('SELECT * FROM cupones ORDER BY created_at DESC');
-    res.json(coupons);
-  } catch (error) {
-    res.status(500).json({ error: 'Error al obtener cupones' });
-  }
-});
-
-// POST /api/loyalty/coupons - Crear cupón
-router.post('/coupons', auth, async (req, res) => {
-  try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Acceso denegado' });
-    }
-
-    const { codigo, nombre, tipo, valor, fecha_expiracion, usos_maximos } = req.body;
-    
-    const [result] = await db.execute(
-      'INSERT INTO cupones (codigo, nombre, tipo, valor, fecha_expiracion, usos_maximos) VALUES (?, ?, ?, ?, ?, ?)',
-      [codigo, nombre, tipo, valor, fecha_expiracion || null, usos_maximos || null]
+    const [rows] = await db.execute(
+      `SELECT cu.*, c.nombre, c.descripcion, c.categoria, c.tipo, c.valor_descuento
+       FROM canjes_usuario cu
+       JOIN canjes c ON cu.canje_id = c.id
+       WHERE cu.usuario_id = ?
+       ORDER BY cu.created_at DESC`,
+      [req.user.id]
     );
-    
-    res.status(201).json({ id: result.insertId, message: 'Cupón creado' });
-  } catch (error) {
-    if (error.code === 'ER_DUP_ENTRY') {
-      res.status(400).json({ error: 'El código del cupón ya existe' });
-    } else {
-      res.status(500).json({ error: 'Error al crear cupón' });
-    }
+    res.json(rows);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
-// PUT /api/loyalty/coupons/:id - Actualizar cupón
-router.put('/coupons/:id', auth, async (req, res) => {
+// POST /api/loyalty/canjear - Canjear un premio
+router.post('/canjear', auth, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Acceso denegado' });
+    const { canje_id } = req.body;
+    const userId = req.user.id;
+
+    const [[canje]] = await db.execute(`SELECT * FROM canjes WHERE id = ? AND activo = TRUE`, [canje_id]);
+    if (!canje) return res.status(404).json({ error: 'Canje no encontrado' });
+
+    const [[usuario]] = await db.execute(
+      `SELECT puntos, puntos_historicos, nivel, nivel_expira FROM usuarios WHERE id = ?`, [userId]
+    );
+
+    const nivelActivo = calcularNivel(usuario);
+
+    // Verificar puntos suficientes
+    if (usuario.puntos < canje.puntos_requeridos) {
+      return res.status(400).json({ error: 'No tenés suficientes puntos' });
     }
 
-    const { id } = req.params;
-    const { codigo, nombre, tipo, valor, fecha_expiracion, usos_maximos, activo } = req.body;
-    
+    // Verificar acceso por nivel
+    if (canje.categoria === 'gold' && usuario.puntos_historicos < 1000) {
+      return res.status(400).json({ error: 'Necesitás 1000 puntos históricos para acceder a canjes Gold' });
+    }
+    if (canje.categoria === 'platinum' && usuario.puntos_historicos < 1750) {
+      return res.status(400).json({ error: 'Necesitás 1750 puntos históricos para acceder a canjes Platinum' });
+    }
+
+    // Generar código único
+    const codigo = `MAULU-${Date.now()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
+
+    // Descontar puntos
     await db.execute(
-      'UPDATE cupones SET codigo = ?, nombre = ?, tipo = ?, valor = ?, fecha_expiracion = ?, usos_maximos = ?, activo = ? WHERE id = ?',
-      [codigo, nombre, tipo, valor, fecha_expiracion || null, usos_maximos || null, activo, id]
+      `UPDATE usuarios SET puntos = puntos - ? WHERE id = ?`,
+      [canje.puntos_requeridos, userId]
     );
-    
-    res.json({ message: 'Cupón actualizado' });
-  } catch (error) {
-    if (error.code === 'ER_DUP_ENTRY') {
-      res.status(400).json({ error: 'El código del cupón ya existe' });
-    } else {
-      res.status(500).json({ error: 'Error al actualizar cupón' });
+
+    // Si es canje de nivel Gold o Platinum, activar nivel (solo si no tiene uno activo superior)
+    if (canje.categoria === 'gold' || canje.categoria === 'platinum') {
+      const jerarquia = { normal: 0, gold: 1, platinum: 2 };
+      const nivelCanje = canje.categoria;
+
+      // Solo activar si el nivel del canje es >= al nivel actual
+      // Y los 30 días cuentan desde el PRIMER canje, no se reinician
+      if (jerarquia[nivelCanje] >= jerarquia[nivelActivo]) {
+        if (nivelActivo === 'normal') {
+          // Activar nuevo nivel por 30 días
+          const expira = new Date();
+          expira.setDate(expira.getDate() + 30);
+          await db.execute(
+            `UPDATE usuarios SET nivel = ?, nivel_expira = ? WHERE id = ?`,
+            [nivelCanje, expira, userId]
+          );
+        }
+        // Si ya tiene ese nivel activo, NO reiniciar los 30 días
+      }
     }
+
+    // Registrar canje
+    await db.execute(
+      `INSERT INTO canjes_usuario (usuario_id, canje_id, puntos_gastados, codigo) VALUES (?, ?, ?, ?)`,
+      [userId, canje_id, canje.puntos_requeridos, codigo]
+    );
+
+    res.json({ success: true, codigo, mensaje: `¡Canje exitoso! Tu código es ${codigo}` });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
-// DELETE /api/loyalty/coupons/:id - Eliminar cupón
-router.delete('/coupons/:id', auth, async (req, res) => {
+// POST /api/loyalty/sumar-puntos - Sumar puntos tras compra (llamado desde orderRoutes)
+router.post('/sumar-puntos', auth, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Acceso denegado' });
-    }
-
-    const { id } = req.params;
-    
-    // Verificar si el cupón ha sido usado
-    const [usage] = await db.execute(
-      'SELECT COUNT(*) as count FROM pedidos WHERE cupon_id = ?',
-      [id]
+    const { total } = req.body;
+    const puntos = Math.floor(total * PUNTOS_POR_PESO);
+    await db.execute(
+      `UPDATE usuarios SET puntos = puntos + ?, puntos_historicos = puntos_historicos + ? WHERE id = ?`,
+      [puntos, puntos, req.user.id]
     );
-    
-    if (usage[0].count > 0) {
-      // Si ha sido usado, solo desactivar
-      await db.execute(
-        'UPDATE cupones SET activo = FALSE WHERE id = ?',
-        [id]
-      );
-      res.json({ message: 'Cupón desactivado (ya fue utilizado)' });
-    } else {
-      // Si no ha sido usado, eliminar completamente
-      await db.execute('DELETE FROM cupones WHERE id = ?', [id]);
-      res.json({ message: 'Cupón eliminado' });
-    }
-  } catch (error) {
-    res.status(500).json({ error: 'Error al eliminar cupón' });
+    res.json({ puntos_ganados: puntos });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
+});
+
+// ADMIN - GET /api/loyalty/admin/canjes
+router.get('/admin/canjes', auth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'No autorizado' });
+  const [canjes] = await db.execute(`SELECT * FROM canjes ORDER BY categoria, puntos_requeridos`);
+  res.json(canjes);
+});
+
+// ADMIN - POST /api/loyalty/admin/canjes
+router.post('/admin/canjes', auth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'No autorizado' });
+  const { nombre, descripcion, puntos_requeridos, categoria, tipo, valor_descuento, tope_descuento } = req.body;
+  const [result] = await db.execute(
+    `INSERT INTO canjes (nombre, descripcion, puntos_requeridos, categoria, tipo, valor_descuento, tope_descuento) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [nombre, descripcion, puntos_requeridos, categoria, tipo, valor_descuento || 0, tope_descuento || 0]
+  );
+  res.json({ id: result.insertId });
+});
+
+// ADMIN - PUT /api/loyalty/admin/canjes/:id
+router.put('/admin/canjes/:id', auth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'No autorizado' });
+  const { nombre, descripcion, puntos_requeridos, categoria, tipo, valor_descuento, tope_descuento, activo } = req.body;
+  await db.execute(
+    `UPDATE canjes SET nombre=?, descripcion=?, puntos_requeridos=?, categoria=?, tipo=?, valor_descuento=?, tope_descuento=?, activo=? WHERE id=?`,
+    [nombre, descripcion, puntos_requeridos, categoria, tipo, valor_descuento || 0, tope_descuento || 0, activo, req.params.id]
+  );
+  res.json({ success: true });
 });
 
 module.exports = router;

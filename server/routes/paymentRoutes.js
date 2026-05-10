@@ -1,6 +1,7 @@
 const express = require('express');
 const { MercadoPagoConfig, Preference } = require('mercadopago');
 const Order = require('../models/Order');
+const db = require('../config/database');
 const router = express.Router();
 
 const client = new MercadoPagoConfig({
@@ -65,14 +66,21 @@ router.post('/webhook', async (req, res) => {
 
       if (payment.status === 'approved') {
         const ref = JSON.parse(payment.external_reference || '{}');
-        // Guardar pedido en DB
         await Order.create({
           usuario_id: ref.usuario_id || null,
           total: payment.transaction_amount,
           direccion_envio: ref.direccion || 'Sin dirección',
           telefono_contacto: ref.telefono || '',
-          items: [] // Los items ya fueron cobrados por MP
+          items: []
         });
+        // Sumar puntos si hay usuario
+        if (ref.usuario_id) {
+          const puntos = Math.floor(payment.transaction_amount / 100);
+          await db.execute(
+            `UPDATE usuarios SET puntos = puntos + ?, puntos_historicos = puntos_historicos + ? WHERE id = ?`,
+            [puntos, puntos, ref.usuario_id]
+          );
+        }
       }
     }
     res.sendStatus(200);
