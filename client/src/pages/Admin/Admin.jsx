@@ -522,10 +522,13 @@ const Admin = () => {
                       </div>
                       <div className="text-right">
                         <p className="font-medium">{formatPrice(product.precio || product.price || 0)}</p>
-                        <p className="text-sm text-secondary-600">15 vendidos</p>
+                        <p className="text-sm text-secondary-400">Sin ventas aún</p>
                       </div>
                     </div>
                   ))}
+                  {products.length === 0 && (
+                    <p className="text-sm text-secondary-400 text-center py-4">No hay productos cargados</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -985,11 +988,11 @@ const Admin = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="text-center">
                   <div className="text-3xl font-bold text-primary-600">{loyaltyStats.usuariosActivos || 0}</div>
-                  <div className="text-sm text-secondary-600">Usuarios Activos</div>
+                  <div className="text-sm text-secondary-600">Usuarios con cuenta</div>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-green-600">{loyaltyStats.recompensasCanjeadas || 0}</div>
-                  <div className="text-sm text-secondary-600">Recompensas Canjeadas</div>
+                  <div className="text-sm text-secondary-600">Canjes realizados</div>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-blue-600">{loyaltyStats.tasaRetencion || 0}%</div>
