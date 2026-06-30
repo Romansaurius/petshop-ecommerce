@@ -24,6 +24,7 @@ router.post('/create', async (req, res) => {
 
     const orderId = await Order.create({
       usuario_id: usuario_id || null,
+      email: customerInfo.email || '',
       total: totalCalculado,
       direccion_envio: customerInfo.address || 'A confirmar',
       telefono_contacto: customerInfo.phone || '',
