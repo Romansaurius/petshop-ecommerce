@@ -29,7 +29,7 @@ const testConnection = async (retries = 5) => {
       if (i < retries - 1) await new Promise(r => setTimeout(r, 3000));
     }
   }
-  console.error('❌ No se pudo conectar a la base de datos. La app continuará e intentará reconectarse.');
+  console.error(' No se pudo conectar a la base de datos. La app continuará e intentará reconectarse.');
 };
 
 testConnection();
@@ -39,7 +39,7 @@ setInterval(async () => {
   try {
     await pool.execute('SELECT 1');
   } catch (err) {
-    console.error('⚠️ Ping fallido, reconectando...');
+    console.error(' Ping fallido, reconectando...');
   }
 }, 5 * 60 * 1000);
 
