@@ -13,6 +13,24 @@ router.post('/create', async (req, res) => {
   try {
     const { items, customerInfo, usuario_id, discount } = req.body;
 
+    // 1. Guardar pedido en DB con estado pendiente
+    const orderItems = items.map(item => ({
+      producto_id: item.id,
+      cantidad: item.is2x1 ? Math.ceil(item.quantity / 2) : item.quantity,
+      precio_unitario: parseFloat(item.precio || item.price || 0)
+    }));
+
+    const totalCalculado = orderItems.reduce((sum, i) => sum + i.precio_unitario * i.cantidad, 0) - (discount || 0);
+
+    const orderId = await Order.create({
+      usuario_id: usuario_id || null,
+      total: totalCalculado,
+      direccion_envio: customerInfo.address || 'A confirmar',
+      telefono_contacto: customerInfo.phone || '',
+      items: orderItems
+    });
+
+    // 2. Crear preferencia en MP
     const mpItems = items.map(item => {
       const precio = parseFloat(item.precio || item.price || 0);
       const cantidad = item.is2x1 ? Math.ceil(item.quantity / 2) : item.quantity;
@@ -29,10 +47,7 @@ router.post('/create', async (req, res) => {
     const response = await preference.create({
       body: {
         items: mpItems,
-        payer: {
-          name: customerInfo.name,
-          email: customerInfo.email
-        },
+        payer: { name: customerInfo.name, email: customerInfo.email },
         back_urls: {
           success: `${process.env.FRONTEND_URL}/pago/exitoso`,
           failure: `${process.env.FRONTEND_URL}/pago/fallido`,
@@ -40,17 +55,13 @@ router.post('/create', async (req, res) => {
         },
         auto_return: 'approved',
         statement_descriptor: 'MauLu PetShop',
-        external_reference: JSON.stringify({
-          usuario_id: usuario_id || null,
-          direccion: customerInfo.address || '',
-          telefono: customerInfo.phone
-        })
+        external_reference: String(orderId)
       }
     });
 
-    res.json({ init_point: response.init_point, preference_id: response.id });
+    res.json({ init_point: response.init_point, preference_id: response.id, order_id: orderId });
   } catch (error) {
-    console.error('MP Error completo:', JSON.stringify(error, null, 2));
+    console.error('MP Error:', error.message);
     res.status(500).json({ error: 'Error al crear preferencia de pago', detalle: error.message });
   }
 });
@@ -59,34 +70,28 @@ router.post('/create', async (req, res) => {
 router.post('/webhook', async (req, res) => {
   try {
     const { type, data } = req.body;
+    console.log('Webhook recibido:', type, data);
+
     if (type === 'payment' && data?.id) {
       const { MercadoPagoConfig: MPConfig, Payment } = require('mercadopago');
       const paymentClient = new Payment(new MPConfig({ accessToken: process.env.MP_ACCESS_TOKEN }));
       const payment = await paymentClient.get({ id: data.id });
 
-      if (payment.status === 'approved') {
-        const ref = JSON.parse(payment.external_reference || '{}');
-        await Order.create({
-          usuario_id: ref.usuario_id || null,
-          total: payment.transaction_amount,
-          direccion_envio: ref.direccion || 'Sin dirección',
-          telefono_contacto: ref.telefono || '',
-          items: []
-        });
-        // Sumar puntos si hay usuario
-        if (ref.usuario_id) {
-          const puntos = Math.floor(payment.transaction_amount / 100);
-          await db.execute(
-            `UPDATE usuarios SET puntos = puntos + ?, puntos_historicos = puntos_historicos + ? WHERE id = ?`,
-            [puntos, puntos, ref.usuario_id]
-          );
-        }
+      console.log('Pago:', payment.status, 'Referencia:', payment.external_reference);
+
+      const orderId = payment.external_reference;
+
+      if (payment.status === 'approved' && orderId) {
+        await Order.updateEstado(orderId, 'confirmado');
+        console.log(`Pedido ${orderId} confirmado`);
+      } else if (payment.status === 'rejected' && orderId) {
+        await Order.updateEstado(orderId, 'cancelado');
       }
     }
     res.sendStatus(200);
   } catch (error) {
-    console.error('Webhook error:', error);
-    res.sendStatus(200); // Siempre 200 para MP
+    console.error('Webhook error:', error.message);
+    res.sendStatus(200);
   }
 });
 
