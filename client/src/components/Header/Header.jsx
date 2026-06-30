@@ -159,63 +159,62 @@ const Header = () => {
         </nav>
       </div>
 
-      {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white border-t border-secondary-100 animate-slide-up max-h-[80vh] overflow-y-auto">
+        <div className="md:hidden bg-white border-t border-secondary-100 max-h-[80vh] overflow-y-auto">
           <div className="px-4 py-4 space-y-4">
-            {/* Mobile Search */}
             <div className="relative">
               <input
                 type="text"
                 placeholder="Buscar productos..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') { handleSearch(e); setIsMenuOpen(false); }}}
                 className="w-full pl-10 pr-4 py-2 border border-secondary-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
               <Search className="absolute left-3 top-2.5 h-5 w-5 text-secondary-400" />
             </div>
 
-            {/* Mobile Navigation */}
-            <nav className="space-y-2">
+            <nav className="space-y-1">
               {categories.map((category) => (
                 <Link
                   key={category.value}
                   to={category.href}
-                  className="flex items-center space-x-3 py-3 px-4 text-secondary-600 hover:text-primary-500 hover:bg-primary-50 rounded-lg font-medium transition-all duration-200"
+                  className="flex items-center space-x-3 py-2.5 px-4 text-secondary-600 hover:text-primary-500 hover:bg-primary-50 rounded-lg font-medium transition-all duration-200"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <span className="text-xl">{category.icon}</span>
+                  <span className="text-lg">{category.icon}</span>
                   <span>{category.name}</span>
                 </Link>
               ))}
             </nav>
 
-            {/* Mobile Actions */}
-            <div className="pt-4 border-t border-secondary-100 space-y-3">
+            <div className="pt-3 border-t border-secondary-100 space-y-2">
               {isAuthenticated ? (
-                <div className="space-y-2">
-                  <Link to="/perfil" className="flex items-center space-x-2 p-3 text-secondary-600 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors">
+                <>
+                  <Link to="/perfil" onClick={() => setIsMenuOpen(false)} className="flex items-center space-x-2 p-3 text-secondary-600 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors">
                     <User className="w-5 h-5" />
                     <span className="font-medium">Mi perfil</span>
                   </Link>
                   {user?.role === 'admin' && (
-                    <Link to="/admin" className="flex items-center space-x-2 p-3 text-secondary-600 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors">
+                    <Link to="/admin" onClick={() => setIsMenuOpen(false)} className="flex items-center space-x-2 p-3 text-secondary-600 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors">
                       <span>⚙️</span>
                       <span>Panel Admin</span>
                     </Link>
                   )}
-                  <button onClick={logout} className="w-full text-left p-3 text-secondary-600 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors">
-                    Cerrar Sesión
+                  <button onClick={() => { logout(); setIsMenuOpen(false); }} className="w-full text-left p-3 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                    Cerrar sesion
                   </button>
-                </div>
+                </>
               ) : (
-                <div className="space-y-2">
-                  <Link to="/login" className="flex items-center space-x-2 p-3 text-secondary-600 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors">
+                <>
+                  <Link to="/login" onClick={() => setIsMenuOpen(false)} className="flex items-center space-x-2 p-3 text-secondary-600 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors">
                     <User className="h-5 w-5" />
-                    <span>Iniciar Sesión</span>
+                    <span>Iniciar sesion</span>
                   </Link>
-                  <Link to="/register" className="flex items-center space-x-2 p-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors">
-                    <span>Crear Cuenta</span>
+                  <Link to="/register" onClick={() => setIsMenuOpen(false)} className="flex items-center space-x-2 p-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors">
+                    <span>Crear cuenta</span>
                   </Link>
-                </div>
+                </>
               )}
             </div>
           </div>

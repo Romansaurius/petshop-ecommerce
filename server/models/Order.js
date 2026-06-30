@@ -11,9 +11,9 @@ class Order {
       const numeroPedido = 'MP-' + Date.now();
 
       const [orderResult] = await connection.execute(
-        `INSERT INTO pedidos (numero_pedido, usuario_id, total, subtotal, direccion_envio, telefono_contacto, estado, metodo_pago)
-         VALUES (?, ?, ?, ?, ?, ?, 'pendiente', 'mercadopago')`,
-        [numeroPedido, usuario_id || null, total, total, direccion_envio || 'A confirmar', telefono_contacto || '']
+        `INSERT INTO pedidos (numero_pedido, usuario_id, email_contacto, total, subtotal, direccion_envio, telefono_contacto, estado, metodo_pago)
+         VALUES (?, ?, ?, ?, ?, ?, ?, 'pendiente', 'mercadopago')`,
+        [numeroPedido, usuario_id || null, orderData.email || '', total, total, direccion_envio || 'A confirmar', telefono_contacto || '']
       );
       
       const orderId = orderResult.insertId;
