@@ -34,6 +34,26 @@ class Order {
     }
   }
 
+  static async getAll() {
+    const [rows] = await db.execute(
+      `SELECT p.*, 
+        u.nombre as cliente_nombre, u.email as cliente_email, u.telefono as cliente_telefono,
+        GROUP_CONCAT(pr.nombre SEPARATOR ', ') as productos,
+        COUNT(dp.id) as cantidad_items
+       FROM pedidos p
+       LEFT JOIN usuarios u ON p.usuario_id = u.id
+       LEFT JOIN detalles_pedido dp ON p.id = dp.pedido_id
+       LEFT JOIN productos pr ON dp.producto_id = pr.id
+       GROUP BY p.id
+       ORDER BY p.created_at DESC`
+    );
+    return rows;
+  }
+
+  static async updateEstado(id, estado) {
+    await db.execute('UPDATE pedidos SET estado = ? WHERE id = ?', [estado, id]);
+  }
+
   static async getByUserId(userId) {
     const [rows] = await db.execute(
       `SELECT p.*, GROUP_CONCAT(pr.nombre) as productos 

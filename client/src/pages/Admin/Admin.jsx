@@ -128,20 +128,13 @@ const Admin = () => {
   const loadOrders = async () => {
     try {
       const response = await fetch('/api/orders', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       })
       const data = await response.json()
-      setOrders(data)
+      setOrders(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Error cargando pedidos:', error)
-      // Fallback a datos mock
-      const mockOrders = [
-        { id: 1, customer: 'Juan Pérez', items: 3, total: 150000, status: 'pendiente', date: '2024-01-15' },
-        { id: 2, customer: 'María García', items: 2, total: 105000, status: 'completado', date: '2024-01-15' }
-      ]
-      setOrders(mockOrders)
+      setOrders([])
     }
   }
 
@@ -385,10 +378,21 @@ const Admin = () => {
     }
   }
 
-  const updateOrderStatus = (orderId, newStatus) => {
-    setOrders(orders.map(order => 
-      order.id === orderId ? { ...order, status: newStatus } : order
-    ))
+  const updateOrderStatus = async (orderId, newStatus) => {
+    try {
+      const res = await fetch(`/api/orders/${orderId}/estado`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+        body: JSON.stringify({ estado: newStatus })
+      })
+      if (res.ok) {
+        setOrders(orders.map(o => o.id === orderId ? { ...o, estado: newStatus } : o))
+      } else {
+        alert('Error al actualizar el estado')
+      }
+    } catch {
+      alert('Error de conexión')
+    }
   }
 
   const formatPrice = (price) => {
@@ -870,38 +874,51 @@ const Admin = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-secondary-200">
+                  {orders.length === 0 && (
+                    <tr><td colSpan="6" className="px-6 py-10 text-center text-secondary-400">No hay pedidos todavía</td></tr>
+                  )}
                   {orders.map((order) => (
-                    <tr key={order.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-secondary-900">
+                    <tr key={order.id} className="hover:bg-secondary-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-secondary-900">
                         #{order.id}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-900">
-                        {order.customer}
+                      <td className="px-6 py-4">
+                        <p className="text-sm font-medium text-secondary-900">{order.cliente_nombre || 'Invitado'}</p>
+                        <p className="text-xs text-secondary-500">{order.cliente_email || ''}</p>
+                        <p className="text-xs text-secondary-500">{order.cliente_telefono || order.telefono_contacto || ''}</p>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-900">
-                        {order.items} items
+                      <td className="px-6 py-4">
+                        <p className="text-sm text-secondary-900">{order.cantidad_items || 0} items</p>
+                        <p className="text-xs text-secondary-500 max-w-xs truncate">{order.productos || '-'}</p>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-secondary-900">
                         {formatPrice(order.total)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          order.status === 'completado' ? 'bg-green-100 text-green-800' :
-                          order.status === 'en-preparacion' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
+                          order.estado === 'entregado' ? 'bg-green-100 text-green-800' :
+                          order.estado === 'enviado' ? 'bg-blue-100 text-blue-800' :
+                          order.estado === 'procesando' ? 'bg-yellow-100 text-yellow-800' :
+                          order.estado === 'cancelado' ? 'bg-red-100 text-red-800' :
+                          'bg-gray-100 text-gray-800'
                         }`}>
-                          {order.status}
+                          {order.estado || 'pendiente'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-xs text-secondary-400 mb-1">
+                          {order.created_at ? new Date(order.created_at).toLocaleDateString('es-AR') : ''}
+                        </div>
                         <select
-                          value={order.status}
+                          value={order.estado || 'pendiente'}
                           onChange={(e) => updateOrderStatus(order.id, e.target.value)}
                           className="text-sm border border-secondary-200 rounded px-2 py-1"
                         >
                           <option value="pendiente">Pendiente</option>
-                          <option value="en-preparacion">En Preparación</option>
-                          <option value="completado">Completado</option>
+                          <option value="procesando">Procesando</option>
+                          <option value="enviado">Enviado</option>
+                          <option value="entregado">Entregado</option>
+                          <option value="cancelado">Cancelado</option>
                         </select>
                       </td>
                     </tr>
