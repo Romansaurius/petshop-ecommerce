@@ -8,15 +8,14 @@ class Order {
     await connection.beginTransaction();
     
     try {
-      // Crear pedido
       const [orderResult] = await connection.execute(
-        'INSERT INTO pedidos (usuario_id, total, direccion_envio, telefono_contacto) VALUES (?, ?, ?, ?)',
-        [usuario_id, total, direccion_envio, telefono_contacto]
+        `INSERT INTO pedidos (usuario_id, total, subtotal, direccion_envio, telefono_contacto, estado, metodo_pago)
+         VALUES (?, ?, ?, ?, ?, 'pendiente', 'mercadopago')`,
+        [usuario_id || null, total, total, direccion_envio || 'A confirmar', telefono_contacto || '']
       );
       
       const orderId = orderResult.insertId;
       
-      // Crear detalles del pedido
       for (const item of items) {
         await connection.execute(
           'INSERT INTO detalles_pedido (pedido_id, producto_id, cantidad, precio_unitario) VALUES (?, ?, ?, ?)',
@@ -51,6 +50,8 @@ class Order {
   }
 
   static async updateEstado(id, estado) {
+    const estadosValidos = ['pendiente', 'confirmado', 'preparando', 'enviado', 'entregado', 'cancelado'];
+    if (!estadosValidos.includes(estado)) return;
     await db.execute('UPDATE pedidos SET estado = ? WHERE id = ?', [estado, id]);
   }
 

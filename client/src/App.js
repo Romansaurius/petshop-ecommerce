@@ -10,8 +10,8 @@ import Login from './pages/Login/Login'
 import Register from './pages/Register/Register'
 import Checkout from './pages/Checkout/Checkout'
 import Admin from './pages/Admin/Admin'
+import PaymentResult from './pages/PaymentResult/PaymentResult'
 import Profile from './pages/Profile/Profile'
-import PaymentResult from './pages/Payment/PaymentResult'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -36,9 +36,9 @@ function App() {
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/perfil" element={<Profile />} />
-                <Route path="/pago/exitoso" element={<PaymentResult status="exitoso" />} />
-                <Route path="/pago/fallido" element={<PaymentResult status="fallido" />} />
-                <Route path="/pago/pendiente" element={<PaymentResult status="pendiente" />} />
+                <Route path="/pago/exitoso" element={<PaymentResult status="success" />} />
+                <Route path="/pago/fallido" element={<PaymentResult status="failure" />} />
+                <Route path="/pago/pendiente" element={<PaymentResult status="pending" />} />
               </Routes>
             </main>
             <Footer />

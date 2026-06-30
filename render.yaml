@@ -10,7 +10,7 @@ services:
       - key: DB_HOST
         value: shuttle.proxy.rlwy.net
       - key: DB_PORT
-        value: 3306
+        value: 21840
       - key: DB_USER
         value: root
       - key: DB_PASSWORD
@@ -24,4 +24,10 @@ services:
       - key: CLOUDINARY_API_SECRET
         value: W47P54JMJjyIy9c6Wv2jmeyxb0A
       - key: JWT_SECRET
-        value: tu_clave_secreta_jwt_muy_segura_2024
+        value: miTiendaMascotas_2024_xK9#mP2$qL8
+      - key: MP_ACCESS_TOKEN
+        value: APP_USR-7278906658711153-050519-a563fe94de6738ca2c0b45cb7230628c-1737686913
+      - key: MP_PUBLIC_KEY
+        value: APP_USR-f230c4af-9901-4ba2-91b8-1de5a3db91ea
+      - key: FRONTEND_URL
+        value: https://maulu.onrender.com
