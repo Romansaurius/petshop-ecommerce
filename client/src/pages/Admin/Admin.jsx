@@ -42,7 +42,10 @@ const Admin = () => {
     featured: false,
     discount: 0,
     stock: 100,
-    tipo: 'normal'
+    tipo: 'normal',
+    esProductoPorTalles: false,
+    tallesSeleccionados: { S: false, M: false, L: false, XL: false, XXL: false },
+    preciosTalles: { S: '', M: '', L: '', XL: '', XXL: '' }
   })
   const [brands, setBrands] = useState([])
   const [categories, setCategories] = useState([])
@@ -166,6 +169,23 @@ const Admin = () => {
     formData.append('stock', productForm.stock || 100)
     formData.append('tipo', productForm.tipo || 'normal')
     
+    // Procesar variantes de talles
+    if (productForm.esProductoPorTalles) {
+      const variantes = []
+      Object.entries(productForm.tallesSeleccionados).forEach(([talla, seleccionado]) => {
+        if (seleccionado && productForm.preciosTalles[talla]) {
+          variantes.push({
+            talla,
+            precio: productForm.preciosTalles[talla],
+            stock: productForm.stock || 100
+          })
+        }
+      })
+      formData.append('variantes', JSON.stringify(variantes))
+    } else {
+      formData.append('variantes', JSON.stringify([]))
+    }
+    
     if (productForm.image && productForm.image.length > 0) {
       for (let i = 0; i < productForm.image.length; i++) {
         formData.append('imagenes', productForm.image[i])
@@ -188,7 +208,7 @@ const Admin = () => {
       
       if (response.ok) {
         loadProducts()
-        setProductForm({ name: '', price: '', category: categories[0]?.nombre || '', brand: '', description: '', image: null, featured: false, discount: 0, stock: 100, tipo: 'normal' })
+        setProductForm({ name: '', price: '', category: categories[0]?.nombre || '', brand: '', description: '', image: null, featured: false, discount: 0, stock: 100, tipo: 'normal', esProductoPorTalles: false, tallesSeleccionados: { S: false, M: false, L: false, XL: false, XXL: false }, preciosTalles: { S: '', M: '', L: '', XL: '', XXL: '' } })
         setEditingProduct(null)
         setShowProductForm(false)
       } else {
@@ -203,6 +223,18 @@ const Admin = () => {
 
   const handleEditProduct = (product) => {
     setEditingProduct(product)
+    
+    // Procesar variantes existentes
+    const tallesSeleccionados = { S: false, M: false, L: false, XL: false, XXL: false }
+    const preciosTalles = { S: '', M: '', L: '', XL: '', XXL: '' }
+    
+    if (product.variantes && product.variantes.length > 0) {
+      product.variantes.forEach(v => {
+        tallesSeleccionados[v.talla] = true
+        preciosTalles[v.talla] = v.precio.toString()
+      })
+    }
+    
     setProductForm({
       name: product.nombre || product.name,
       price: (product.precio || product.price || 0).toString(),
@@ -213,7 +245,10 @@ const Admin = () => {
       featured: product.destacado || product.featured || false,
       discount: product.descuento_porcentaje || product.discount || 0,
       stock: product.stock || 0,
-      tipo: product.tipo || 'normal'
+      tipo: product.tipo || 'normal',
+      esProductoPorTalles: product.tiene_talles || false,
+      tallesSeleccionados,
+      preciosTalles
     })
     setShowProductForm(true)
   }
@@ -686,6 +721,59 @@ const Admin = () => {
                         <span className="text-sm font-medium text-secondary-700">Producto destacado</span>
                       </label>
                     </div>
+                    
+                    {/* Selector de producto por talles */}
+                    <div>
+                      <label className="flex items-center space-x-2 mb-3">
+                        <input
+                          type="checkbox"
+                          checked={productForm.esProductoPorTalles}
+                          onChange={(e) => setProductForm({...productForm, esProductoPorTalles: e.target.checked})}
+                          className="rounded"
+                        />
+                        <span className="text-sm font-medium text-secondary-700">Producto por talles/variantes</span>
+                      </label>
+                      
+                      {productForm.esProductoPorTalles && (
+                        <div className="ml-6 p-4 bg-secondary-50 rounded-lg space-y-3">
+                          <p className="text-xs text-secondary-600 mb-2">Selecciona los talles disponibles y sus precios:</p>
+                          {['S', 'M', 'L', 'XL', 'XXL'].map(talla => (
+                            <div key={talla} className="flex items-center space-x-3">
+                              <label className="flex items-center space-x-2 min-w-[60px]">
+                                <input
+                                  type="checkbox"
+                                  checked={productForm.tallesSeleccionados[talla]}
+                                  onChange={(e) => setProductForm({
+                                    ...productForm,
+                                    tallesSeleccionados: {
+                                      ...productForm.tallesSeleccionados,
+                                      [talla]: e.target.checked
+                                    }
+                                  })}
+                                  className="rounded"
+                                />
+                                <span className="text-sm font-medium">{talla}</span>
+                              </label>
+                              {productForm.tallesSeleccionados[talla] && (
+                                <input
+                                  type="number"
+                                  placeholder={`Precio ${talla}`}
+                                  value={productForm.preciosTalles[talla]}
+                                  onChange={(e) => setProductForm({
+                                    ...productForm,
+                                    preciosTalles: {
+                                      ...productForm.preciosTalles,
+                                      [talla]: e.target.value
+                                    }
+                                  })}
+                                  className="input w-full text-sm"
+                                />
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
 
                     <div>
                       <label className="block text-sm font-medium text-secondary-700 mb-2">Tipo de producto</label>
@@ -722,15 +810,15 @@ const Admin = () => {
                       <button type="submit" className="btn btn-primary flex-1">
                         {editingProduct ? 'Actualizar' : 'Agregar'}
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowProductForm(false)
-                          setEditingProduct(null)
-                          setProductForm({ name: '', price: '', category: 'comederos', description: '', image: null, featured: false, discount: 0, stock: 100 })
-                        }}
-                        className="btn btn-secondary flex-1"
-                      >
+<button
+                         type="button"
+                         onClick={() => {
+                           setShowProductForm(false)
+                           setEditingProduct(null)
+                           setProductForm({ name: '', price: '', category: 'comederos', description: '', image: null, featured: false, discount: 0, stock: 100, tipo: 'normal', esProductoPorTalles: false, tallesSeleccionados: { S: false, M: false, L: false, XL: false, XXL: false }, preciosTalles: { S: '', M: '', L: '', XL: '', XXL: '' } })
+                         }}
+                         className="btn btn-secondary flex-1"
+                       >
                         Cancelar
                       </button>
                     </div>

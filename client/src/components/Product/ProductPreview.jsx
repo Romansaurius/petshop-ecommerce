@@ -10,13 +10,41 @@ const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
   const [selectedImage, setSelectedImage] = useState(0)
   const [isLiked, setIsLiked] = useState(false)
   const [relatedProducts, setRelatedProducts] = useState([])
+  const [selectedTalla, setSelectedTalla] = useState(null)
+  const [selectedPrecio, setSelectedPrecio] = useState(null)
+  
+  useEffect(() => {
+    if (product) {
+      // Si el producto tiene talles, seleccionar el primero por defecto
+      if (product.variantes && product.variantes.length > 0) {
+        const sortedVariantes = [...product.variantes].sort((a, b) => {
+          const orden = { 'S': 1, 'M': 2, 'L': 3, 'XL': 4, 'XXL': 5 }
+          return (orden[a.talla] || 99) - (orden[b.talla] || 99)
+        })
+        setSelectedTalla(sortedVariantes[0].talla)
+        setSelectedPrecio(sortedVariantes[0].precio)
+      } else {
+        setSelectedTalla(null)
+        setSelectedPrecio(null)
+      }
+    }
+  }, [product])
 
   const getProductName = () => product?.nombre || product?.name || 'Producto'
-  const getProductPrice = () => product?.precio || product?.price || 0
+  const getProductPrice = () => {
+    if (selectedPrecio !== null) return selectedPrecio
+    return product?.precio || product?.price || 0
+  }
   const getProductDescription = () => product?.descripcion || product?.description || ''
   const getProductCategory = () => product?.categoria || product?.category || ''
   const getProductDiscount = () => product?.descuento_porcentaje || product?.discount || 0
-  const getProductStock = () => product?.stock || 100
+  const getProductStock = () => {
+    if (selectedTalla && product?.variantes) {
+      const variante = product.variantes.find(v => v.talla === selectedTalla)
+      return variante ? variante.stock : product?.stock || 100
+    }
+    return product?.stock || 100
+  }
 
   const getProductImages = () => {
     if (product?.imagenes) {
@@ -59,7 +87,13 @@ const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
     : null
 
   const handleAddToCart = () => {
-    for (let i = 0; i < quantity; i++) addToCart(product)
+    const productWithTalla = {
+      ...product,
+      precio: getProductPrice(),
+      talla: selectedTalla,
+      variante_id: selectedTalla ? product.variantes?.find(v => v.talla === selectedTalla)?.id : null
+    }
+    for (let i = 0; i < quantity; i++) addToCart(productWithTalla)
     setQuantity(1)
   }
 
@@ -206,6 +240,33 @@ const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
               {/* Descripción */}
               {getProductDescription() && (
                 <p className="text-secondary-600 text-sm leading-relaxed">{getProductDescription()}</p>
+              )}
+
+              {/* Selector de talles */}
+              {product?.variantes && product.variantes.length > 0 && (
+                <div>
+                  <span className="text-sm font-medium text-secondary-700 mb-2 block">Talla:</span>
+                  <div className="flex flex-wrap gap-2">
+                    {product.variantes.map(variante => (
+                      <button
+                        key={variante.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedTalla(variante.talla)
+                          setSelectedPrecio(variante.precio)
+                        }}
+                        className={`px-4 py-2 rounded-lg border-2 transition-all ${
+                          selectedTalla === variante.talla
+                            ? 'border-primary-500 bg-primary-50 text-primary-700'
+                            : 'border-secondary-200 text-secondary-600 hover:border-secondary-300'
+                        }`}
+                      >
+                        <div className="text-sm font-medium">{variante.talla}</div>
+                        <div className="text-xs">{formatPrice(variante.precio)}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               )}
 
               {/* Cantidad */}

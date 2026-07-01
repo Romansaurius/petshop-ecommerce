@@ -48,6 +48,13 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
   const handleAddToCart = async () => {
     setIsAdding(true);
     
+    // Si el producto tiene talles y no se seleccionó ninguno, abrir preview
+    if (product.variantes && product.variantes.length > 0 && !showPreview) {
+      setShowPreview(true)
+      setIsAdding(false)
+      return
+    }
+    
     // Simular delay para mejor UX
     await new Promise(resolve => setTimeout(resolve, 300));
     
@@ -88,11 +95,30 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
               className="w-full h-full rounded-xl"
             />
             
-            {getProductDiscount() > 0 && (
-              <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                -{getProductDiscount()}%
-              </div>
-            )}
+            {/* Badges - vista lista */}
+              {getProductDiscount() > 0 && (
+                <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                  -{getProductDiscount()}%
+                </div>
+              )}
+              
+              {product.tiene_talles && product.variantes && getProductDiscount() <= 0 && (
+                <div className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                  Talles
+                </div>
+              )}
+              
+              {product.tiene_talles && product.variantes && getProductDiscount() > 0 && (
+                <div className="absolute -top-2 -left-10 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                  Talles
+                </div>
+              )}
+              
+              {getProductFeatured() && (
+                <div className="absolute -top-2 -left-2 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                  ⭐
+                </div>
+              )}
             
             {getProductFeatured() && (
               <div className="absolute -top-2 -left-2 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full">
@@ -178,8 +204,18 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
           />
           
           {/* Badges */}
-          {getProductDiscount() > 0 && (
+          {product.tiene_talles && product.variantes && (
+            <div className="absolute top-3 right-3 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+              Talles
+            </div>
+          )}
+          {getProductDiscount() > 0 && !product.tiene_talles && (
             <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+              -{getProductDiscount()}%
+            </div>
+          )}
+          {getProductDiscount() > 0 && product.tiene_talles && (
+            <div className="absolute top-12 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
               -{getProductDiscount()}%
             </div>
           )}

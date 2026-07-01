@@ -65,7 +65,7 @@ const Cart = ({ isOpen, onClose }) => {
             <div className="space-y-4">
 
               {cart.map((item) => (
-                <div key={item.id} className="flex items-center space-x-4 p-4 bg-secondary-50 rounded-lg">
+                <div key={item.variante_id ? `${item.id}_${item.variante_id}` : item.id} className="flex items-center space-x-4 p-4 bg-secondary-50 rounded-lg">
                   {/* Product Image */}
                   <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
                     {item.imagen ? (
@@ -88,6 +88,7 @@ const Cart = ({ isOpen, onClose }) => {
                   <div className="flex-1 min-w-0">
                     <h4 className="font-medium text-secondary-800 truncate">
                       {item.nombre}
+                      {item.talla && <span className="text-primary-500 ml-1">({item.talla})</span>}
                     </h4>
                     {item.is2x1 ? (
                       <div className="space-y-0.5">
@@ -107,7 +108,7 @@ const Cart = ({ isOpen, onClose }) => {
                   {/* Quantity Controls */}
                   <div className="flex items-center space-x-2">
                     <button 
-                      onClick={() => updateQuantity(item.id, Math.max(0, item.quantity - 1))}
+                      onClick={() => updateQuantity(item.id, Math.max(0, item.quantity - 1), item.variante_id)}
                       className="p-1 hover:bg-secondary-200 rounded transition-colors"
                     >
                       <Minus className="w-4 h-4 text-secondary-600" />
@@ -118,7 +119,7 @@ const Cart = ({ isOpen, onClose }) => {
                     </span>
                     
                     <button 
-                      onClick={() => updateQuantity(item.id, Math.min(10, item.quantity + 1))}
+                      onClick={() => updateQuantity(item.id, Math.min(10, item.quantity + 1), item.variante_id)}
                       disabled={item.quantity >= 10}
                       className="p-1 hover:bg-secondary-200 rounded transition-colors disabled:opacity-50"
                     >
@@ -128,7 +129,7 @@ const Cart = ({ isOpen, onClose }) => {
 
                   {/* Remove Button */}
                   <button 
-                    onClick={() => removeFromCart(item.id)}
+                    onClick={() => removeFromCart(item.id, item.variante_id)}
                     className="p-2 hover:bg-red-100 hover:text-red-600 rounded-lg transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />

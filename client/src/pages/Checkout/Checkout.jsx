@@ -47,9 +47,9 @@ const Checkout = () => {
     }
   }
 
-  const handleQuantityChange = (productId, newQuantity) => {
-    if (newQuantity <= 0) removeFromCart(productId)
-    else updateQuantity(productId, newQuantity)
+  const handleQuantityChange = (productId, newQuantity, variante_id = null) => {
+    if (newQuantity <= 0) removeFromCart(productId, variante_id)
+    else updateQuantity(productId, newQuantity, variante_id)
   }
 
   const subtotal = getTotalPrice()
@@ -152,20 +152,20 @@ const Checkout = () => {
               <h2 className="text-xl font-semibold text-secondary-800 mb-4">Tu Carrito</h2>
               <div className="space-y-4">
                 {cart.map(item => (
-                  <div key={item.id} className="flex items-center justify-between p-4 bg-secondary-50 rounded-lg">
+                  <div key={item.variante_id ? `${item.id}_${item.variante_id}` : item.id} className="flex items-center justify-between p-4 bg-secondary-50 rounded-lg">
                     <div className="flex-1">
-                      <h4 className="font-medium text-secondary-800">{item.nombre || item.name}</h4>
+                      <h4 className="font-medium text-secondary-800">{item.nombre || item.name} {item.talla && <span className="text-primary-500">({item.talla})</span>}</h4>
                       <p className="text-sm text-secondary-600">{formatPrice(item.precio || item.price || 0)} c/u</p>
                     </div>
                     <div className="flex items-center space-x-3">
                       <div className="flex items-center space-x-2">
-                        <button onClick={() => handleQuantityChange(item.id, item.quantity - 1)} className="w-8 h-8 rounded-full bg-secondary-200 hover:bg-secondary-300 flex items-center justify-center">-</button>
+                        <button onClick={() => handleQuantityChange(item.id, item.quantity - 1, item.variante_id)} className="w-8 h-8 rounded-full bg-secondary-200 hover:bg-secondary-300 flex items-center justify-center">-</button>
                         <span className="w-8 text-center font-medium">{item.quantity}</span>
-                        <button onClick={() => handleQuantityChange(item.id, item.quantity + 1)} className="w-8 h-8 rounded-full bg-secondary-200 hover:bg-secondary-300 flex items-center justify-center">+</button>
+                        <button onClick={() => handleQuantityChange(item.id, item.quantity + 1, item.variante_id)} className="w-8 h-8 rounded-full bg-secondary-200 hover:bg-secondary-300 flex items-center justify-center">+</button>
                       </div>
                       <div className="text-right">
                         <div className="font-medium text-secondary-800">{formatPrice((item.precio || item.price || 0) * item.quantity)}</div>
-                        <button onClick={() => removeFromCart(item.id)} className="text-red-500 hover:text-red-700 text-sm">Eliminar</button>
+                        <button onClick={() => removeFromCart(item.id, item.variante_id)} className="text-red-500 hover:text-red-700 text-sm">Eliminar</button>
                       </div>
                     </div>
                   </div>
@@ -187,29 +187,31 @@ const Checkout = () => {
             <div className="card p-6">
               <h2 className="text-xl font-semibold text-secondary-800 mb-4">Resumen del Pedido</h2>
               <div className="space-y-3">
-                {cart.map(item => {
-                  const precio = item.precio || item.price || 0
-                  const is2x1 = item.is2x1
-                  const unidadesCobradas = is2x1 ? Math.ceil(item.quantity / 2) : item.quantity
-                  const subtotalItem = precio * unidadesCobradas
-                  return (
-                    <div key={item.id} className="flex justify-between items-start text-sm">
-                      <div>
-                        <span className="text-secondary-800 font-medium">{item.nombre || item.name}</span>
-                        {is2x1 ? (
-                          <p className="text-xs text-purple-600 mt-0.5">
-                            {item.quantity} unidades · paga {unidadesCobradas} x {formatPrice(precio)}
-                          </p>
-                        ) : (
-                          <p className="text-xs text-secondary-500 mt-0.5">
-                            {item.quantity} x {formatPrice(precio)}
-                          </p>
-                        )}
-                      </div>
-                      <span className="font-medium text-secondary-800">{formatPrice(subtotalItem)}</span>
-                    </div>
-                  )
-                })}
+{cart.map(item => {
+                   const precio = item.precio || item.price || 0
+                   const is2x1 = item.is2x1
+                   const unidadesCobradas = is2x1 ? Math.ceil(item.quantity / 2) : item.quantity
+                   const subtotalItem = precio * unidadesCobradas
+                   return (
+                     <div key={item.variante_id ? `${item.id}_${item.variante_id}` : item.id} className="flex justify-between items-start text-sm">
+                       <div>
+                         <span className="text-secondary-800 font-medium">
+                           {item.nombre || item.name} {item.talla && <span className="text-primary-500">({item.talla})</span>}
+                         </span>
+                         {is2x1 ? (
+                           <p className="text-xs text-purple-600 mt-0.5">
+                             {item.quantity} unidades · paga {unidadesCobradas} x {formatPrice(precio)}
+                           </p>
+                         ) : (
+                           <p className="text-xs text-secondary-500 mt-0.5">
+                             {item.quantity} x {formatPrice(precio)}
+                           </p>
+                         )}
+                       </div>
+                       <span className="font-medium text-secondary-800">{formatPrice(subtotalItem)}</span>
+                     </div>
+                   )
+                 })}
 
                 <div className="border-t border-secondary-200 pt-3 space-y-2">
                   <div className="flex justify-between text-sm">
