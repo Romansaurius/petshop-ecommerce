@@ -20,8 +20,8 @@ class Order {
       
       for (const item of items) {
         await connection.execute(
-          'INSERT INTO detalles_pedido (pedido_id, producto_id, cantidad, precio_unitario) VALUES (?, ?, ?, ?)',
-          [orderId, item.producto_id, item.cantidad, item.precio_unitario]
+          'INSERT INTO detalles_pedido (pedido_id, producto_id, cantidad, precio_unitario, talla) VALUES (?, ?, ?, ?, ?)',
+          [orderId, item.producto_id, item.cantidad, item.precio_unitario, item.talla || null]
         );
       }
       

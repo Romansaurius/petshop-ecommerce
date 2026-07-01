@@ -43,12 +43,21 @@ class Product {
       `, [id]);
       
       if (rows[0]) {
+if (rows[0]) {
         // Agregar imágenes de Cloudinary
         const [images] = await db.execute(
           'SELECT imagen_url, es_principal, orden FROM producto_imagenes WHERE producto_id = ? ORDER BY orden',
           [id]
         );
         rows[0].imagenes = images;
+        
+        // Agregar variantes de talles si existen
+        const [variantes] = await db.execute(
+          'SELECT id, talla, precio, stock FROM producto_variantes WHERE producto_id = ? AND activo = TRUE ORDER BY FIELD(talla, "S", "M", "L", "XL", "XXL")',
+          [id]
+        );
+        rows[0].variantes = variantes;
+        rows[0].tiene_talles = variantes.length > 0;
       }
       
       return rows[0];
@@ -185,6 +194,21 @@ class Product {
       ]);
       
       console.log(`✅ Producto creado con ID: ${result.insertId}, SKU: ${sku}`);
+      
+      // Crear variantes de talles si se proporcionaron
+      if (productData.variantes && productData.variantes.length > 0) {
+        for (const variante of productData.variantes) {
+          if (variante.talla && variante.precio) {
+            await db.execute(
+              'INSERT INTO producto_variantes (producto_id, talla, precio, stock) VALUES (?, ?, ?, ?)',
+              [result.insertId, variante.talla, parseFloat(variante.precio), parseInt(variante.stock) || 100]
+            );
+          }
+        }
+        // Actualizar producto para marcar que tiene talles
+        await db.execute('UPDATE productos SET tiene_talles = TRUE WHERE id = ?', [result.insertId]);
+      }
+      
       return result.insertId;
     } catch (error) {
       console.error('❌ Error en create:', error);
@@ -194,7 +218,7 @@ class Product {
 
   static async update(id, productData) {
     try {
-      const { nombre, descripcion, precio, categoria, marca, imagenes, destacado, descuento_porcentaje, stock } = productData;
+      const { nombre, descripcion, precio, categoria, marca, imagenes, destacado, descuento_porcentaje, stock, variantes } = productData;
       
       let query = 'UPDATE productos SET nombre = ?, descripcion = ?, precio = ?, destacado = ?, descuento_porcentaje = ?';
       let params = [
@@ -246,6 +270,27 @@ class Product {
       params.push(id);
       
       await db.execute(query, params);
+      
+      // Actualizar variantes de talles
+      if (variantes !== undefined) {
+        // Eliminar variantes anteriores
+        await db.execute('DELETE FROM producto_variantes WHERE producto_id = ?', [id]);
+        
+        // Crear nuevas variantes
+        if (variantes && variantes.length > 0) {
+          for (const variante of variantes) {
+            if (variante.talla && variante.precio) {
+              await db.execute(
+                'INSERT INTO producto_variantes (producto_id, talla, precio, stock) VALUES (?, ?, ?, ?)',
+                [id, variante.talla, parseFloat(variante.precio), parseInt(variante.stock) || 100]
+              );
+            }
+          }
+          await db.execute('UPDATE productos SET tiene_talles = TRUE WHERE id = ?', [id]);
+        } else {
+          await db.execute('UPDATE productos SET tiene_talles = FALSE WHERE id = ?', [id]);
+        }
+      }
     } catch (error) {
       console.error('Error en update:', error);
       throw error;

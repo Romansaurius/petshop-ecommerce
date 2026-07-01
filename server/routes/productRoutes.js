@@ -130,6 +130,14 @@ router.post('/', auth, upload.array('imagenes', 5), async (req, res) => {
       sku,
       tipo: req.body.tipo || 'normal'
     };
+    
+    // Parsear variantes de talles
+    if (req.body.variantes) {
+      try {
+        productData.variantes = JSON.parse(req.body.variantes);
+      } catch (e) {
+        console.log('No se pudieron parsear las variantes');
+      }
 
     const productId = await Product.create(productData);
     const newProduct = await Product.getById(productId);
@@ -159,6 +167,15 @@ router.put('/:id', auth, upload.array('imagenes', 5), async (req, res) => {
       descuento_porcentaje: req.body.descuento_porcentaje || 0,
       stock: req.body.stock
     };
+    
+    // Parsear variantes de talles
+    if (req.body.variantes) {
+      try {
+        productData.variantes = JSON.parse(req.body.variantes);
+      } catch (e) {
+        console.log('No se pudieron parsear las variantes');
+      }
+    }
 
     // URLs de Cloudinary para actualización
     if (req.files && req.files.length > 0) {

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 
 const CartContext = createContext()
 
@@ -22,6 +22,7 @@ const getDeviceId = () => {
 
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([])
+  const [toastProduct, setToastProduct] = useState(null)
   const cartKey = `cart_${getDeviceId()}`
 
   // Cargar carrito desde localStorage al iniciar
@@ -39,7 +40,14 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = (product) => {
     setCart(prevCart => {
-      const existingItem = prevCart.find(item => item.id === product.id)
+      // Si el producto tiene talla, usar variante_id como identificador único
+      const itemKey = product.variante_id ? `${product.id}_${product.variante_id}` : product.id
+      
+      const existingItem = prevCart.find(item => 
+        product.variante_id 
+          ? `${item.id}_${item.variante_id || ''}` === itemKey
+          : item.id === product.id
+      )
       
       const normalizedProduct = {
         ...product,
@@ -56,33 +64,43 @@ export const CartProvider = ({ children }) => {
           alert('Máximo 10 unidades por producto')
           return prevCart
         }
-        return prevCart.map(item =>
-          item.id === product.id
+        return prevCart.map(item => {
+          const currentKey = item.variante_id ? `${item.id}_${item.variante_id}` : item.id
+          return currentKey === itemKey
             ? { ...item, quantity: item.quantity + 1 }
             : item
-        )
+        })
       } else {
         return [...prevCart, { ...normalizedProduct, quantity: 1, is2x1 }]
       }
     })
+    setToastProduct(product)
   }
 
-  const removeFromCart = (productId) => {
-    setCart(prevCart => prevCart.filter(item => item.id !== productId))
+  const removeFromCart = (productId, variante_id = null) => {
+    setCart(prevCart => prevCart.filter(item => {
+      if (variante_id) {
+        return !(item.id === productId && item.variante_id === variante_id)
+      }
+      return item.id !== productId
+    }))
   }
 
-  const updateQuantity = (productId, quantity) => {
+  const updateQuantity = (productId, quantity, variante_id = null) => {
     if (quantity <= 0) {
-      removeFromCart(productId)
+      removeFromCart(productId, variante_id)
       return
     }
 
     setCart(prevCart =>
-      prevCart.map(item =>
-        item.id === productId
+      prevCart.map(item => {
+        const matches = variante_id
+          ? item.id === productId && item.variante_id === variante_id
+          : item.id === productId && !item.variante_id
+        return matches
           ? { ...item, quantity }
           : item
-      )
+      })
     )
   }
 
@@ -104,6 +122,8 @@ export const CartProvider = ({ children }) => {
 
   const value = {
     cart,
+    toastProduct,
+    setToastProduct,
     addToCart,
     removeFromCart,
     updateQuantity,
