@@ -1,11 +1,12 @@
 const mysql = require('mysql2/promise');
 
 const dbConfig = {
-  host: 'shuttle.proxy.rlwy.net',
-  port: 21840,
-  user: 'root',
-  password: 'anJkMDnhTJoXaMDjgYFpfmkMBUskRZFu',
-  database: 'ecommerce_mascotas'
+  host: process.env.DB_HOST || 'shuttle.proxy.rlwy.net',
+  port: parseInt(process.env.DB_PORT) || 3306,
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || 'anJkMDnhTJoXaMDjgYFpfmkMBUskRZFu',
+  database: process.env.DB_NAME || 'ecommerce_mascotas',
+  connectTimeout: 60000
 };
 
 async function migrateDatabase() {
@@ -119,6 +120,47 @@ async function migrateDatabase() {
         FOREIGN KEY (producto_id) REFERENCES productos(id) ON DELETE CASCADE
       )
     `);
+    
+    // 8. Crear tabla de variantes (talles)
+    console.log('📏 Creando tabla producto_variantes...');
+    try {
+      await connection.execute(`
+        CREATE TABLE IF NOT EXISTS producto_variantes (
+          id INT PRIMARY KEY AUTO_INCREMENT,
+          producto_id INT NOT NULL,
+          talla VARCHAR(50) NOT NULL,
+          precio DECIMAL(10,2) NOT NULL,
+          stock INT DEFAULT 0,
+          activo BOOLEAN DEFAULT TRUE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (producto_id) REFERENCES productos(id) ON DELETE CASCADE,
+          UNIQUE KEY unique_producto_talla (producto_id, talla)
+        )
+      `);
+      console.log('  ✅ Tabla producto_variantes creada');
+    } catch (error) {
+      console.log('  ⚠️ Error creando tabla variantes:', error.message);
+    }
+    
+    // 9. Agregar columna tiene_talles a productos
+    try {
+      await connection.execute(`ALTER TABLE productos ADD COLUMN tiene_talles BOOLEAN DEFAULT FALSE`);
+      console.log('  ✅ Columna tiene_talles agregada');
+    } catch (error) {
+      if (error.code !== 'ER_DUP_FIELDNAME') {
+        console.log('  ⚠️ Error agregando tiene_talles:', error.message);
+      }
+    }
+    
+    // 10. Agregar columna talla a detalles_pedido
+    try {
+      await connection.execute(`ALTER TABLE detalles_pedido ADD COLUMN talla VARCHAR(50)`);
+      console.log('  ✅ Columna talla agregada a detalles_pedido');
+    } catch (error) {
+      if (error.code !== 'ER_DUP_FIELDNAME') {
+        console.log('  ⚠️ Error agregando talla:', error.message);
+      }
+    }
     
     console.log('✅ Migración completada exitosamente');
     console.log('📊 Verificando estructura...');
