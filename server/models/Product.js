@@ -37,13 +37,12 @@ class Product {
           c.nombre as categoria,
           m.nombre as marca
         FROM productos p
-        LEFT JOIN categorias c ON p.categoria_id = c.id
+LEFT JOIN categorias c ON p.categoria_id = c.id
         LEFT JOIN marcas m ON p.marca_id = m.id
         WHERE p.id = ? AND p.activo = TRUE
       `, [id]);
       
       if (rows[0]) {
-if (rows[0]) {
         // Agregar imágenes de Cloudinary
         const [images] = await db.execute(
           'SELECT imagen_url, es_principal, orden FROM producto_imagenes WHERE producto_id = ? ORDER BY orden',
