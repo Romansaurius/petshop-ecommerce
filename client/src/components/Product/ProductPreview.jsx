@@ -191,10 +191,14 @@ const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
               <div>
                 <h1 className="text-2xl font-bold text-secondary-900 leading-tight">{getProductName()}</h1>
                 <div className="flex items-center space-x-2 mt-2">
-                  {Array.from({ length: 5 }, (_, i) => (
-                    <Star key={i} className={`w-4 h-4 ${i < Math.floor(product.rating || 4) ? 'text-yellow-400 fill-current' : 'text-secondary-200'}`} />
-                  ))}
-                  <span className="text-sm text-secondary-500">({product.reviews || 0} reseñas)</span>
+                  {(product.rating > 0) ? (
+                    <>
+                      {Array.from({ length: 5 }, (_, i) => (
+                        <Star key={i} className={`w-4 h-4 ${i < Math.floor(product.rating) ? 'text-yellow-400 fill-current' : 'text-secondary-200'}`} />
+                      ))}
+                      {product.reviews > 0 && <span className="text-sm text-secondary-500">({product.reviews} reseñas)</span>}
+                    </>
+                  ) : null}
                 </div>
               </div>
 
