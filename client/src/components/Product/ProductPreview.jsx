@@ -58,13 +58,18 @@ const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
   }
 
   const images = getProductImages()
-
+  const is2x1 = getProductTipo() === '2x1'
+  
+  // Calcular total del carrito considerando 2x1
   const cartTotal = (cart || []).reduce((sum, item) => {
     const price = item.precio || item.price || 0
-    return sum + price * (item.quantity || 1)
+    const unidadesCobradas = item.is2x1 ? Math.ceil(item.quantity / 2) : item.quantity
+    return sum + (price * unidadesCobradas)
   }, 0)
 
-  const totalWithProduct = cartTotal + getProductPrice() * quantity
+  // Calcular progreso con el producto actual
+  const unidadesCobradasActual = is2x1 ? Math.ceil(quantity / 2) : quantity
+  const totalWithProduct = cartTotal + getProductPrice() * unidadesCobradasActual
   const shippingProgress = Math.min((totalWithProduct / FREE_SHIPPING_THRESHOLD) * 100, 100)
   const remaining = Math.max(FREE_SHIPPING_THRESHOLD - totalWithProduct, 0)
 
