@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Search, ShoppingCart, Menu, X, Heart, User, Sparkles } from 'lucide-react';
+import { Search, ShoppingCart, Menu, X, Heart, User, Truck } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 
@@ -35,9 +35,8 @@ const Header = () => {
       <div className="bg-gradient-to-r from-primary-500 to-primary-600 text-white py-3">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <div className="flex items-center justify-center space-x-2 text-sm font-medium">
-            <Sparkles className="w-4 h-4 animate-pulse" />
-            <span>🚚 Envío GRATIS a partir de $35.000 · Malvinas Argentinas, Pilar, San Isidro y alrededores</span>
-            <Sparkles className="w-4 h-4 animate-pulse" />
+            <Truck className="w-4 h-4" />
+            <span>Envío gratis a partir de $35.000 · Zona Pilar y alrededores</span>
           </div>
         </div>
       </div>
@@ -88,11 +87,14 @@ const Header = () => {
                   <User className="w-4 h-4 text-primary-600" />
                   <span className="text-sm font-medium text-primary-700">Hola, {user?.name}</span>
                 </Link>
-                {user?.role === 'admin' && (
-                  <Link to="/admin" className="p-2 text-secondary-600 hover:text-primary-500 transition-colors">
-                    ⚙️
-                  </Link>
-                )}
+{user?.role === 'admin' && (
+                   <Link to="/admin" className="p-2 text-secondary-600 hover:text-primary-500 transition-colors">
+                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.766 2.924-1.766 3.35 0a1.724 1.724 0 002.593.892c1.55-.94 3.31.826 2.37 2.286a1.724 1.724 0 00.892 2.593c1.766.426 1.766 2.924 0 3.35a1.724 1.724 0 00-.892 2.593c.94 1.55-.826 3.31-2.286 2.37a1.724 1.724 0 00-2.593.892c-.426 1.766-2.924 1.766-3.35 0a1.724 1.724 0 00-2.593-.892c-1.55.94-3.31-.826-2.37-2.286a1.724 1.724 0 00-.892-2.593c-1.766-.426-1.766-2.924 0-3.35a1.724 1.724 0 00.892-2.593c-.94-1.55.826-3.31 2.37-2.286a1.724 1.724 0 002.593-.892z" />
+                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                     </svg>
+                   </Link>
+                 )}
                 <button onClick={logout} className="text-sm text-secondary-600 hover:text-primary-500 transition-colors">
                   Salir
                 </button>
@@ -195,12 +197,15 @@ const Header = () => {
                     <User className="w-5 h-5" />
                     <span className="font-medium">Mi perfil</span>
                   </Link>
-                  {user?.role === 'admin' && (
-                    <Link to="/admin" onClick={() => setIsMenuOpen(false)} className="flex items-center space-x-2 p-3 text-secondary-600 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors">
-                      <span>⚙️</span>
-                      <span>Panel Admin</span>
-                    </Link>
-                  )}
+{user?.role === 'admin' && (
+                     <Link to="/admin" onClick={() => setIsMenuOpen(false)} className="flex items-center space-x-2 p-3 text-secondary-600 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors">
+                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.766 2.924-1.766 3.35 0a1.724 1.724 0 002.593.892c1.55-.94 3.31.826 2.37 2.286a1.724 1.724 0 00.892 2.593c1.766.426 1.766 2.924 0 3.35a1.724 1.724 0 00-.892 2.593c.94 1.55-.826 3.31-2.286 2.37a1.724 1.724 0 00-2.593.892c-.426 1.766-2.924 1.766-3.35 0a1.724 1.724 0 00-2.593-.892c-1.55.94-3.31-.826-2.37-2.286a1.724 1.724 0 00-.892-2.593c-1.766-.426-1.766-2.924 0-3.35a1.724 1.724 0 00.892-2.593c-.94-1.55.826-3.31 2.37-2.286a1.724 1.724 0 002.593-.892z" />
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                       </svg>
+                       <span>Panel Admin</span>
+                     </Link>
+                   )}
                   <button onClick={() => { logout(); setIsMenuOpen(false); }} className="w-full text-left p-3 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
                     Cerrar sesion
                   </button>
