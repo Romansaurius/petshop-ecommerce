@@ -95,7 +95,7 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
               className="w-full h-full rounded-xl"
             />
             
-            {/* Badges - vista lista */}
+{/* Badges - vista lista */}
               {getProductDiscount() > 0 && (
                 <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                   -{getProductDiscount()}%
@@ -103,13 +103,13 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
               )}
               
               {product.tiene_talles && product.variantes && getProductDiscount() <= 0 && (
-                <div className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                <div className="absolute -top-2 -left-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                   Talles
                 </div>
               )}
               
               {product.tiene_talles && product.variantes && getProductDiscount() > 0 && (
-                <div className="absolute -top-2 -left-10 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                <div className="absolute -top-2 -right-14 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                   Talles
                 </div>
               )}
@@ -119,12 +119,6 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
                   ⭐
                 </div>
               )}
-            
-            {getProductFeatured() && (
-              <div className="absolute -top-2 -left-2 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                ⭐
-              </div>
-            )}
           </div>
           
           <div className="flex-1">

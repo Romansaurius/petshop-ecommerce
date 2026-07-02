@@ -138,6 +138,7 @@ router.post('/', auth, upload.array('imagenes', 5), async (req, res) => {
       } catch (e) {
         console.log('No se pudieron parsear las variantes');
       }
+    }
 
     const productId = await Product.create(productData);
     const newProduct = await Product.getById(productId);
