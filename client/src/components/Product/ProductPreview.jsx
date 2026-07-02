@@ -38,6 +38,7 @@ const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
   const getProductDescription = () => product?.descripcion || product?.description || ''
   const getProductCategory = () => product?.categoria || product?.category || ''
   const getProductDiscount = () => product?.descuento_porcentaje || product?.discount || 0
+  const getProductTipo = () => product?.tipo || 'normal'
   const getProductStock = () => {
     if (selectedTalla && product?.variantes) {
       const variante = product.variantes.find(v => v.talla === selectedTalla)
