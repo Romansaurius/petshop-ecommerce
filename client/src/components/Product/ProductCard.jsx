@@ -133,18 +133,18 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
               {getProductDescription()}
             </p>
             
-            {(product.rating > 0) && (
+            {product.rating > 0 ? (
               <div className="flex items-center space-x-2 mb-3">
                 <div className="flex items-center space-x-0.5">
                   {renderStars(product.rating)}
                 </div>
                 {product.reviews > 0 && <span className="text-xs text-secondary-400">({product.reviews})</span>}
               </div>
-            )}
+            ) : null}
             
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                {originalPrice && (
+                {originalPrice !== null && (
                   <span className="text-sm text-secondary-400 line-through">
                     {formatPrice(originalPrice)}
                   </span>
@@ -254,16 +254,16 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
             {getProductDescription()}
           </p>
           
-          {!!product.rating && product.rating > 0 && (
+          {product.rating > 0 ? (
             <div className="hidden sm:flex items-center space-x-1 mb-3">
               {renderStars(product.rating)}
               {product.reviews > 0 && <span className="text-xs text-secondary-400 ml-1">({product.reviews})</span>}
             </div>
-          )}
+          ) : null}
           
           <div className="flex items-center justify-between mt-2">
             <div className="flex flex-col">
-              {originalPrice && (
+              {originalPrice !== null && (
                 <span className="text-xs text-secondary-400 line-through">
                   {formatPrice(originalPrice)}
                 </span>
