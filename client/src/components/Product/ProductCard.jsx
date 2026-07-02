@@ -263,13 +263,11 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
             {getProductDescription()}
           </p>
           
-          {/* Rating - oculto en mobile */}
-          <div className="hidden sm:flex items-center space-x-2 mb-4">
-            <div className="flex items-center space-x-1">
-              {renderStars(product.rating || 0)}
-            </div>
-            <span className="text-sm text-secondary-500">({product.reviews || 0})</span>
-          </div>
+{/* Rating - oculto en mobile */}
+           <div className="hidden sm:flex items-center space-x-1 mb-4">
+             {renderStars(product.rating || 0)}
+             <span className="text-xs text-secondary-400">{product.reviews || 0}</span>
+           </div>
           
           <div className="flex items-center justify-between mt-2">
             <div className="flex flex-col">

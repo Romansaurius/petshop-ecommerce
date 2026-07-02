@@ -85,9 +85,9 @@ const SectionBlock = ({ iconColor, label, subtitle, bgColor, borderColor, childr
 
 const Skeleton = () => (
   <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-    {[...Array(4)].map((_, i) => (
-      <div key={i} className="bg-gray-100 rounded-2xl h-72 animate-pulse" />
-    ))}
+{[...Array(4)].map((_, i) => (
+       <div key={i} className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl h-72 animate-pulse" />
+     ))}
   </div>
 )
 
