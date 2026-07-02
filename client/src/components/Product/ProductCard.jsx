@@ -102,20 +102,20 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
                 </div>
               )}
               
-              {product.tiene_talles && product.variantes && getProductDiscount() <= 0 && (
+              {(product?.tiene_talles && product?.variantes?.length > 0) && getProductDiscount() <= 0 && (
                 <div className="absolute -top-2 -left-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                   Talles
                 </div>
               )}
               
-              {product.tiene_talles && product.variantes && getProductDiscount() > 0 && (
-                <div className="absolute -top-2 -right-14 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+              {(product?.tiene_talles && product?.variantes?.length > 0) && getProductDiscount() > 0 && (
+                <div className="absolute -top-2 -left-14 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                   Talles
                 </div>
               )}
               
               {getProductFeatured() && (
-                <div className="absolute -top-2 -left-2 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                <div className="absolute top-3 right-3 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                   ⭐
                 </div>
               )}
@@ -197,18 +197,18 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
             className="w-full h-56"
           />
           
-          {/* Badges */}
-          {product.tiene_talles && product.variantes && (
+{/* Badges */}
+          {(product?.tiene_talles && product?.variantes?.length > 0) && (
             <div className="absolute top-3 right-3 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
               Talles
             </div>
           )}
-          {getProductDiscount() > 0 && !product.tiene_talles && (
+          {getProductDiscount() > 0 && !(product?.tiene_talles && product?.variantes?.length > 0) && (
             <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
               -{getProductDiscount()}%
             </div>
           )}
-          {getProductDiscount() > 0 && product.tiene_talles && (
+          {getProductDiscount() > 0 && (product?.tiene_talles && product?.variantes?.length > 0) && (
             <div className="absolute top-12 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
               -{getProductDiscount()}%
             </div>
@@ -229,9 +229,9 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
               ✈️ Importado
             </div>
           )}
-          
+           
           {/* Action Buttons */}
-          <div className="absolute top-3 right-3 flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <div className="absolute top-3 right-3 flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
             <button
               onClick={() => setIsLiked(!isLiked)}
               className={`p-2 rounded-full shadow-lg transition-all duration-200 ${
