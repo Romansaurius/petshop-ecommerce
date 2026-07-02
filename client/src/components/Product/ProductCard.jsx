@@ -68,13 +68,14 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
   };
 
   const renderStars = (rating) => {
+    if (!rating || rating === 0) return null;
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`w-4 h-4 ${
+        className={`w-3.5 h-3.5 ${
           i < Math.floor(rating)
-            ? 'text-yellow-400 fill-current'
-            : 'text-secondary-300'
+            ? 'text-amber-400 fill-current'
+            : 'text-secondary-200'
         }`}
       />
     ));
@@ -101,22 +102,14 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
                   -{getProductDiscount()}%
                 </div>
               )}
-              
-              {(product?.tiene_talles && product?.variantes?.length > 0) && getProductDiscount() <= 0 && (
-                <div className="absolute -top-2 -left-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+              {(product?.tiene_talles && product?.variantes?.length > 0) && (
+                <div className={`absolute -top-2 ${getProductDiscount() > 0 ? '-left-14' : '-left-2'} bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full`}>
                   Talles
                 </div>
               )}
-              
-              {(product?.tiene_talles && product?.variantes?.length > 0) && getProductDiscount() > 0 && (
-                <div className="absolute -top-2 -left-14 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                  Talles
-                </div>
-              )}
-              
               {getProductFeatured() && (
-                <div className="absolute top-3 right-3 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                  ⭐
+                <div className="absolute top-3 right-3 bg-amber-400 text-white text-xs font-bold px-2 py-1 rounded-full">
+                  Destacado
                 </div>
               )}
           </div>
@@ -140,12 +133,14 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
               {getProductDescription()}
             </p>
             
-            <div className="flex items-center space-x-2 mb-3">
-              <div className="flex items-center space-x-1">
-                {renderStars(product.rating || 0)}
+            {(product.rating > 0) && (
+              <div className="flex items-center space-x-2 mb-3">
+                <div className="flex items-center space-x-0.5">
+                  {renderStars(product.rating)}
+                </div>
+                {product.reviews > 0 && <span className="text-xs text-secondary-400">({product.reviews})</span>}
               </div>
-              <span className="text-sm text-secondary-500">({product.reviews || 0})</span>
-            </div>
+            )}
             
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
@@ -198,35 +193,31 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
           />
           
 {/* Badges */}
+          {getProductDiscount() > 0 && (
+            <div className={`absolute left-3 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-md ${
+              product?.tiene_talles && product?.variantes?.length > 0 ? 'top-12' : 'top-3'
+            }`}>
+              -{getProductDiscount()}%
+            </div>
+          )}
           {(product?.tiene_talles && product?.variantes?.length > 0) && (
-            <div className="absolute top-3 right-3 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+            <div className="absolute top-3 left-3 bg-blue-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-md">
               Talles
             </div>
           )}
-          {getProductDiscount() > 0 && !(product?.tiene_talles && product?.variantes?.length > 0) && (
-            <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
-              -{getProductDiscount()}%
-            </div>
-          )}
-          {getProductDiscount() > 0 && (product?.tiene_talles && product?.variantes?.length > 0) && (
-            <div className="absolute top-12 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
-              -{getProductDiscount()}%
-            </div>
-          )}
           {getProductFeatured() && (
-            <div className="absolute top-3 right-12 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
-              <span className="hidden sm:inline">⭐ Destacado</span>
-              <span className="sm:hidden">⭐</span>
+            <div className="absolute top-3 right-3 bg-amber-400 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-md">
+              Destacado
             </div>
           )}
           {getProductTipo() === '2x1' && (
-            <div className="absolute bottom-3 left-3 bg-purple-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
-              🎁 2x1
+            <div className="absolute bottom-3 left-3 bg-purple-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-md">
+              2x1
             </div>
           )}
           {getProductTipo() === 'importado' && (
-            <div className="absolute bottom-3 left-3 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
-              ✈️ Importado
+            <div className="absolute bottom-3 left-3 bg-sky-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-md">
+              Importado
             </div>
           )}
            
@@ -263,11 +254,12 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
             {getProductDescription()}
           </p>
           
-{/* Rating - oculto en mobile */}
-           <div className="hidden sm:flex items-center space-x-1 mb-4">
-             {renderStars(product.rating || 0)}
-             <span className="text-xs text-secondary-400">{product.reviews || 0}</span>
-           </div>
+{product.rating > 0 && (
+            <div className="hidden sm:flex items-center space-x-1 mb-3">
+              {renderStars(product.rating)}
+              {product.reviews > 0 && <span className="text-xs text-secondary-400 ml-1">({product.reviews})</span>}
+            </div>
+          )}
           
           <div className="flex items-center justify-between mt-2">
             <div className="flex flex-col">

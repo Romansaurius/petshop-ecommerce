@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Search, ShoppingCart, Menu, X, Heart, User, Truck } from 'lucide-react';
+import { Search, ShoppingCart, Menu, X, User, Truck } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 
@@ -13,13 +13,13 @@ const Header = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const categories = [
-    { name: 'Todos', value: 'todos', icon: '🐾', href: '/menu' },
-    { name: 'Comederos', value: 'comederos', icon: '🍽️', href: '/menu?category=comederos' },
-    { name: 'Juguetes', value: 'juguetes', icon: '🎾', href: '/menu?category=juguetes' },
-    { name: 'Camas', value: 'camas', icon: '🛏️', href: '/menu?category=camas' },
-    { name: 'Collares', value: 'collares', icon: '🦴', href: '/menu?category=collares' },
-    { name: 'Rascadores', value: 'rascadores', icon: '🪜', href: '/menu?category=rascadores' },
-    { name: 'Accesorios', value: 'accesorios', icon: '🎒', href: '/menu?category=accesorios' }
+    { name: 'Todos', value: 'todos', href: '/menu' },
+    { name: 'Comederos', value: 'comederos', href: '/menu?category=comederos' },
+    { name: 'Juguetes', value: 'juguetes', href: '/menu?category=juguetes' },
+    { name: 'Camas', value: 'camas', href: '/menu?category=camas' },
+    { name: 'Collares', value: 'collares', href: '/menu?category=collares' },
+    { name: 'Rascadores', value: 'rascadores', href: '/menu?category=rascadores' },
+    { name: 'Accesorios', value: 'accesorios', href: '/menu?category=accesorios' }
   ];
 
   const handleSearch = (e) => {
@@ -147,14 +147,13 @@ const Header = () => {
               <Link
                 key={category.value}
                 to={category.href}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-medium transition-all duration-200 whitespace-nowrap ${
+                className={`flex items-center px-4 py-2 rounded-xl font-medium transition-all duration-200 whitespace-nowrap text-sm ${
                   isActive 
-                    ? 'bg-primary-500 text-white shadow-lg transform scale-105' 
+                    ? 'bg-primary-500 text-white shadow-md' 
                     : 'text-secondary-600 hover:text-primary-600 hover:bg-primary-50'
                 }`}
               >
-                <span className="text-lg">{category.icon}</span>
-                <span>{category.name}</span>
+                {category.name}
               </Link>
             );
           })}
@@ -181,11 +180,10 @@ const Header = () => {
                 <Link
                   key={category.value}
                   to={category.href}
-                  className="flex items-center space-x-3 py-2.5 px-4 text-secondary-600 hover:text-primary-500 hover:bg-primary-50 rounded-lg font-medium transition-all duration-200"
+                  className="flex items-center py-2.5 px-4 text-secondary-600 hover:text-primary-500 hover:bg-primary-50 rounded-lg font-medium transition-all duration-200 text-sm"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <span className="text-lg">{category.icon}</span>
-                  <span>{category.name}</span>
+                  {category.name}
                 </Link>
               ))}
             </nav>

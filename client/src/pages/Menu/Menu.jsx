@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useCart } from '../../context/CartContext'
 import ProductCard from '../../components/Product/ProductCard'
-import { Filter, Grid, List, Star, TrendingUp } from 'lucide-react'
+import { Filter, Grid, List } from 'lucide-react'
 
 const Menu = () => {
   const [products, setProducts] = useState([])
@@ -131,30 +131,16 @@ const Menu = () => {
     return [...normalCats, ...specialCats]
   }
 
-  const getCategoryIcon = (categoryName) => {
-    const icons = {
-      'todos': '🐾',
-      'comederos': '🍽️',
-      'juguetes': '🎾',
-      'camas': '🛏️',
-      'collares': '🦴',
-      'rascadores': '🪜',
-      'accesorios': '🎒',
-      'alimentos': '🥘',
-      'higiene': '🧼',
-      'salud': '💊',
-      'ofertas': '🔥',
-      '2x1': '🎁',
-      'importados': '✈️'
-    }
-    return icons[categoryName] || '📦'
+  const getCategoryLabel = (name) => {
+    const labels = { 'todos': 'Todos', 'ofertas': 'Ofertas', '2x1': '2 x 1', 'importados': 'Importados' }
+    return labels[name] || name.charAt(0).toUpperCase() + name.slice(1)
   }
 
   if (loading) {
     return (
       <div className="py-20 text-center">
-        <div className="text-6xl mb-4">🐾</div>
-        <p className="text-xl text-secondary-600">Cargando productos...</p>
+        <div className="w-10 h-10 border-4 border-primary-200 border-t-primary-500 rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-secondary-500">Cargando productos...</p>
       </div>
     )
   }
@@ -163,22 +149,11 @@ const Menu = () => {
     <div className="py-8 bg-gradient-to-b from-secondary-50 to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-secondary-800 mb-4">
-            🐾 Productos para Mascotas
-          </h1>
-          <p className="text-xl text-secondary-600 max-w-2xl mx-auto">
-            Encuentra todo lo que tu mascota necesita para ser feliz y saludable
-          </p>
-          <div className="mt-6 flex items-center justify-center space-x-4 text-sm text-secondary-500">
-            <div className="flex items-center space-x-1">
-              <TrendingUp className="w-4 h-4" />
-              <span>{products.length} productos disponibles</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <Star className="w-4 h-4 text-yellow-500" />
-              <span>Calidad premium garantizada</span>
-            </div>
+        <div className="mb-10">
+          <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1">Catálogo</p>
+          <div className="flex items-end justify-between">
+            <h1 className="text-3xl font-bold text-secondary-800">Productos para mascotas</h1>
+            <span className="text-sm text-secondary-400">{products.length} productos</span>
           </div>
         </div>
 
@@ -248,23 +223,22 @@ const Menu = () => {
               <Filter className="w-5 h-5 text-secondary-600" />
               <h3 className="text-lg font-semibold text-secondary-800">Categorías</h3>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+            <div className="flex flex-wrap gap-2">
               {getCategoryStats().map(category => (
                 <button
                   key={category.id}
-                  className={`flex flex-col items-center p-4 rounded-xl font-medium transition-all duration-200 ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all duration-200 text-sm ${
                     selectedCategory === category.nombre
-                      ? 'bg-primary-500 text-white shadow-lg transform scale-105'
-                      : 'bg-secondary-50 text-secondary-700 hover:bg-primary-50 hover:text-primary-600 hover:scale-105'
+                      ? 'bg-primary-500 text-white shadow-md'
+                      : 'bg-secondary-50 text-secondary-700 hover:bg-primary-50 hover:text-primary-600'
                   }`}
                   onClick={() => setSelectedCategory(category.nombre)}
                 >
-                  <span className="text-2xl mb-2">{getCategoryIcon(category.nombre)}</span>
-                  <span className="text-sm capitalize">{category.nombre}</span>
-                  <span className={`text-xs mt-1 px-2 py-0.5 rounded-full ${
+                  <span>{getCategoryLabel(category.nombre)}</span>
+                  <span className={`text-xs px-1.5 py-0.5 rounded-full ${
                     selectedCategory === category.nombre
                       ? 'bg-white/20 text-white'
-                      : 'bg-secondary-200 text-secondary-600'
+                      : 'bg-secondary-200 text-secondary-500'
                   }`}>
                     {category.count}
                   </span>
@@ -294,12 +268,14 @@ const Menu = () => {
         {/* Empty State */}
         {filteredProducts.length === 0 && (
           <div className="text-center py-20">
-            <div className="text-8xl mb-6">🔍</div>
-            <h3 className="text-2xl font-bold text-secondary-700 mb-4">
+            <div className="w-14 h-14 bg-secondary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Filter className="w-6 h-6 text-secondary-400" />
+            </div>
+            <h3 className="text-xl font-bold text-secondary-700 mb-2">
               No se encontraron productos
             </h3>
-            <p className="text-lg text-secondary-500 mb-8 max-w-md mx-auto">
-              Intenta con otros términos de búsqueda o explora diferentes categorías
+            <p className="text-secondary-500 mb-6 max-w-sm mx-auto text-sm">
+              Intenta con otros términos de búsqueda o explorá diferentes categorías
             </p>
             <button
               onClick={() => {
@@ -307,7 +283,7 @@ const Menu = () => {
                 setSelectedCategory('todos')
                 setSelectedBrand('todas')
               }}
-              className="btn btn-primary px-8 py-3"
+              className="btn btn-primary"
             >
               Ver todos los productos
             </button>

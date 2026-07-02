@@ -47,11 +47,13 @@ const Cart = ({ isOpen, onClose }) => {
         <div className="flex-1 overflow-y-auto p-6">
           {cart.length === 0 ? (
             <div className="text-center py-16">
-              <div className="text-6xl mb-4">🛒</div>
+              <div className="w-16 h-16 bg-secondary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <ShoppingBag className="w-8 h-8 text-secondary-400" />
+              </div>
               <h3 className="text-lg font-semibold text-secondary-700 mb-2">
                 Tu carrito está vacío
               </h3>
-              <p className="text-secondary-500 mb-6">
+              <p className="text-secondary-500 mb-6 text-sm">
                 Agrega algunos productos para comenzar
               </p>
               <button 
@@ -67,7 +69,7 @@ const Cart = ({ isOpen, onClose }) => {
               {cart.map((item) => (
                 <div key={item.variante_id ? `${item.id}_${item.variante_id}` : item.id} className="flex items-center space-x-4 p-4 bg-secondary-50 rounded-lg">
                   {/* Product Image */}
-                  <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  <div className="w-16 h-16 bg-secondary-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
                     {item.imagen ? (
                       <img 
                         src={item.imagen} 
@@ -75,12 +77,9 @@ const Cart = ({ isOpen, onClose }) => {
                         className="w-full h-full object-cover rounded-lg"
                       />
                     ) : (
-                      <div className="text-2xl">
-                        {item.categoria === 'comederos' ? '🍽️' : 
-                         item.categoria === 'juguetes' ? '🎾' :
-                         item.categoria === 'camas' ? '🛏️' :
-                         item.categoria === 'collares' ? '🦴' : '🐾'}
-                      </div>
+                      <svg className="w-7 h-7 text-secondary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                      </svg>
                     )}
                   </div>
 

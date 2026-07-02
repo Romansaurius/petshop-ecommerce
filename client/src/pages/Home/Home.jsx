@@ -234,18 +234,41 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Features */}
       <section className="py-12 bg-gray-50 border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             {[
-              { icon: '🚚', title: 'Envio Gratis', desc: 'A partir de $35.000 - Malvinas Argentinas, Pilar, San Isidro y alrededores' },
-              { icon: '📱', title: 'Tecnologia Wi-Fi', desc: 'Comederos automaticos con control desde tu smartphone' },
-              { icon: '💝', title: 'Calidad Premium', desc: 'Productos seleccionados para el bienestar de tu mascota' },
+              {
+                icon: (
+                  <svg className="w-6 h-6 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                  </svg>
+                ),
+                title: 'Envio Gratis',
+                desc: 'A partir de $35.000 - Malvinas Argentinas, Pilar, San Isidro y alrededores'
+              },
+              {
+                icon: (
+                  <svg className="w-6 h-6 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                ),
+                title: 'Tecnologia Wi-Fi',
+                desc: 'Comederos automaticos con control desde tu smartphone'
+              },
+              {
+                icon: (
+                  <svg className="w-6 h-6 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                  </svg>
+                ),
+                title: 'Calidad Premium',
+                desc: 'Productos seleccionados para el bienestar de tu mascota'
+              },
             ].map(f => (
               <div key={f.title}>
-                <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <span className="text-2xl">{f.icon}</span>
+                <div className="w-14 h-14 bg-white border border-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm">
+                  {f.icon}
                 </div>
                 <h3 className="font-semibold text-gray-800 mb-1">{f.title}</h3>
                 <p className="text-sm text-gray-500">{f.desc}</p>
