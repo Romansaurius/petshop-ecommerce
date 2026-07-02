@@ -1,118 +1,123 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
+const offers = [
+  {
+    id: 1,
+    eyebrow: 'Beneficio exclusivo',
+    title: 'Envío gratis',
+    subtitle: 'En compras superiores a $35.000',
+    description: 'Malvinas Argentinas · Pilar · San Isidro y alrededores',
+    link: '/menu',
+    buttonText: 'Ver productos',
+    image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800&auto=format&fit=crop',
+    accent: 'from-teal-600 to-emerald-500',
+  },
+  {
+    id: 2,
+    eyebrow: 'Tecnología para mascotas',
+    title: 'Comederos Wi-Fi',
+    subtitle: 'Hasta 30% de descuento',
+    description: 'Controlá la alimentación de tu mascota desde el celular',
+    link: '/menu?category=comederos',
+    buttonText: 'Ver comederos',
+    image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=800&auto=format&fit=crop',
+    accent: 'from-primary-600 to-orange-400',
+  },
+  {
+    id: 3,
+    eyebrow: 'Promoción especial',
+    title: 'Juguetes 2 x 1',
+    subtitle: 'En productos seleccionados',
+    description: 'Para perros y gatos — mientras dure el stock',
+    link: '/menu?filter=2x1',
+    buttonText: 'Ver promociones',
+    image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=800&auto=format&fit=crop',
+    accent: 'from-violet-600 to-indigo-500',
+  },
+];
 
 const OffersSlider = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
-
-  const offers = [
-    {
-      id: 1,
-      title: "ENVÍO GRATIS",
-      subtitle: "En compras +$35.000",
-      description: "Malvinas Argentinas, Pilar, San Isidro y alrededores",
-      image: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800",
-      buttonText: "Aprovechar",
-      bgColor: "from-green-500 to-teal-500"
-    },
-    {
-      id: 2,
-      title: "COMEDEROS Wi-Fi",
-      subtitle: "Hasta 30% OFF",
-      description: "Tecnología premium",
-      image: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=800",
-      buttonText: "Ver Ofertas",
-      bgColor: "from-orange-500 to-red-500"
-    },
-    {
-      id: 3,
-      title: "JUGUETES",
-      subtitle: "2x1 en seleccionados",
-      description: "Para perros y gatos",
-      image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=800",
-      buttonText: "Comprar",
-      bgColor: "from-purple-600 to-blue-600"
-    }
-  ];
+  const [current, setCurrent] = useState(0);
+  const [paused, setPaused] = useState(false);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % offers.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, [offers.length]);
-
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % offers.length);
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + offers.length) % offers.length);
-  };
+    if (paused) return;
+    const t = setInterval(() => setCurrent(p => (p + 1) % offers.length), 5000);
+    return () => clearInterval(t);
+  }, [paused]);
 
   return (
-    <div className="relative w-full h-80 md:h-96 overflow-hidden rounded-2xl shadow-2xl">
-      <div 
-        className="flex transition-transform duration-500 ease-in-out h-full"
-        style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+    <div
+      className="relative w-full overflow-hidden rounded-2xl shadow-lg"
+      style={{ height: '320px' }}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      {/* Slides */}
+      <div
+        className="flex h-full transition-transform duration-500 ease-in-out"
+        style={{ transform: `translateX(-${current * 100}%)` }}
       >
-        {offers.map((offer) => (
+        {offers.map(offer => (
           <div
             key={offer.id}
-            className={`min-w-full h-full bg-gradient-to-r ${offer.bgColor} relative flex items-center`}
+            className={`min-w-full h-full bg-gradient-to-r ${offer.accent} flex`}
           >
-            <div className="flex-1 text-white p-8 md:p-12">
-              <div className="max-w-md">
-                <h2 className="text-4xl md:text-6xl font-bold mb-2">
-                  {offer.title}
-                </h2>
-                <p className="text-xl md:text-2xl mb-4 opacity-90">
-                  {offer.subtitle}
-                </p>
-                <p className="text-lg mb-6 opacity-80">
-                  {offer.description}
-                </p>
-                <button className="bg-white text-gray-800 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors transform hover:scale-105">
-                  {offer.buttonText}
-                </button>
-              </div>
+            {/* Text side */}
+            <div className="flex-1 flex flex-col justify-center px-8 md:px-14 text-white">
+              <p className="text-xs font-semibold uppercase tracking-widest opacity-80 mb-2">{offer.eyebrow}</p>
+              <h2 className="text-3xl md:text-5xl font-bold leading-tight mb-1">{offer.title}</h2>
+              <p className="text-lg md:text-xl font-medium opacity-90 mb-2">{offer.subtitle}</p>
+              <p className="text-sm opacity-70 mb-6 hidden md:block">{offer.description}</p>
+              <Link
+                to={offer.link}
+                className="inline-flex items-center self-start bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all duration-200 hover:scale-105"
+              >
+                {offer.buttonText}
+              </Link>
             </div>
 
-            <div className="flex-1 h-full relative">
-              <img 
-                src={offer.image} 
+            {/* Image side */}
+            <div className="flex-1 relative hidden sm:block">
+              <img
+                src={offer.image}
                 alt={offer.title}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+              <div className="absolute inset-0 bg-gradient-to-l from-transparent to-black/20" />
             </div>
           </div>
         ))}
       </div>
 
+      {/* Arrows */}
       <button
-        onClick={prevSlide}
-        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white p-2 rounded-full transition-all"
+        onClick={() => setCurrent(p => (p - 1 + offers.length) % offers.length)}
+        className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-black/20 hover:bg-black/40 text-white rounded-full flex items-center justify-center transition-colors backdrop-blur-sm"
+        aria-label="Anterior"
       >
-        <ChevronLeft className="w-6 h-6" />
+        <ChevronLeft className="w-5 h-5" />
       </button>
-      
       <button
-        onClick={nextSlide}
-        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white p-2 rounded-full transition-all"
+        onClick={() => setCurrent(p => (p + 1) % offers.length)}
+        className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-black/20 hover:bg-black/40 text-white rounded-full flex items-center justify-center transition-colors backdrop-blur-sm"
+        aria-label="Siguiente"
       >
-        <ChevronRight className="w-6 h-6" />
+        <ChevronRight className="w-5 h-5" />
       </button>
 
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-        {offers.map((_, index) => (
+      {/* Dots */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
+        {offers.map((_, i) => (
           <button
-            key={index}
-            onClick={() => setCurrentSlide(index)}
-            className={`w-3 h-3 rounded-full transition-all ${
-              index === currentSlide 
-                ? 'bg-white' 
-                : 'bg-white bg-opacity-50'
+            key={i}
+            onClick={() => setCurrent(i)}
+            className={`rounded-full transition-all duration-300 ${
+              i === current ? 'w-6 h-2 bg-white' : 'w-2 h-2 bg-white/50 hover:bg-white/75'
             }`}
+            aria-label={`Slide ${i + 1}`}
           />
         ))}
       </div>
