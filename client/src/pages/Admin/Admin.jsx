@@ -789,8 +789,7 @@ const Admin = () => {
                         <span className="text-sm font-medium text-secondary-700">Producto destacado</span>
                       </label>
                     </div>
-                    
-
+                    <div>
                       <label className="block text-sm font-medium text-secondary-700 mb-2">Tipo de producto</label>
                       <div className="grid grid-cols-3 gap-2">
                         {[
