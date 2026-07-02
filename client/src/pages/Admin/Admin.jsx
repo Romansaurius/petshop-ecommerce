@@ -606,16 +606,84 @@ const Admin = () => {
                       />
                     </div>
                     
+                    {/* Talles/variantes - va ANTES del precio */}
+                    <div>
+                      <label className="flex items-center space-x-2 mb-3">
+                        <input
+                          type="checkbox"
+                          checked={productForm.esProductoPorTalles}
+                          onChange={(e) => setProductForm({...productForm, esProductoPorTalles: e.target.checked})}
+                          className="rounded"
+                        />
+                        <span className="text-sm font-medium text-secondary-700">Producto por talles/variantes</span>
+                      </label>
+
+                      {productForm.esProductoPorTalles && (
+                        <div className="ml-2 p-4 bg-secondary-50 rounded-lg space-y-3 mb-3">
+                          <p className="text-xs text-secondary-600">Seleccioná los talles disponibles y sus precios. El precio base se tomará del talle más barato.</p>
+                          {['S', 'M', 'L', 'XL', 'XXL'].map(talla => (
+                            <div key={talla} className="flex items-center space-x-3">
+                              <label className="flex items-center space-x-2 min-w-[60px]">
+                                <input
+                                  type="checkbox"
+                                  checked={productForm.tallesSeleccionados[talla]}
+                                  onChange={(e) => {
+                                    const newTalles = { ...productForm.tallesSeleccionados, [talla]: e.target.checked }
+                                    const newPrecios = { ...productForm.preciosTalles }
+                                    // Calcular precio mínimo de talles activos
+                                    const preciosActivos = Object.entries(newTalles)
+                                      .filter(([t, sel]) => sel && newPrecios[t])
+                                      .map(([t]) => parseFloat(newPrecios[t]))
+                                      .filter(p => !isNaN(p))
+                                    const minPrecio = preciosActivos.length > 0 ? Math.min(...preciosActivos) : ''
+                                    setProductForm({
+                                      ...productForm,
+                                      tallesSeleccionados: newTalles,
+                                      price: minPrecio.toString()
+                                    })
+                                  }}
+                                  className="rounded"
+                                />
+                                <span className="text-sm font-medium">{talla}</span>
+                              </label>
+                              {productForm.tallesSeleccionados[talla] && (
+                                <input
+                                  type="number"
+                                  placeholder={`Precio ${talla}`}
+                                  value={productForm.preciosTalles[talla]}
+                                  onChange={(e) => {
+                                    const newPrecios = { ...productForm.preciosTalles, [talla]: e.target.value }
+                                    const preciosActivos = Object.entries(productForm.tallesSeleccionados)
+                                      .filter(([t, sel]) => sel && newPrecios[t])
+                                      .map(([t]) => parseFloat(newPrecios[t]))
+                                      .filter(p => !isNaN(p))
+                                    const minPrecio = preciosActivos.length > 0 ? Math.min(...preciosActivos) : productForm.price
+                                    setProductForm({
+                                      ...productForm,
+                                      preciosTalles: newPrecios,
+                                      price: minPrecio.toString()
+                                    })
+                                  }}
+                                  className="input w-full text-sm"
+                                />
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
                     <div>
                       <label className="block text-sm font-medium text-secondary-700 mb-1">
-                        Precio
+                        Precio {productForm.esProductoPorTalles ? <span className="text-xs text-secondary-400 font-normal">(se calcula automáticamente del talle más barato)</span> : ''}
                       </label>
                       <input
                         type="number"
                         required
                         value={productForm.price}
                         onChange={(e) => setProductForm({...productForm, price: e.target.value})}
-                        className="input w-full"
+                        className={`input w-full ${productForm.esProductoPorTalles ? 'bg-secondary-50 text-secondary-500' : ''}`}
+                        readOnly={productForm.esProductoPorTalles}
                       />
                     </div>
                     
@@ -722,60 +790,7 @@ const Admin = () => {
                       </label>
                     </div>
                     
-                    {/* Selector de producto por talles */}
-                    <div>
-                      <label className="flex items-center space-x-2 mb-3">
-                        <input
-                          type="checkbox"
-                          checked={productForm.esProductoPorTalles}
-                          onChange={(e) => setProductForm({...productForm, esProductoPorTalles: e.target.checked})}
-                          className="rounded"
-                        />
-                        <span className="text-sm font-medium text-secondary-700">Producto por talles/variantes</span>
-                      </label>
-                      
-                      {productForm.esProductoPorTalles && (
-                        <div className="ml-6 p-4 bg-secondary-50 rounded-lg space-y-3">
-                          <p className="text-xs text-secondary-600 mb-2">Selecciona los talles disponibles y sus precios:</p>
-                          {['S', 'M', 'L', 'XL', 'XXL'].map(talla => (
-                            <div key={talla} className="flex items-center space-x-3">
-                              <label className="flex items-center space-x-2 min-w-[60px]">
-                                <input
-                                  type="checkbox"
-                                  checked={productForm.tallesSeleccionados[talla]}
-                                  onChange={(e) => setProductForm({
-                                    ...productForm,
-                                    tallesSeleccionados: {
-                                      ...productForm.tallesSeleccionados,
-                                      [talla]: e.target.checked
-                                    }
-                                  })}
-                                  className="rounded"
-                                />
-                                <span className="text-sm font-medium">{talla}</span>
-                              </label>
-                              {productForm.tallesSeleccionados[talla] && (
-                                <input
-                                  type="number"
-                                  placeholder={`Precio ${talla}`}
-                                  value={productForm.preciosTalles[talla]}
-                                  onChange={(e) => setProductForm({
-                                    ...productForm,
-                                    preciosTalles: {
-                                      ...productForm.preciosTalles,
-                                      [talla]: e.target.value
-                                    }
-                                  })}
-                                  className="input w-full text-sm"
-                                />
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
 
-                    <div>
                       <label className="block text-sm font-medium text-secondary-700 mb-2">Tipo de producto</label>
                       <div className="grid grid-cols-3 gap-2">
                         {[

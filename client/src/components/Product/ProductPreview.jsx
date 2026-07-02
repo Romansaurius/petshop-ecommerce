@@ -60,6 +60,8 @@ const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
 
   const images = getProductImages()
   const is2x1 = getProductTipo() === '2x1'
+  const RECOMMENDED_IDS = [1, 2, 3, 4, 5]
+  const recommendedProducts = allProducts.filter(p => RECOMMENDED_IDS.includes(p.id)).slice(0, 5)
   
   // Calcular total del carrito considerando 2x1
   const cartTotal = (cart || []).reduce((sum, item) => {
@@ -116,7 +118,7 @@ const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
 
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-secondary-100 px-6 py-4 flex justify-between items-center rounded-t-2xl z-10">
-          <span className="text-sm text-secondary-500 capitalize">{getCategoryIcon(getProductCategory())} {getProductCategory()}</span>
+          <span className="text-sm text-secondary-500 capitalize font-medium">{getProductCategory()}</span>
           <button onClick={onClose} className="p-2 text-secondary-400 hover:text-secondary-700 hover:bg-secondary-100 rounded-full transition-colors">
             <X className="w-5 h-5" />
           </button>
@@ -136,8 +138,8 @@ const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-8xl">
-                    {getCategoryIcon(getProductCategory())}
+                  <div className="w-full h-full flex items-center justify-center bg-secondary-100">
+                    <svg className="w-16 h-16 text-secondary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                   </div>
                 )}
 
@@ -220,7 +222,7 @@ const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
                 <div className="flex items-center space-x-2">
                   <Truck className="w-4 h-4 text-primary-500" />
                   {remaining === 0 ? (
-                    <span className="text-sm font-semibold text-green-600">🎉 ¡Tenés envío gratis!</span>
+                    <span className="text-sm font-semibold text-green-600">Tenés envío gratis!</span>
                   ) : (
                     <span className="text-sm text-secondary-700">
                       Sumá <span className="font-semibold text-secondary-900">{formatPrice(remaining)}</span> más para envío gratis
@@ -324,11 +326,40 @@ const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
                       {(p.imagen || p.image) ? (
                         <img src={p.imagen || p.image} alt={p.nombre || p.name} className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-2xl">{getCategoryIcon(p.categoria || p.category)}</div>
+                        <div className="w-full h-full flex items-center justify-center bg-secondary-100 rounded-lg">
+                          <svg className="w-8 h-8 text-secondary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        </div>
                       )}
                     </div>
                     <p className="text-xs font-medium text-secondary-800 line-clamp-2 mb-1">{p.nombre || p.name}</p>
                     <p className="text-sm font-bold text-primary-500">{formatPrice(p.precio || p.price || 0)}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Productos recomendados */}
+          {recommendedProducts.length > 0 && (
+            <div className="mt-8 pt-8 border-t border-secondary-100">
+              <div className="flex items-center space-x-2 mb-4">
+                <div className="w-1 h-6 bg-primary-500 rounded-full" />
+                <h3 className="text-lg font-bold text-secondary-800">Productos recomendados</h3>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                {recommendedProducts.map(p => (
+                  <div key={p.id} className="group bg-white border border-secondary-100 rounded-xl p-3 hover:shadow-md hover:border-primary-200 transition-all cursor-pointer">
+                    <div className="w-full h-20 bg-secondary-50 rounded-lg overflow-hidden mb-2">
+                      {(p.imagen || p.image) ? (
+                        <img src={p.imagen || p.image} alt={p.nombre || p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <svg className="w-7 h-7 text-secondary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-xs font-semibold text-secondary-800 line-clamp-2 mb-1 group-hover:text-primary-600 transition-colors">{p.nombre || p.name}</p>
+                    <p className="text-xs font-bold text-primary-500">{formatPrice(p.precio || p.price || 0)}</p>
                   </div>
                 ))}
               </div>

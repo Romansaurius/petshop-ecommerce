@@ -245,22 +245,39 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
           </div>
         </div>
 
-        <div className="p-3 sm:p-6">
-          <h3 className="font-bold text-sm sm:text-lg text-secondary-800 mb-1 sm:mb-2 line-clamp-2 group-hover:text-primary-600 transition-colors">
+        <div className="p-3 sm:p-4">
+          <h3 className="font-bold text-sm sm:text-base text-secondary-800 mb-1 line-clamp-2 group-hover:text-primary-600 transition-colors">
             {getProductName()}
           </h3>
-          
-          <p className="text-xs sm:text-sm text-secondary-600 mb-2 sm:mb-4 line-clamp-2">
+
+          <p className="text-xs text-secondary-500 mb-2 line-clamp-2">
             {getProductDescription()}
           </p>
-          
+
+          {/* Selector de talles en la card */}
+          {product?.tiene_talles && product?.variantes?.length > 0 && (
+            <div className="mb-3">
+              <div className="flex flex-wrap gap-1">
+                {product.variantes.map(v => (
+                  <button
+                    key={v.id}
+                    onClick={(e) => { e.stopPropagation(); setShowPreview(true) }}
+                    className="px-2 py-0.5 text-xs border border-secondary-200 rounded-md text-secondary-600 hover:border-primary-400 hover:text-primary-600 transition-colors"
+                  >
+                    {v.talla}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {product.rating > 0 ? (
-            <div className="hidden sm:flex items-center space-x-1 mb-3">
+            <div className="hidden sm:flex items-center space-x-1 mb-2">
               {renderStars(product.rating)}
               {product.reviews > 0 && <span className="text-xs text-secondary-400 ml-1">({product.reviews})</span>}
             </div>
           ) : null}
-          
+
           <div className="flex items-center justify-between mt-2">
             <div className="flex flex-col">
               {originalPrice !== null && (
@@ -268,11 +285,14 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
                   {formatPrice(originalPrice)}
                 </span>
               )}
-              <span className="text-base sm:text-xl font-bold text-primary-500">
-                {formatPrice(getProductPrice())}
+              <span className="text-base sm:text-lg font-bold text-primary-500">
+                {product?.tiene_talles && product?.variantes?.length > 0
+                  ? `Desde ${formatPrice(Math.min(...product.variantes.map(v => v.precio)))}`
+                  : formatPrice(getProductPrice())
+                }
               </span>
             </div>
-            
+
             <button
               onClick={(e) => {
                 e.stopPropagation()
