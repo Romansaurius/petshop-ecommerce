@@ -254,7 +254,7 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
             {getProductDescription()}
           </p>
           
-{product.rating > 0 && (
+          {!!product.rating && product.rating > 0 && (
             <div className="hidden sm:flex items-center space-x-1 mb-3">
               {renderStars(product.rating)}
               {product.reviews > 0 && <span className="text-xs text-secondary-400 ml-1">({product.reviews})</span>}
