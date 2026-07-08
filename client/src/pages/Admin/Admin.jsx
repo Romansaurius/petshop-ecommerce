@@ -107,11 +107,12 @@ const Admin = () => {
       return { ...prev, [sectionId]: [...current, productId] }
     })
   }
+
+  const loadCategories = async () => {
     try {
       const response = await fetch('/api/products/categories')
       const data = await response.json()
       setCategories(data)
-      // Establecer primera categoría como default si no hay una seleccionada
       if (data.length > 0 && !productForm.category) {
         setProductForm(prev => ({ ...prev, category: data[0].nombre }))
       }
