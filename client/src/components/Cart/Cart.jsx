@@ -7,131 +7,85 @@ const Cart = ({ isOpen, onClose }) => {
   const { cart, updateQuantity, removeFromCart, getTotalPrice, getTotalItems } = useCart();
   const navigate = useNavigate();
 
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS',
-      minimumFractionDigits: 0
-    }).format(price);
-  };
+  const fmt = (p) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(p);
 
   if (!isOpen) return null;
 
+  const FREE_SHIPPING = 35000;
+  const total = getTotalPrice();
+  const falta = FREE_SHIPPING - total;
+  const pct = Math.min((total / FREE_SHIPPING) * 100, 100);
+
   return (
     <>
-      {/* Overlay */}
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-50 z-50 transition-opacity"
-        onClick={onClose}
-      />
-      
-      {/* Cart Panel */}
-      <div className="fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl z-50 transform transition-transform duration-300 flex flex-col">
+      <div className="fixed inset-0 bg-black/40 z-50 backdrop-blur-sm" onClick={onClose} />
+
+      <div className="fixed right-0 top-0 h-full w-full max-w-sm bg-white z-50 flex flex-col shadow-2xl">
+
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-secondary-100">
-          <div className="flex items-center space-x-2">
-            <ShoppingBag className="w-6 h-6 text-primary-500" />
-            <h2 className="text-xl font-bold text-secondary-800">
-              Carrito ({getTotalItems()})
-            </h2>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-secondary-100">
+          <div className="flex items-center gap-2">
+            <ShoppingBag className="w-5 h-5 text-primary-500" />
+            <h2 className="font-semibold text-secondary-800">Carrito ({getTotalItems()})</h2>
           </div>
-          <button 
-            onClick={onClose}
-            className="p-2 hover:bg-secondary-100 rounded-lg transition-colors"
-          >
-            <X className="w-5 h-5 text-secondary-600" />
+          <button onClick={onClose} className="p-1.5 hover:bg-secondary-100 rounded-lg transition-colors">
+            <X className="w-4 h-4 text-secondary-500" />
           </button>
         </div>
 
-        {/* Cart Items */}
-        <div className="flex-1 overflow-y-auto p-6">
+        {/* Items */}
+        <div className="flex-1 overflow-y-auto px-5 py-4">
           {cart.length === 0 ? (
             <div className="text-center py-16">
-              <div className="w-16 h-16 bg-secondary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <ShoppingBag className="w-8 h-8 text-secondary-400" />
+              <div className="w-14 h-14 bg-secondary-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <ShoppingBag className="w-7 h-7 text-secondary-300" />
               </div>
-              <h3 className="text-lg font-semibold text-secondary-700 mb-2">
-                Tu carrito está vacío
-              </h3>
-              <p className="text-secondary-500 mb-6 text-sm">
-                Agrega algunos productos para comenzar
-              </p>
-              <button 
-                onClick={onClose}
-                className="btn btn-primary"
-              >
-                Continuar Comprando
-              </button>
+              <p className="font-medium text-secondary-700 mb-1">Tu carrito está vacío</p>
+              <p className="text-sm text-secondary-400 mb-6">Agregá productos para comenzar</p>
+              <button onClick={onClose} className="btn btn-primary text-sm">Seguir comprando</button>
             </div>
           ) : (
-            <div className="space-y-4">
-
-              {cart.map((item) => (
-                <div key={item.variante_id ? `${item.id}_${item.variante_id}` : item.id} className="flex items-center space-x-4 p-4 bg-secondary-50 rounded-lg">
-                  {/* Product Image */}
-                  <div className="w-16 h-16 bg-secondary-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
-                    {item.imagen ? (
-                      <img 
-                        src={item.imagen} 
-                        alt={item.nombre}
-                        className="w-full h-full object-cover rounded-lg"
-                      />
-                    ) : (
-                      <svg className="w-7 h-7 text-secondary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                      </svg>
-                    )}
+            <div className="space-y-3">
+              {cart.map(item => (
+                <div key={item.variante_id ? `${item.id}_${item.variante_id}` : item.id}
+                  className="flex items-center gap-3 p-3 bg-secondary-50 rounded-xl">
+                  <div className="w-14 h-14 bg-secondary-100 rounded-xl overflow-hidden shrink-0">
+                    {item.imagen
+                      ? <img src={item.imagen} alt={item.nombre} className="w-full h-full object-cover" />
+                      : <div className="w-full h-full flex items-center justify-center text-secondary-300 text-xl">🐾</div>
+                    }
                   </div>
 
-                  {/* Product Info */}
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-secondary-800 truncate">
+                    <p className="text-sm font-medium text-secondary-800 truncate">
                       {item.nombre}
-                      {item.talla && <span className="text-primary-500 ml-1">({item.talla})</span>}
-                    </h4>
+                      {item.talla && <span className="text-primary-500 ml-1 text-xs">({item.talla})</span>}
+                    </p>
                     {item.is2x1 ? (
-                      <div className="space-y-0.5">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-xs bg-purple-100 text-purple-700 font-bold px-2 py-0.5 rounded-full">🎁 2x1</span>
-                          <span className="text-sm text-secondary-600">{formatPrice(item.precio || 0)} c/u</span>
-                        </div>
-                        <p className="text-xs text-green-600 font-medium">
-                          Pagás {Math.ceil(item.quantity / 2)} × {formatPrice(item.precio || 0)} = {formatPrice((item.precio || 0) * Math.ceil(item.quantity / 2))}
-                        </p>
-                      </div>
+                      <p className="text-xs text-primary-600 font-medium">
+                        2×1 · Pagás {Math.ceil(item.quantity / 2)} × {fmt(item.precio || 0)}
+                      </p>
                     ) : (
-                      <p className="text-sm text-secondary-600">{formatPrice(item.precio || 0)}</p>
+                      <p className="text-xs text-secondary-400">{fmt(item.precio || 0)} c/u</p>
                     )}
                   </div>
 
-                  {/* Quantity Controls */}
-                  <div className="flex items-center space-x-2">
-                    <button 
-                      onClick={() => updateQuantity(item.id, Math.max(0, item.quantity - 1), item.variante_id)}
-                      className="p-1 hover:bg-secondary-200 rounded transition-colors"
-                    >
-                      <Minus className="w-4 h-4 text-secondary-600" />
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button onClick={() => updateQuantity(item.id, Math.max(0, item.quantity - 1), item.variante_id)}
+                      className="w-6 h-6 flex items-center justify-center bg-white border border-secondary-200 rounded-lg hover:border-primary-300 transition-colors">
+                      <Minus className="w-3 h-3 text-secondary-600" />
                     </button>
-                    
-                    <span className="w-8 text-center font-medium text-secondary-800">
-                      {item.quantity}
-                    </span>
-                    
-                    <button 
-                      onClick={() => updateQuantity(item.id, Math.min(10, item.quantity + 1), item.variante_id)}
+                    <span className="w-6 text-center text-sm font-medium text-secondary-800">{item.quantity}</span>
+                    <button onClick={() => updateQuantity(item.id, Math.min(10, item.quantity + 1), item.variante_id)}
                       disabled={item.quantity >= 10}
-                      className="p-1 hover:bg-secondary-200 rounded transition-colors disabled:opacity-50"
-                    >
-                      <Plus className="w-4 h-4 text-secondary-600" />
+                      className="w-6 h-6 flex items-center justify-center bg-white border border-secondary-200 rounded-lg hover:border-primary-300 transition-colors disabled:opacity-40">
+                      <Plus className="w-3 h-3 text-secondary-600" />
                     </button>
                   </div>
 
-                  {/* Remove Button */}
-                  <button 
-                    onClick={() => removeFromCart(item.id, item.variante_id)}
-                    className="p-2 hover:bg-red-100 hover:text-red-600 rounded-lg transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
+                  <button onClick={() => removeFromCart(item.id, item.variante_id)}
+                    className="p-1.5 hover:bg-red-50 hover:text-red-500 rounded-lg transition-colors text-secondary-300">
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               ))}
@@ -141,58 +95,33 @@ const Cart = ({ isOpen, onClose }) => {
 
         {/* Footer */}
         {cart.length > 0 && (
-          <div className="border-t border-secondary-100 p-6 space-y-4">
-            {/* Barra envío gratis */}
-            {(() => {
-              const FREE_SHIPPING = 35000
-              const total = getTotalPrice()
-              const falta = FREE_SHIPPING - total
-              const pct = Math.min((total / FREE_SHIPPING) * 100, 100)
-              return (
-                <div className="bg-orange-50 rounded-xl p-3">
-                  {falta > 0 ? (
-                    <p className="text-xs text-orange-700 font-medium mb-2">
-                      Te faltan <strong>{formatPrice(falta)}</strong> para envío gratis 🚚
-                    </p>
-                  ) : (
-                    <p className="text-xs text-green-700 font-medium mb-2">✅ ¡Tenés envío gratis!</p>
-                  )}
-                  <div className="w-full bg-orange-200 rounded-full h-1.5">
-                    <div className="bg-primary-500 h-1.5 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
-                  </div>
-                </div>
-              )
-            })()}
-
-            {/* Subtotal */}
-            <div className="flex items-center justify-between text-lg font-semibold">
-              <span className="text-secondary-700">Subtotal:</span>
-              <span className="text-secondary-800">{formatPrice(getTotalPrice())}</span>
+          <div className="border-t border-secondary-100 px-5 py-4 space-y-4">
+            {/* Envío gratis bar */}
+            <div className="bg-secondary-50 rounded-xl p-3">
+              <p className="text-xs text-secondary-600 mb-2">
+                {falta > 0
+                  ? <>Te faltan <strong className="text-secondary-800">{fmt(falta)}</strong> para envío gratis 🚚</>
+                  : <span className="text-primary-600 font-medium">✓ ¡Tenés envío gratis!</span>
+                }
+              </p>
+              <div className="w-full bg-secondary-200 rounded-full h-1.5">
+                <div className="bg-primary-500 h-1.5 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+              </div>
             </div>
 
-            {/* Total */}
-            <div className="flex items-center justify-between text-xl font-bold border-t border-secondary-200 pt-4">
-              <span className="text-secondary-800">Total:</span>
-              <span className="text-primary-500">{formatPrice(getTotalPrice())}</span>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-secondary-500">Total</span>
+              <span className="text-lg font-semibold text-secondary-800">{fmt(total)}</span>
             </div>
 
-            {/* Checkout Button */}
-            <button 
-              className="w-full btn btn-primary"
-              onClick={() => {
-                navigate('/checkout');
-                onClose();
-              }}
+            <button
+              className="w-full btn btn-primary py-3 font-semibold"
+              onClick={() => { navigate('/checkout'); onClose(); }}
             >
-              Proceder al Checkout
+              Finalizar compra
             </button>
-
-            {/* Continue Shopping */}
-            <button 
-              onClick={onClose}
-              className="w-full btn btn-secondary"
-            >
-              Continuar Comprando
+            <button onClick={onClose} className="w-full btn btn-secondary py-2.5 text-sm">
+              Seguir comprando
             </button>
           </div>
         )}
