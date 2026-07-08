@@ -62,18 +62,28 @@ const ProductGrid = ({ products, loading, emptyMsg, allProducts, addToCart }) =>
 
 const Home = () => {
   const [allProducts, setAllProducts] = useState([])
+  const [sections, setSections] = useState([])
   const [loading, setLoading] = useState(true)
   const [showAllPromos, setShowAllPromos] = useState(false)
   const { addToCart } = useCart()
 
   useEffect(() => {
-    fetch('/api/products')
-      .then(r => r.json())
-      .then(data => { setAllProducts(Array.isArray(data) ? data : []); setLoading(false) })
-      .catch(() => setLoading(false))
+    Promise.all([
+      fetch('/api/products').then(r => r.json()),
+      fetch('/api/sections').then(r => r.json()).catch(() => [])
+    ]).then(([prods, secs]) => {
+      setAllProducts(Array.isArray(prods) ? prods : [])
+      setSections(Array.isArray(secs) ? secs : [])
+      setLoading(false)
+    }).catch(() => setLoading(false))
   }, [])
 
-  // Lanzamientos: primero 2x1 y 50%+, luego el resto de ofertas
+  const getSectionProducts = (clave, fallback) => {
+    const sec = sections.find(s => s.clave === clave)
+    if (sec && sec.productos && sec.productos.length > 0) return sec.productos
+    return fallback
+  }
+
   const promos2x1     = allProducts.filter(p => p.tipo === '2x1')
   const promos50      = allProducts.filter(p => (p.descuento_porcentaje || 0) >= 50)
   const topPromos     = [...promos2x1, ...promos50].filter((p, i, arr) => arr.findIndex(x => x.id === p.id) === i).slice(0, 4)
@@ -82,17 +92,19 @@ const Home = () => {
     (p.descuento_porcentaje || 0) >= 30
   ).slice(0, 4)
 
-  // Selección Natural: categoría accesorios o tipo normal con palabras clave (fallback: primeros 4)
-  const naturalProducts = allProducts
+  const naturalFallback = allProducts
     .filter(p => ['accesorios', 'snacks', 'premios', 'natural'].some(k => (p.categoria || '').toLowerCase().includes(k)))
     .slice(0, 4)
-  const naturalFallback = naturalProducts.length ? naturalProducts : allProducts.slice(0, 4)
+  const naturalProducts = getSectionProducts('natural', naturalFallback.length ? naturalFallback : allProducts.slice(0, 4))
 
-  // Camas
-  const camas = allProducts.filter(p => (p.categoria || '').toLowerCase().includes('cama')).slice(0, 4)
+  const camasFallback = allProducts.filter(p => (p.categoria || '').toLowerCase().includes('cama')).slice(0, 4)
+  const camas = getSectionProducts('camas', camasFallback)
 
-  // Juguetes
-  const juguetes = allProducts.filter(p => (p.categoria || '').toLowerCase().includes('juguete')).slice(0, 4)
+  const juguetesFallback = allProducts.filter(p => (p.categoria || '').toLowerCase().includes('juguete')).slice(0, 4)
+  const juguetes = getSectionProducts('juguetes', juguetesFallback)
+
+  const lanzamientosFallback = [...promos2x1, ...promos50].filter((p, i, arr) => arr.findIndex(x => x.id === p.id) === i).slice(0, 4)
+  const lanzamientos = getSectionProducts('lanzamientos', lanzamientosFallback)
 
   return (
     <div className="bg-white">
@@ -107,40 +119,28 @@ const Home = () => {
       <section className="py-14 bg-secondary-50 border-t border-secondary-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader
-            eyebrow="Ofertas especiales de lanzamiento"
+            eyebrow="Promo apertura · Tiempo limitado"
             title="Lanzamientos Exclusivos"
-            link={showAllPromos ? undefined : undefined}
           />
-
-          {/* Badges destacados */}
-          <div className="flex gap-3 mb-6">
-            <span className="bg-primary-500 text-white text-xs font-bold px-3 py-1.5 rounded-full">2×1</span>
-            <span className="bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-full">50% OFF</span>
-            {showAllPromos && (
-              <>
-                <span className="bg-secondary-600 text-white text-xs font-bold px-3 py-1.5 rounded-full">40% OFF</span>
-                <span className="bg-secondary-500 text-white text-xs font-bold px-3 py-1.5 rounded-full">35% OFF</span>
-                <span className="bg-secondary-400 text-white text-xs font-bold px-3 py-1.5 rounded-full">30% OFF</span>
-              </>
-            )}
-          </div>
+          <p className="text-sm text-secondary-500 mb-8 max-w-xl leading-relaxed">
+            Aprovechá las ofertas de tiempo limitado por apertura. Descuentos únicos en productos seleccionados para que conozcas todo lo que tenemos para tu mascota.
+          </p>
 
           <ProductGrid
-            products={showAllPromos ? [...topPromos, ...morePromos] : topPromos}
+            products={showAllPromos ? [...lanzamientos, ...morePromos] : lanzamientos}
             loading={loading}
             emptyMsg="Próximamente nuevas promociones de lanzamiento."
             allProducts={allProducts}
             addToCart={addToCart}
           />
 
-          {/* Ver más / menos */}
           {!loading && morePromos.length > 0 && (
             <div className="text-center mt-8">
               <button
                 onClick={() => setShowAllPromos(!showAllPromos)}
                 className="btn btn-outline text-sm px-6"
               >
-                {showAllPromos ? 'Ver menos' : 'Ver todas las promociones (-40%, -35%, -30%)'}
+                {showAllPromos ? 'Ver menos' : 'Ver todas las promociones'}
               </button>
             </div>
           )}
@@ -157,15 +157,12 @@ const Home = () => {
             linkLabel="Ver todos"
           />
 
-          {/* Intro */}
-          <div className="bg-primary-50 border border-primary-100 rounded-2xl px-6 py-5 mb-8 max-w-2xl">
-            <p className="text-sm text-primary-800 leading-relaxed">
-              Cuidar su alimentación también es una forma de demostrar amor. Descubrí productos seleccionados por su calidad, ingredientes naturales y beneficios para el bienestar diario de perros y gatos.
-            </p>
-          </div>
+          <p className="text-sm text-secondary-500 mb-8 max-w-xl leading-relaxed">
+            Cuidar su alimentación también es una forma de demostrar amor. Descubrí productos seleccionados por su calidad, ingredientes naturales y beneficios para el bienestar diario de perros y gatos.
+          </p>
 
           <ProductGrid
-            products={naturalFallback}
+            products={naturalProducts}
             loading={loading}
             emptyMsg="Próximamente nuestra selección de productos naturales."
             allProducts={allProducts}
@@ -187,6 +184,7 @@ const Home = () => {
           <p className="text-sm text-secondary-500 mb-8 max-w-xl leading-relaxed">
             Porque después de jugar, explorar y compartir momentos únicos, también necesitan un lugar cómodo para descansar y recargar energías.
           </p>
+
 
           {loading ? <Skeleton /> : camas.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
