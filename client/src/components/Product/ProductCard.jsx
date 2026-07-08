@@ -11,6 +11,15 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
   const [isLiked, setIsLiked] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
 
+  const hasVariantes = product?.tiene_talles && product?.variantes?.length > 0;
+  const sortedVariantes = hasVariantes
+    ? [...product.variantes].sort((a, b) => {
+        const orden = { S: 1, M: 2, L: 3, XL: 4, XXL: 5 }
+        return (orden[a.talla] || 99) - (orden[b.talla] || 99)
+      })
+    : [];
+  const [selectedVariante, setSelectedVariante] = useState(sortedVariantes[0] || null);
+
   const formatPrice = (price) => {
     return new Intl.NumberFormat('es-AR', {
       style: 'currency',
@@ -47,23 +56,25 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
 
   const handleAddToCart = async () => {
     setIsAdding(true);
-    
-    // Si el producto tiene talles y no se seleccionó ninguno, abrir preview
-    if (product.variantes && product.variantes.length > 0 && !showPreview) {
+
+    if (hasVariantes && !selectedVariante) {
       setShowPreview(true)
       setIsAdding(false)
       return
     }
-    
-    // Simular delay para mejor UX
+
     await new Promise(resolve => setTimeout(resolve, 300));
-    
+
+    const productToAdd = hasVariantes
+      ? { ...product, precio: selectedVariante.precio, talla: selectedVariante.talla, variante_id: selectedVariante.id }
+      : product;
+
     if (onAddToCart) {
-      onAddToCart(product);
+      onAddToCart(productToAdd);
     } else {
-      addToCart(product);
+      addToCart(productToAdd);
     }
-    
+
     setIsAdding(false);
   };
 
@@ -255,14 +266,18 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
           </p>
 
           {/* Selector de talles en la card */}
-          {product?.tiene_talles && product?.variantes?.length > 0 && (
-            <div className="mb-3">
+          {hasVariantes && (
+            <div className="mb-2">
               <div className="flex flex-wrap gap-1">
-                {product.variantes.map(v => (
+                {sortedVariantes.map(v => (
                   <button
                     key={v.id}
-                    onClick={(e) => { e.stopPropagation(); setShowPreview(true) }}
-                    className="px-2 py-0.5 text-xs border border-secondary-200 rounded-md text-secondary-600 hover:border-primary-400 hover:text-primary-600 transition-colors"
+                    onClick={(e) => { e.stopPropagation(); setSelectedVariante(v); }}
+                    className={`px-2 py-0.5 text-xs border rounded-md font-medium transition-colors ${
+                      selectedVariante?.id === v.id
+                        ? 'border-primary-500 bg-primary-50 text-primary-600'
+                        : 'border-secondary-200 text-secondary-500 hover:border-primary-400 hover:text-primary-600'
+                    }`}
                   >
                     {v.talla}
                   </button>
@@ -286,8 +301,8 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
                 </span>
               )}
               <span className="text-base sm:text-lg font-bold text-primary-500">
-                {product?.tiene_talles && product?.variantes?.length > 0
-                  ? `Desde ${formatPrice(Math.min(...product.variantes.map(v => v.precio)))}`
+                {hasVariantes && selectedVariante
+                  ? formatPrice(selectedVariante.precio)
                   : formatPrice(getProductPrice())
                 }
               </span>

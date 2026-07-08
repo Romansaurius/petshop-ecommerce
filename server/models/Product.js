@@ -15,13 +15,29 @@ class Product {
         ORDER BY p.destacado DESC, p.created_at DESC
       `);
       
+      // Cargar variantes para todos los productos
+      if (rows.length > 0) {
+        const ids = rows.map(r => r.id);
+        const [variantes] = await db.execute(
+          `SELECT producto_id, talla, precio, stock FROM producto_variantes WHERE producto_id IN (${ids.map(() => '?').join(',')}) AND activo = TRUE ORDER BY FIELD(talla,'S','M','L','XL','XXL')`,
+          ids
+        );
+        const variantesPorProducto = {};
+        for (const v of variantes) {
+          if (!variantesPorProducto[v.producto_id]) variantesPorProducto[v.producto_id] = [];
+          variantesPorProducto[v.producto_id].push(v);
+        }
+        for (const row of rows) {
+          row.variantes = variantesPorProducto[row.id] || [];
+        }
+      }
+
       return rows;
     } catch (error) {
       console.error('❌ Error en getAll:', error);
-      // Fallback: obtener productos sin JOINs
       try {
         const [rows] = await db.execute('SELECT * FROM productos WHERE activo = 1 ORDER BY created_at DESC');
-        return rows.map(row => ({ ...row, categoria: 'Sin categoría', marca: 'Sin marca' }));
+        return rows.map(row => ({ ...row, categoria: 'Sin categoría', marca: 'Sin marca', variantes: [] }));
       } catch (fallbackError) {
         console.error('❌ Error en fallback:', fallbackError);
         throw error;
@@ -37,20 +53,18 @@ class Product {
           c.nombre as categoria,
           m.nombre as marca
         FROM productos p
-LEFT JOIN categorias c ON p.categoria_id = c.id
+        LEFT JOIN categorias c ON p.categoria_id = c.id
         LEFT JOIN marcas m ON p.marca_id = m.id
         WHERE p.id = ? AND p.activo = TRUE
       `, [id]);
       
       if (rows[0]) {
-        // Agregar imágenes de Cloudinary
         const [images] = await db.execute(
           'SELECT imagen_url, es_principal, orden FROM producto_imagenes WHERE producto_id = ? ORDER BY orden',
           [id]
         );
         rows[0].imagenes = images;
         
-        // Agregar variantes de talles si existen
         const [variantes] = await db.execute(
           'SELECT id, talla, precio, stock FROM producto_variantes WHERE producto_id = ? AND activo = TRUE ORDER BY FIELD(talla, "S", "M", "L", "XL", "XXL")',
           [id]
