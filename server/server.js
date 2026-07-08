@@ -9,6 +9,7 @@ const orderRoutes = require('./routes/orderRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const loyaltyRoutes = require('./routes/loyaltyRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
+const sectionsRoutes = require('./routes/sectionsRoutes');
 
 const db = require('./config/database');
 
@@ -24,6 +25,34 @@ async function ensureDbColumns() {
     await db.execute(`ALTER TABLE detalles_pedido MODIFY COLUMN nombre_producto VARCHAR(255) DEFAULT ''`);
     await db.execute(`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS nombre_contacto VARCHAR(255) DEFAULT ''`);
     await db.execute(`ALTER TABLE productos ADD COLUMN IF NOT EXISTS tiene_talles BOOLEAN DEFAULT FALSE`);
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS home_secciones (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        clave VARCHAR(50) NOT NULL UNIQUE,
+        nombre VARCHAR(100) NOT NULL,
+        orden INT DEFAULT 0,
+        activo BOOLEAN DEFAULT TRUE
+      )
+    `);
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS home_seccion_productos (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        seccion_id INT NOT NULL,
+        producto_id INT NOT NULL,
+        orden INT DEFAULT 0,
+        FOREIGN KEY (seccion_id) REFERENCES home_secciones(id) ON DELETE CASCADE,
+        FOREIGN KEY (producto_id) REFERENCES productos(id) ON DELETE CASCADE
+      )
+    `);
+    // Seed secciones por defecto
+    const [[{sc}]] = await db.execute('SELECT COUNT(*) as sc FROM home_secciones');
+    if (sc === 0) {
+      await db.execute(`INSERT INTO home_secciones (clave, nombre, orden) VALUES
+        ('lanzamientos', 'Lanzamientos Exclusivos', 1),
+        ('natural', 'Nuestra Selección Natural', 2),
+        ('camas', 'El descanso que se merece', 3),
+        ('juguetes', 'Ideales para los más juguetones', 4)`);
+    }
     await db.execute(`
       CREATE TABLE IF NOT EXISTS producto_variantes (
         id INT PRIMARY KEY AUTO_INCREMENT,
@@ -115,6 +144,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/loyalty', loyaltyRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/sections', sectionsRoutes);
 
 // Catch all handler - debe ir al final
 app.get('*', (req, res) => {

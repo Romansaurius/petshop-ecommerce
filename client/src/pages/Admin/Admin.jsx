@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Edit, Trash2, Package, Users, ShoppingBag, TrendingUp, Gift, Eye } from 'lucide-react'
+import { Plus, Edit, Trash2, Package, Users, ShoppingBag, TrendingUp, Gift, LayoutGrid, X, Check } from 'lucide-react'
 
 const Admin = () => {
   const { user, isAuthenticated } = useAuth()
@@ -30,6 +30,9 @@ const Admin = () => {
   })
   const [products, setProducts] = useState([])
   const [orders, setOrders] = useState([])
+  const [sections, setSections] = useState([])
+  const [sectionProducts, setSectionProducts] = useState({}) // { seccion_id: [prod_id, ...] }
+  const [sectionSearch, setSectionSearch] = useState('')
   const [showProductForm, setShowProductForm] = useState(false)
   const [editingProduct, setEditingProduct] = useState(null)
   const [productForm, setProductForm] = useState({
@@ -64,9 +67,46 @@ const Admin = () => {
     loadCoupons()
     loadBrands()
     loadCategories()
+    loadSections()
   }, [])
 
-  const loadCategories = async () => {
+  const loadSections = async () => {
+    try {
+      const res = await fetch('/api/sections')
+      const data = await res.json()
+      if (Array.isArray(data)) {
+        setSections(data)
+        const map = {}
+        data.forEach(s => { map[s.id] = (s.productos || []).map(p => p.id) })
+        setSectionProducts(map)
+      }
+    } catch (e) { console.error('Error cargando secciones:', e) }
+  }
+
+  const saveSectionProducts = async (sectionId) => {
+    try {
+      const res = await fetch(`/api/sections/${sectionId}/productos`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+        body: JSON.stringify({ producto_ids: sectionProducts[sectionId] || [] })
+      })
+      if (res.ok) {
+        alert('Sección guardada correctamente')
+        loadSections()
+      } else alert('Error al guardar')
+    } catch { alert('Error de conexión') }
+  }
+
+  const toggleProductInSection = (sectionId, productId) => {
+    setSectionProducts(prev => {
+      const current = prev[sectionId] || []
+      if (current.includes(productId)) {
+        return { ...prev, [sectionId]: current.filter(id => id !== productId) }
+      }
+      if (current.length >= 5) { alert('Máximo 5 productos por sección'); return prev }
+      return { ...prev, [sectionId]: [...current, productId] }
+    })
+  }
     try {
       const response = await fetch('/api/products/categories')
       const data = await response.json()
@@ -497,6 +537,7 @@ const Admin = () => {
                 { id: 'dashboard', name: 'Dashboard', icon: TrendingUp },
                 { id: 'products', name: 'Productos', icon: Package },
                 { id: 'orders', name: 'Pedidos', icon: ShoppingBag },
+                { id: 'sections', name: 'Secciones', icon: LayoutGrid },
                 { id: 'loyalty', name: 'Fidelización', icon: Gift }
               ].map(tab => {
                 const Icon = tab.icon
@@ -1034,6 +1075,99 @@ const Admin = () => {
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {activeTab === 'sections' && (
+          <div className="space-y-8">
+            <div>
+              <h2 className="text-xl font-semibold text-secondary-800 mb-1">Secciones de la Home</h2>
+              <p className="text-sm text-secondary-400">Elegí hasta 5 productos para mostrar en cada sección de la página principal.</p>
+            </div>
+
+            {/* Buscador de productos */}
+            <div className="sticky top-16 z-10 bg-secondary-50 py-3">
+              <input
+                type="text"
+                placeholder="Buscar producto por nombre..."
+                value={sectionSearch}
+                onChange={e => setSectionSearch(e.target.value)}
+                className="input max-w-sm text-sm"
+              />
+            </div>
+
+            {sections.map(section => {
+              const selected = sectionProducts[section.id] || []
+              const filtered = products.filter(p =>
+                !sectionSearch || (p.nombre || '').toLowerCase().includes(sectionSearch.toLowerCase())
+              )
+              return (
+                <div key={section.id} className="card p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="font-semibold text-secondary-800">{section.nombre}</h3>
+                      <p className="text-xs text-secondary-400 mt-0.5">{selected.length}/5 productos seleccionados</p>
+                    </div>
+                    <button
+                      onClick={() => saveSectionProducts(section.id)}
+                      className="btn btn-primary text-xs px-4 py-2 flex items-center gap-1.5"
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                      Guardar sección
+                    </button>
+                  </div>
+
+                  {/* Productos seleccionados */}
+                  {selected.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-4 p-3 bg-primary-50 rounded-xl border border-primary-100">
+                      {selected.map(id => {
+                        const p = products.find(x => x.id === id)
+                        if (!p) return null
+                        return (
+                          <div key={id} className="flex items-center gap-1.5 bg-white border border-primary-200 rounded-lg px-2.5 py-1.5 text-xs">
+                            {p.imagen && <img src={p.imagen} alt="" className="w-5 h-5 rounded object-cover" />}
+                            <span className="font-medium text-secondary-700 max-w-[120px] truncate">{p.nombre}</span>
+                            <button onClick={() => toggleProductInSection(section.id, id)} className="text-secondary-400 hover:text-red-500 ml-1">
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  {/* Lista de productos para elegir */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-72 overflow-y-auto pr-1">
+                    {filtered.map(p => {
+                      const isSelected = selected.includes(p.id)
+                      return (
+                        <button
+                          key={p.id}
+                          onClick={() => toggleProductInSection(section.id, p.id)}
+                          className={`flex items-center gap-3 p-2.5 rounded-xl border text-left transition-all ${
+                            isSelected
+                              ? 'border-primary-400 bg-primary-50'
+                              : 'border-secondary-100 hover:border-secondary-300 bg-white'
+                          }`}
+                        >
+                          <div className="w-10 h-10 rounded-lg overflow-hidden bg-secondary-100 shrink-0">
+                            {p.imagen
+                              ? <img src={p.imagen} alt="" className="w-full h-full object-cover" />
+                              : <div className="w-full h-full flex items-center justify-center text-secondary-300 text-lg">🐾</div>
+                            }
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium text-secondary-800 truncate">{p.nombre}</p>
+                            <p className="text-[11px] text-secondary-400">{formatPrice(p.precio || 0)}</p>
+                          </div>
+                          {isSelected && <Check className="w-4 h-4 text-primary-500 shrink-0" />}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
           </div>
         )}
 
