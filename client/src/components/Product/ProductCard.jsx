@@ -11,7 +11,7 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
   const [isLiked, setIsLiked] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
 
-  const hasVariantes = product?.tiene_talles && product?.variantes?.length > 0;
+  const hasVariantes = product?.variantes?.length > 0;
   const sortedVariantes = hasVariantes
     ? [...product.variantes].sort((a, b) => {
         const orden = { S: 1, M: 2, L: 3, XL: 4, XXL: 5 }

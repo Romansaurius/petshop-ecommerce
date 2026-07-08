@@ -38,7 +38,13 @@ router.post('/create', async (req, res) => {
           usuario_id: usuario_id || null,
           direccion: customerInfo.address || '',
           telefono: customerInfo.phone,
-          email: customerInfo.email
+          email: customerInfo.email,
+          items: items.map(item => ({
+            producto_id: item.id,
+            cantidad: item.is2x1 ? Math.ceil(item.quantity / 2) : item.quantity,
+            precio_unitario: parseFloat(item.precio || item.price || 0),
+            talla: item.talla || null
+          }))
         })
       }
     });
@@ -65,7 +71,7 @@ router.post('/webhook', async (req, res) => {
           total: payment.transaction_amount,
           direccion_envio: ref.direccion || 'A confirmar',
           telefono_contacto: ref.telefono || '',
-          items: []
+          items: ref.items || []
         });
         // Sumar puntos
         if (ref.usuario_id) {
