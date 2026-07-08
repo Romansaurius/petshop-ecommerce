@@ -22,6 +22,7 @@ async function ensureDbColumns() {
     await db.execute(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS nivel_expira DATETIME NULL`);
     await db.execute(`ALTER TABLE productos ADD COLUMN IF NOT EXISTS tipo VARCHAR(50) DEFAULT 'normal'`);
     await db.execute(`ALTER TABLE detalles_pedido MODIFY COLUMN nombre_producto VARCHAR(255) DEFAULT ''`);
+    await db.execute(`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS nombre_contacto VARCHAR(255) DEFAULT ''`);
     await db.execute(`ALTER TABLE productos ADD COLUMN IF NOT EXISTS tiene_talles BOOLEAN DEFAULT FALSE`);
     await db.execute(`
       CREATE TABLE IF NOT EXISTS producto_variantes (

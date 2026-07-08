@@ -2,7 +2,7 @@ const db = require('../config/database');
 
 class Order {
   static async create(orderData) {
-    const { usuario_id, total, direccion_envio, telefono_contacto, items } = orderData;
+    const { usuario_id, total, direccion_envio, telefono_contacto, email, nombre_contacto, items } = orderData;
     
     const connection = await db.getConnection();
     await connection.beginTransaction();
@@ -11,14 +11,14 @@ class Order {
       const numeroPedido = 'MP-' + Date.now();
 
       const [orderResult] = await connection.execute(
-        `INSERT INTO pedidos (numero_pedido, usuario_id, email_contacto, total, subtotal, direccion_envio, telefono_contacto, estado, metodo_pago)
-         VALUES (?, ?, ?, ?, ?, ?, ?, 'pendiente', 'mercadopago')`,
-        [numeroPedido, usuario_id || null, orderData.email || '', total, total, direccion_envio || 'A confirmar', telefono_contacto || '']
+        `INSERT INTO pedidos (numero_pedido, usuario_id, email_contacto, nombre_contacto, total, subtotal, direccion_envio, telefono_contacto, estado, metodo_pago)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pendiente', 'mercadopago')`,
+        [numeroPedido, usuario_id || null, email || '', nombre_contacto || '', total, total, direccion_envio || 'A confirmar', telefono_contacto || '']
       );
       
       const orderId = orderResult.insertId;
       
-      for (const item of items) {
+      for (const item of (items || [])) {
         await connection.execute(
           'INSERT INTO detalles_pedido (pedido_id, producto_id, cantidad, precio_unitario, talla) VALUES (?, ?, ?, ?, ?)',
           [orderId, item.producto_id, item.cantidad, item.precio_unitario, item.talla || null]
@@ -38,7 +38,9 @@ class Order {
   static async getAll() {
     const [rows] = await db.execute(
       `SELECT p.*, 
-        u.nombre as cliente_nombre, u.email as cliente_email, u.telefono as cliente_telefono,
+        COALESCE(u.nombre, p.nombre_contacto, 'Invitado') as cliente_nombre,
+        COALESCE(u.email, p.email_contacto) as cliente_email,
+        COALESCE(u.telefono, p.telefono_contacto) as cliente_telefono,
         GROUP_CONCAT(pr.nombre SEPARATOR ', ') as productos,
         COUNT(dp.id) as cantidad_items
        FROM pedidos p
