@@ -121,10 +121,9 @@ const Home = () => {
           <SectionHeader
             eyebrow="Promo apertura · Tiempo limitado"
             title="Lanzamientos Exclusivos"
+            link="/menu?ofertas=true"
+            linkLabel="Ver ofertas"
           />
-          <p className="text-sm text-secondary-500 mb-8 max-w-xl leading-relaxed">
-            Aprovechá las ofertas de tiempo limitado por apertura. Descuentos únicos en productos seleccionados para que conozcas todo lo que tenemos para tu mascota.
-          </p>
 
           <ProductGrid
             products={showAllPromos ? [...lanzamientos, ...morePromos] : lanzamientos}
@@ -134,8 +133,12 @@ const Home = () => {
             addToCart={addToCart}
           />
 
+          <p className="text-sm text-secondary-500 mt-8 max-w-xl leading-relaxed">
+            Aprovechá las ofertas de tiempo limitado por apertura. Descuentos únicos en productos seleccionados para que conozcas todo lo que tenemos para tu mascota.
+          </p>
+
           {!loading && morePromos.length > 0 && (
-            <div className="text-center mt-8">
+            <div className="text-center mt-4">
               <button
                 onClick={() => setShowAllPromos(!showAllPromos)}
                 className="btn btn-outline text-sm px-6"
@@ -157,10 +160,6 @@ const Home = () => {
             linkLabel="Ver todos"
           />
 
-          <p className="text-sm text-secondary-500 mb-8 max-w-xl leading-relaxed">
-            Cuidar su alimentación también es una forma de demostrar amor. Descubrí productos seleccionados por su calidad, ingredientes naturales y beneficios para el bienestar diario de perros y gatos.
-          </p>
-
           <ProductGrid
             products={naturalProducts}
             loading={loading}
@@ -168,6 +167,10 @@ const Home = () => {
             allProducts={allProducts}
             addToCart={addToCart}
           />
+
+          <p className="text-sm text-secondary-500 mt-8 max-w-xl leading-relaxed">
+            Cuidar su alimentación también es una forma de demostrar amor. Descubrí productos seleccionados por su calidad, ingredientes naturales y beneficios para el bienestar diario de perros y gatos.
+          </p>
         </div>
       </section>
 
@@ -181,11 +184,6 @@ const Home = () => {
             linkLabel="Ver camas"
           />
 
-          <p className="text-sm text-secondary-500 mb-8 max-w-xl leading-relaxed">
-            Porque después de jugar, explorar y compartir momentos únicos, también necesitan un lugar cómodo para descansar y recargar energías.
-          </p>
-
-
           {loading ? <Skeleton /> : camas.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
               {camas.map(p => <ProductCard key={p.id} product={p} onAddToCart={addToCart} allProducts={allProducts} />)}
@@ -197,6 +195,10 @@ const Home = () => {
               <Link to="/menu" className="btn btn-primary mt-4 text-sm">Ver todos los productos</Link>
             </div>
           )}
+
+          <p className="text-sm text-secondary-500 mt-8 max-w-xl leading-relaxed">
+            Porque después de jugar, explorar y compartir momentos únicos, también necesitan un lugar cómodo para descansar y recargar energías.
+          </p>
         </div>
       </section>
 
@@ -210,10 +212,6 @@ const Home = () => {
             linkLabel="Ver juguetes"
           />
 
-          <p className="text-sm text-secondary-500 mb-8 max-w-xl leading-relaxed">
-            Estimulación mental, entretenimiento y momentos inolvidables para todas las edades y personalidades.
-          </p>
-
           {loading ? <Skeleton /> : juguetes.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
               {juguetes.map(p => <ProductCard key={p.id} product={p} onAddToCart={addToCart} allProducts={allProducts} />)}
@@ -225,6 +223,10 @@ const Home = () => {
               <Link to="/menu" className="btn btn-primary mt-4 text-sm">Ver todos los productos</Link>
             </div>
           )}
+
+          <p className="text-sm text-secondary-500 mt-8 max-w-xl leading-relaxed">
+            Estimulación mental, entretenimiento y momentos inolvidables para todas las edades y personalidades.
+          </p>
         </div>
       </section>
 

@@ -33,6 +33,7 @@ const Admin = () => {
   const [sections, setSections] = useState([])
   const [sectionProducts, setSectionProducts] = useState({}) // { seccion_id: [prod_id, ...] }
   const [sectionSearch, setSectionSearch] = useState('')
+  const [activeSectionId, setActiveSectionId] = useState(null)
   const [showProductForm, setShowProductForm] = useState(false)
   const [editingProduct, setEditingProduct] = useState(null)
   const [productForm, setProductForm] = useState({
@@ -1080,47 +1081,70 @@ const Admin = () => {
         )}
 
         {activeTab === 'sections' && (
-          <div className="space-y-8">
-            <div>
-              <h2 className="text-xl font-semibold text-secondary-800 mb-1">Secciones de la Home</h2>
-              <p className="text-sm text-secondary-400">Elegí hasta 5 productos para mostrar en cada sección de la página principal.</p>
-            </div>
-
-            {/* Buscador de productos */}
-            <div className="sticky top-16 z-10 bg-secondary-50 py-3">
-              <input
-                type="text"
-                placeholder="Buscar producto por nombre..."
-                value={sectionSearch}
-                onChange={e => setSectionSearch(e.target.value)}
-                className="input max-w-sm text-sm"
-              />
-            </div>
-
-            {sections.map(section => {
-              const selected = sectionProducts[section.id] || []
+          <div className="space-y-6">
+            {!activeSectionId ? (
+              <>
+                <div>
+                  <h2 className="text-xl font-semibold text-secondary-800 mb-1">Secciones de la Home</h2>
+                  <p className="text-sm text-secondary-400">Seleccioná una sección para editar sus productos destacados.</p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {sections.map(section => {
+                    const count = (sectionProducts[section.id] || []).length
+                    return (
+                      <button
+                        key={section.id}
+                        onClick={() => { setActiveSectionId(section.id); setSectionSearch('') }}
+                        className="card p-6 text-left hover:border-primary-300 hover:shadow-md transition-all border-2 border-transparent"
+                      >
+                        <h3 className="font-semibold text-secondary-800 mb-1">{section.nombre}</h3>
+                        <p className="text-xs text-secondary-400">{count}/5 productos seleccionados</p>
+                        <div className="mt-3 text-xs text-primary-500 font-medium">Editar →</div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </>
+            ) : (() => {
+              const section = sections.find(s => s.id === activeSectionId)
+              const selected = sectionProducts[activeSectionId] || []
               const filtered = products.filter(p =>
                 !sectionSearch || (p.nombre || '').toLowerCase().includes(sectionSearch.toLowerCase())
               )
               return (
-                <div key={section.id} className="card p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="font-semibold text-secondary-800">{section.nombre}</h3>
-                      <p className="text-xs text-secondary-400 mt-0.5">{selected.length}/5 productos seleccionados</p>
-                    </div>
+                <>
+                  <div className="flex items-center gap-4">
                     <button
-                      onClick={() => saveSectionProducts(section.id)}
+                      onClick={() => setActiveSectionId(null)}
+                      className="text-sm text-secondary-500 hover:text-secondary-800 flex items-center gap-1"
+                    >
+                      ← Volver
+                    </button>
+                    <div>
+                      <h2 className="text-xl font-semibold text-secondary-800">{section?.nombre}</h2>
+                      <p className="text-xs text-secondary-400">{selected.length}/5 productos seleccionados</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="text"
+                      placeholder="Buscar producto por nombre..."
+                      value={sectionSearch}
+                      onChange={e => setSectionSearch(e.target.value)}
+                      className="input max-w-sm text-sm"
+                    />
+                    <button
+                      onClick={() => saveSectionProducts(activeSectionId)}
                       className="btn btn-primary text-xs px-4 py-2 flex items-center gap-1.5"
                     >
                       <Check className="w-3.5 h-3.5" />
-                      Guardar sección
+                      Guardar
                     </button>
                   </div>
 
-                  {/* Productos seleccionados */}
                   {selected.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-4 p-3 bg-primary-50 rounded-xl border border-primary-100">
+                    <div className="flex flex-wrap gap-2 p-3 bg-primary-50 rounded-xl border border-primary-100">
                       {selected.map(id => {
                         const p = products.find(x => x.id === id)
                         if (!p) return null
@@ -1128,7 +1152,7 @@ const Admin = () => {
                           <div key={id} className="flex items-center gap-1.5 bg-white border border-primary-200 rounded-lg px-2.5 py-1.5 text-xs">
                             {p.imagen && <img src={p.imagen} alt="" className="w-5 h-5 rounded object-cover" />}
                             <span className="font-medium text-secondary-700 max-w-[120px] truncate">{p.nombre}</span>
-                            <button onClick={() => toggleProductInSection(section.id, id)} className="text-secondary-400 hover:text-red-500 ml-1">
+                            <button onClick={() => toggleProductInSection(activeSectionId, id)} className="text-secondary-400 hover:text-red-500 ml-1">
                               <X className="w-3 h-3" />
                             </button>
                           </div>
@@ -1137,14 +1161,13 @@ const Admin = () => {
                     </div>
                   )}
 
-                  {/* Lista de productos para elegir */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-72 overflow-y-auto pr-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                     {filtered.map(p => {
                       const isSelected = selected.includes(p.id)
                       return (
                         <button
                           key={p.id}
-                          onClick={() => toggleProductInSection(section.id, p.id)}
+                          onClick={() => toggleProductInSection(activeSectionId, p.id)}
                           className={`flex items-center gap-3 p-2.5 rounded-xl border text-left transition-all ${
                             isSelected
                               ? 'border-primary-400 bg-primary-50'
@@ -1166,9 +1189,9 @@ const Admin = () => {
                       )
                     })}
                   </div>
-                </div>
+                </>
               )
-            })}
+            })()}
           </div>
         )}
 
