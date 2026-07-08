@@ -15,7 +15,7 @@ const Footer = () => {
               </div>
             </div>
             <p className="text-secondary-400 text-sm leading-relaxed">
-              Todo lo que tu mascota necesita para ser feliz y saludable.
+              Amor Canino, Actitud Felina.
             </p>
           </div>
 
