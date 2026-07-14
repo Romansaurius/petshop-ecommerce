@@ -106,8 +106,8 @@ async function ensureDbColumns() {
       )
     `);
     // Seed secciones por defecto
-    const [[{sc}]] = await db.execute('SELECT COUNT(*) as sc FROM home_secciones');
-    if (sc === 0) {
+    const [[{sc: sc2}]] = await db.execute('SELECT COUNT(*) as sc FROM home_secciones');
+    if (sc2 === 0) {
       await db.execute(`INSERT INTO home_secciones (clave, nombre, orden) VALUES
         ('lanzamientos', 'Lanzamientos Exclusivos', 1),
         ('natural', 'Nuestra Selección Natural', 2),
