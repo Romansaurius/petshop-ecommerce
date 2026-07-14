@@ -28,8 +28,8 @@ const Hero = () => (
 
           <div className="space-y-3 mb-8">
             {[
-              'Puntos de fidelidad acumulables',
-              'Descuentos exclusivos en peluquería',
+              'Puntos acumulables y canjeables',
+              'Premios increíbles',
               'Acceso anticipado a ofertas',
               'Envío gratis desde $35.000',
             ].map(item => (
