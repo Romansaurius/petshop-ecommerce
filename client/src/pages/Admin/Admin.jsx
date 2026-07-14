@@ -90,11 +90,13 @@ const Admin = () => {
         fetch('/api/shipping/cities', { headers: { Authorization: `Bearer ${token}` } }),
         fetch('/api/shipping/config')
       ])
-      setShippingZones(await zonesRes.json().catch(() => []))
-      setShippingCities(await citiesRes.json().catch(() => []))
-      const cfg = await configRes.json().catch(() => null)
-      if (cfg?.id) setShippingConfig(cfg)
-    } catch (e) { console.error(e) }
+      const zones = zonesRes.ok ? await zonesRes.json().catch(() => []) : []
+      const cities = citiesRes.ok ? await citiesRes.json().catch(() => []) : []
+      const cfg = configRes.ok ? await configRes.json().catch(() => null) : null
+      setShippingZones(Array.isArray(zones) ? zones : [])
+      setShippingCities(Array.isArray(cities) ? cities : [])
+      if (cfg && cfg.id) setShippingConfig(cfg)
+    } catch (e) { console.error('loadShipping error:', e) }
   }
 
   const handleZoneSubmit = async (e) => {
