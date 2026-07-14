@@ -43,7 +43,7 @@ const Header = () => {
 
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 shrink-0">
-            <img src="/logosolo.jpg" alt="MauLu" className="w-10 h-10 object-contain" />
+            <img src="/logosolo.jpg" alt="MauLu" className="w-10 h-10 object-contain mix-blend-mode-multiply" style={{mixBlendMode:'multiply'}} />
             <div className="flex flex-col leading-none">
               <span className="text-lg font-semibold text-secondary-800 tracking-tight">MauLu</span>
               <span className="text-[10px] text-secondary-400 tracking-widest uppercase">Amor canino actitud felina</span>
