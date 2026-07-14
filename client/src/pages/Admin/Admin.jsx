@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Edit, Trash2, Package, Users, ShoppingBag, TrendingUp, Gift, LayoutGrid, X, Check } from 'lucide-react'
+import { Plus, Edit, Trash2, Package, Users, ShoppingBag, TrendingUp, Gift, LayoutGrid, X, Check, Truck } from 'lucide-react'
 
 const Admin = () => {
   const { user, isAuthenticated } = useAuth()
@@ -53,6 +53,16 @@ const Admin = () => {
   })
   const [brands, setBrands] = useState([])
   const [categories, setCategories] = useState([])
+  const [shippingZones, setShippingZones] = useState([])
+  const [shippingCities, setShippingCities] = useState([])
+  const [shippingConfig, setShippingConfig] = useState({ envio_gratis_activo: false, monto_envio_gratis: 50000, retiro_local_activo: true })
+  const [shippingTab, setShippingTab] = useState('zones')
+  const [zoneForm, setZoneForm] = useState({ nombre: '', precio: '' })
+  const [editingZone, setEditingZone] = useState(null)
+  const [showZoneForm, setShowZoneForm] = useState(false)
+  const [cityForm, setCityForm] = useState({ nombre: '', provincia: '', shipping_zone_id: '' })
+  const [editingCity, setEditingCity] = useState(null)
+  const [showCityForm, setShowCityForm] = useState(false)
 
   useEffect(() => {
     if (!isAuthenticated || user?.role !== 'admin') {
@@ -69,7 +79,66 @@ const Admin = () => {
     loadBrands()
     loadCategories()
     loadSections()
+    loadShipping()
   }, [])
+
+  const loadShipping = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const [zonesRes, citiesRes, configRes] = await Promise.all([
+        fetch('/api/shipping/zones'),
+        fetch('/api/shipping/cities', { headers: { Authorization: `Bearer ${token}` } }),
+        fetch('/api/shipping/config')
+      ])
+      setShippingZones(await zonesRes.json().catch(() => []))
+      setShippingCities(await citiesRes.json().catch(() => []))
+      const cfg = await configRes.json().catch(() => null)
+      if (cfg?.id) setShippingConfig(cfg)
+    } catch (e) { console.error(e) }
+  }
+
+  const handleZoneSubmit = async (e) => {
+    e.preventDefault()
+    const token = localStorage.getItem('token')
+    const url = editingZone ? `/api/shipping/zones/${editingZone.id}` : '/api/shipping/zones'
+    const method = editingZone ? 'PUT' : 'POST'
+    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ nombre: zoneForm.nombre, precio: parseFloat(zoneForm.precio), activo: true }) })
+    if (res.ok) { loadShipping(); setZoneForm({ nombre: '', precio: '' }); setEditingZone(null); setShowZoneForm(false) }
+    else { const d = await res.json(); alert(d.error || 'Error') }
+  }
+
+  const handleDeleteZone = async (id) => {
+    if (!confirm('¿Eliminar zona?')) return
+    const res = await fetch(`/api/shipping/zones/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
+    if (res.ok) loadShipping()
+    else { const d = await res.json(); alert(d.error || 'Error') }
+  }
+
+  const handleCitySubmit = async (e) => {
+    e.preventDefault()
+    const token = localStorage.getItem('token')
+    const url = editingCity ? `/api/shipping/cities/${editingCity.id}` : '/api/shipping/cities'
+    const method = editingCity ? 'PUT' : 'POST'
+    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(cityForm) })
+    if (res.ok) { loadShipping(); setCityForm({ nombre: '', provincia: '', shipping_zone_id: '' }); setEditingCity(null); setShowCityForm(false) }
+    else { const d = await res.json(); alert(d.error || 'Error') }
+  }
+
+  const handleDeleteCity = async (id) => {
+    if (!confirm('¿Eliminar ciudad?')) return
+    await fetch(`/api/shipping/cities/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
+    loadShipping()
+  }
+
+  const handleSaveConfig = async () => {
+    const res = await fetch('/api/shipping/config', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
+      body: JSON.stringify(shippingConfig)
+    })
+    if (res.ok) alert('Configuración guardada')
+    else alert('Error al guardar')
+  }
 
   const loadSections = async () => {
     try {
@@ -540,6 +609,7 @@ const Admin = () => {
                 { id: 'products', name: 'Productos', icon: Package },
                 { id: 'orders', name: 'Pedidos', icon: ShoppingBag },
                 { id: 'sections', name: 'Secciones', icon: LayoutGrid },
+                { id: 'shipping', name: 'Envíos', icon: Truck },
                 { id: 'loyalty', name: 'Fidelización', icon: Gift }
               ].map(tab => {
                 const Icon = tab.icon
@@ -1192,6 +1262,158 @@ const Admin = () => {
                 </>
               )
             })()}
+          </div>
+        )}
+
+        {activeTab === 'shipping' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-secondary-800">Zonas de Envío</h2>
+              <div className="flex gap-2">
+                {['zones', 'cities', 'config'].map(t => (
+                  <button key={t} onClick={() => setShippingTab(t)}
+                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                      shippingTab === t ? 'bg-primary-500 text-white' : 'bg-secondary-100 text-secondary-600 hover:bg-secondary-200'
+                    }`}>
+                    {t === 'zones' ? 'Zonas' : t === 'cities' ? 'Ciudades' : 'Configuración'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {shippingTab === 'zones' && (
+              <div className="space-y-4">
+                <div className="flex justify-end">
+                  <button onClick={() => { setShowZoneForm(true); setEditingZone(null); setZoneForm({ nombre: '', precio: '' }) }} className="btn btn-primary flex items-center gap-2">
+                    <Plus className="w-4 h-4" /> Nueva Zona
+                  </button>
+                </div>
+                {showZoneForm && (
+                  <form onSubmit={handleZoneSubmit} className="card p-4 flex gap-3 items-end">
+                    <div className="flex-1">
+                      <label className="block text-xs font-medium text-secondary-600 mb-1">Nombre</label>
+                      <input required value={zoneForm.nombre} onChange={e => setZoneForm({ ...zoneForm, nombre: e.target.value })} className="input w-full" placeholder="Ej: CABA" />
+                    </div>
+                    <div className="w-36">
+                      <label className="block text-xs font-medium text-secondary-600 mb-1">Precio ($)</label>
+                      <input required type="number" min="0" value={zoneForm.precio} onChange={e => setZoneForm({ ...zoneForm, precio: e.target.value })} className="input w-full" placeholder="6000" />
+                    </div>
+                    <button type="submit" className="btn btn-primary px-4">{editingZone ? 'Guardar' : 'Agregar'}</button>
+                    <button type="button" onClick={() => { setShowZoneForm(false); setEditingZone(null) }} className="btn btn-secondary px-4">Cancelar</button>
+                  </form>
+                )}
+                <div className="card overflow-hidden">
+                  <table className="min-w-full divide-y divide-secondary-200">
+                    <thead className="bg-secondary-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase">Zona</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase">Precio</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase">Ciudades</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-secondary-200">
+                      {shippingZones.length === 0 && <tr><td colSpan="4" className="px-6 py-8 text-center text-secondary-400">No hay zonas configuradas</td></tr>}
+                      {shippingZones.map(z => (
+                        <tr key={z.id} className="hover:bg-secondary-50">
+                          <td className="px-6 py-4 font-medium text-secondary-800">{z.nombre}</td>
+                          <td className="px-6 py-4 text-secondary-700">{formatPrice(z.precio)}</td>
+                          <td className="px-6 py-4 text-secondary-500 text-sm">{shippingCities.filter(c => c.shipping_zone_id === z.id).length} ciudades</td>
+                          <td className="px-6 py-4">
+                            <div className="flex gap-2">
+                              <button onClick={() => { setEditingZone(z); setZoneForm({ nombre: z.nombre, precio: z.precio }); setShowZoneForm(true) }} className="text-blue-600 hover:text-blue-800"><Edit className="w-4 h-4" /></button>
+                              <button onClick={() => handleDeleteZone(z.id)} className="text-red-500 hover:text-red-700"><Trash2 className="w-4 h-4" /></button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {shippingTab === 'cities' && (
+              <div className="space-y-4">
+                <div className="flex justify-end">
+                  <button onClick={() => { setShowCityForm(true); setEditingCity(null); setCityForm({ nombre: '', provincia: '', shipping_zone_id: shippingZones[0]?.id || '' }) }} className="btn btn-primary flex items-center gap-2">
+                    <Plus className="w-4 h-4" /> Nueva Ciudad
+                  </button>
+                </div>
+                {showCityForm && (
+                  <form onSubmit={handleCitySubmit} className="card p-4 grid grid-cols-2 sm:grid-cols-4 gap-3 items-end">
+                    <div>
+                      <label className="block text-xs font-medium text-secondary-600 mb-1">Ciudad</label>
+                      <input required value={cityForm.nombre} onChange={e => setCityForm({ ...cityForm, nombre: e.target.value })} className="input w-full" placeholder="Ej: Pilar" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-secondary-600 mb-1">Provincia</label>
+                      <input value={cityForm.provincia} onChange={e => setCityForm({ ...cityForm, provincia: e.target.value })} className="input w-full" placeholder="Ej: Buenos Aires" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-secondary-600 mb-1">Zona</label>
+                      <select required value={cityForm.shipping_zone_id} onChange={e => setCityForm({ ...cityForm, shipping_zone_id: e.target.value })} className="input w-full">
+                        <option value="">Seleccionar...</option>
+                        {shippingZones.map(z => <option key={z.id} value={z.id}>{z.nombre}</option>)}
+                      </select>
+                    </div>
+                    <div className="flex gap-2">
+                      <button type="submit" className="btn btn-primary px-4">{editingCity ? 'Guardar' : 'Agregar'}</button>
+                      <button type="button" onClick={() => { setShowCityForm(false); setEditingCity(null) }} className="btn btn-secondary px-4">Cancelar</button>
+                    </div>
+                  </form>
+                )}
+                <div className="card overflow-hidden">
+                  <table className="min-w-full divide-y divide-secondary-200">
+                    <thead className="bg-secondary-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase">Ciudad</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase">Provincia</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase">Zona</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-secondary-200">
+                      {shippingCities.length === 0 && <tr><td colSpan="4" className="px-6 py-8 text-center text-secondary-400">No hay ciudades configuradas</td></tr>}
+                      {shippingCities.map(c => (
+                        <tr key={c.id} className="hover:bg-secondary-50">
+                          <td className="px-6 py-4 font-medium text-secondary-800">{c.nombre}</td>
+                          <td className="px-6 py-4 text-secondary-600 text-sm">{c.provincia || '-'}</td>
+                          <td className="px-6 py-4"><span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">{c.zona_nombre}</span></td>
+                          <td className="px-6 py-4">
+                            <div className="flex gap-2">
+                              <button onClick={() => { setEditingCity(c); setCityForm({ nombre: c.nombre, provincia: c.provincia || '', shipping_zone_id: c.shipping_zone_id }); setShowCityForm(true) }} className="text-blue-600 hover:text-blue-800"><Edit className="w-4 h-4" /></button>
+                              <button onClick={() => handleDeleteCity(c.id)} className="text-red-500 hover:text-red-700"><Trash2 className="w-4 h-4" /></button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {shippingTab === 'config' && (
+              <div className="card p-6 max-w-md space-y-5">
+                <h3 className="font-semibold text-secondary-800">Configuración general de envíos</h3>
+                <label className="flex items-center justify-between">
+                  <span className="text-sm text-secondary-700">Retiro en local (gratis)</span>
+                  <input type="checkbox" checked={!!shippingConfig.retiro_local_activo} onChange={e => setShippingConfig({ ...shippingConfig, retiro_local_activo: e.target.checked })} className="w-4 h-4" />
+                </label>
+                <label className="flex items-center justify-between">
+                  <span className="text-sm text-secondary-700">Activar envío gratis por monto mínimo</span>
+                  <input type="checkbox" checked={!!shippingConfig.envio_gratis_activo} onChange={e => setShippingConfig({ ...shippingConfig, envio_gratis_activo: e.target.checked })} className="w-4 h-4" />
+                </label>
+                {shippingConfig.envio_gratis_activo && (
+                  <div>
+                    <label className="block text-sm font-medium text-secondary-700 mb-1">Monto mínimo para envío gratis ($)</label>
+                    <input type="number" min="0" value={shippingConfig.monto_envio_gratis} onChange={e => setShippingConfig({ ...shippingConfig, monto_envio_gratis: e.target.value })} className="input w-full" />
+                  </div>
+                )}
+                <button onClick={handleSaveConfig} className="btn btn-primary w-full">Guardar configuración</button>
+              </div>
+            )}
           </div>
         )}
 

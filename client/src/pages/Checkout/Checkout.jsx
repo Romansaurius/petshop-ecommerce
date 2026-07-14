@@ -2,128 +2,144 @@ import { useState, useEffect } from 'react'
 import { useCart } from '../../context/CartContext'
 import { useAuth } from '../../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, CreditCard, Check } from 'lucide-react'
-import LoyaltyCard from '../../components/LoyaltyCard/LoyaltyCard'
+import { ArrowLeft, CreditCard, MapPin, Truck, Store } from 'lucide-react'
+
+const Field = ({ label, name, required, children, error }) => (
+  <div>
+    <label className="block text-sm font-medium text-secondary-700 mb-1">
+      {label} {required && <span className="text-red-400">*</span>}
+    </label>
+    {children}
+    {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+  </div>
+)
 
 const Checkout = () => {
   const { cart, getTotalPrice, clearCart, updateQuantity, removeFromCart } = useCart()
   const { user, isAuthenticated } = useAuth()
   const navigate = useNavigate()
 
+  const [zones, setZones] = useState([])
+  const [shippingConfig, setShippingConfig] = useState({})
   const [discountCode, setDiscountCode] = useState('')
   const [appliedDiscount, setAppliedDiscount] = useState(0)
-  const [orderNotes, setOrderNotes] = useState('')
-  const [paymentMethod, setPaymentMethod] = useState('card')
   const [isProcessing, setIsProcessing] = useState(false)
-  const [orderComplete, setOrderComplete] = useState(false)
-  const [showLoyaltyCard, setShowLoyaltyCard] = useState(false)
-  const [userPurchases, setUserPurchases] = useState(3)
+  const [fieldErrors, setFieldErrors] = useState({})
+
+  const [shippingMethod, setShippingMethod] = useState('delivery') // 'delivery' | 'pickup'
+  const [selectedZone, setSelectedZone] = useState(null)
+  const [selectedCity, setSelectedCity] = useState('')
+
   const [customerInfo, setCustomerInfo] = useState({
-    name: '', email: '', phone: '', address: ''
+    name: '', email: '', phone: '',
+    provincia: '', ciudad: '', calle: '', numero: '',
+    piso: '', depto: '', cp: '', referencias: ''
   })
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      setCustomerInfo(prev => ({
-        ...prev,
-        name: user.name || '',
-        email: user.email || ''
-      }))
+      setCustomerInfo(prev => ({ ...prev, name: user.name || '', email: user.email || '' }))
     }
   }, [isAuthenticated, user])
 
-  const validDiscounts = {
-    'DESCUENTO10': 0.1,
-    'PETSHOP20': 0.2,
-    'PRIMERA5': 0.05
+  useEffect(() => {
+    fetch('/api/shipping/zones').then(r => r.json()).then(setZones).catch(() => {})
+    fetch('/api/shipping/config').then(r => r.json()).then(setShippingConfig).catch(() => {})
+  }, [])
+
+  // Todas las ciudades aplanadas
+  const allCities = zones.flatMap(z => (z.cities || []).map(c => ({ ...c, zona: z })))
+
+  const handleCityChange = (cityName) => {
+    setSelectedCity(cityName)
+    const found = allCities.find(c => c.nombre === cityName)
+    setSelectedZone(found ? found.zona : null)
+    setCustomerInfo(prev => ({ ...prev, ciudad: cityName }))
   }
 
-  const handleApplyDiscount = () => {
-    if (validDiscounts[discountCode.toUpperCase()]) {
-      setAppliedDiscount(getTotalPrice() * validDiscounts[discountCode.toUpperCase()])
-    } else {
-      alert('Codigo de descuento invalido')
-      setAppliedDiscount(0)
-    }
-  }
-
-  const handleQuantityChange = (productId, newQuantity, variante_id = null) => {
-    if (newQuantity <= 0) removeFromCart(productId, variante_id)
-    else updateQuantity(productId, newQuantity, variante_id)
-  }
+  const shippingCost = (() => {
+    if (shippingMethod === 'pickup') return 0
+    if (!selectedZone) return null
+    const subtotal = getTotalPrice() - appliedDiscount
+    if (shippingConfig.envio_gratis_activo && subtotal >= shippingConfig.monto_envio_gratis) return 0
+    return selectedZone.precio
+  })()
 
   const subtotal = getTotalPrice()
   const discount = appliedDiscount
-  const total = subtotal - discount
+  const total = subtotal - discount + (shippingCost || 0)
+
+  const validDiscounts = { 'DESCUENTO10': 0.1, 'PETSHOP20': 0.2, 'PRIMERA5': 0.05 }
+
+  const handleApplyDiscount = () => {
+    const d = validDiscounts[discountCode.toUpperCase()]
+    if (d) setAppliedDiscount(getTotalPrice() * d)
+    else { alert('Código de descuento inválido'); setAppliedDiscount(0) }
+  }
+
+  const handleQuantityChange = (productId, qty, variante_id = null) => {
+    if (qty <= 0) removeFromCart(productId, variante_id)
+    else updateQuantity(productId, qty, variante_id)
+  }
+
+  const validate = () => {
+    const e = {}
+    if (!customerInfo.name.trim()) e.name = 'Requerido'
+    if (!customerInfo.email.trim()) e.email = 'Requerido'
+    if (!customerInfo.phone.trim()) e.phone = 'Requerido'
+    if (shippingMethod === 'delivery') {
+      if (!customerInfo.provincia.trim()) e.provincia = 'Requerido'
+      if (!customerInfo.ciudad.trim()) e.ciudad = 'Requerido'
+      if (!customerInfo.calle.trim()) e.calle = 'Requerido'
+      if (!customerInfo.numero.trim()) e.numero = 'Requerido'
+    }
+    setFieldErrors(e)
+    return Object.keys(e).length === 0
+  }
 
   const handleSubmitOrder = async (e) => {
     e.preventDefault()
-    if (!customerInfo.name || !customerInfo.email || !customerInfo.phone) {
-      alert('Por favor completa toda la informacion requerida')
+    if (!validate()) return
+    if (shippingMethod === 'delivery' && shippingCost === null) {
+      alert('Seleccioná una ciudad para calcular el costo de envío')
       return
     }
     setIsProcessing(true)
     try {
+      const address = shippingMethod === 'pickup'
+        ? 'Retiro en local'
+        : `${customerInfo.calle} ${customerInfo.numero}${customerInfo.piso ? ` P${customerInfo.piso}` : ''}${customerInfo.depto ? ` D${customerInfo.depto}` : ''}, ${customerInfo.ciudad}, ${customerInfo.provincia}${customerInfo.cp ? ` (CP ${customerInfo.cp})` : ''}`
+
       const res = await fetch('/api/payment/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           items: cart,
-          customerInfo,
+          customerInfo: { ...customerInfo, address },
           usuario_id: user?.id || null,
-          discount: appliedDiscount
+          discount: appliedDiscount,
+          costo_envio: shippingCost || 0,
+          metodo_envio: shippingMethod === 'pickup' ? 'Retiro en local' : `Envío a ${customerInfo.ciudad} (${selectedZone?.nombre})`
         })
       })
       const data = await res.json()
-      if (data.init_point) {
-        window.location.href = data.init_point
-      } else {
-        alert('Error al iniciar el pago. Intenta de nuevo.')
-      }
-    } catch (err) {
-      alert('Error de conexion. Intenta de nuevo.')
+      if (data.init_point) window.location.href = data.init_point
+      else alert('Error al iniciar el pago. Intentá de nuevo.')
+    } catch {
+      alert('Error de conexión. Intentá de nuevo.')
     } finally {
       setIsProcessing(false)
     }
   }
 
-  const formatPrice = (price) => new Intl.NumberFormat('es-AR', {
-    style: 'currency', currency: 'ARS', minimumFractionDigits: 0
-  }).format(price)
-
-  if (orderComplete) {
-    return (
-      <>
-        <div className="min-h-screen bg-secondary-50 flex items-center justify-center">
-          <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full mx-4 text-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Check className="w-8 h-8 text-green-600" />
-            </div>
-            <h2 className="text-2xl font-bold text-secondary-800 mb-2">Pedido Confirmado!</h2>
-            <p className="text-secondary-600 mb-4">
-              Tu pedido fue procesado. Te contactaremos pronto para confirmar los detalles.
-            </p>
-            <div className="bg-primary-50 rounded-lg p-4 mb-4">
-              <p className="text-primary-700 font-medium">Felicitaciones!</p>
-              <p className="text-sm text-primary-600">Has ganado puntos de fidelidad.</p>
-            </div>
-            <p className="text-sm text-secondary-500">Redirigiendo al inicio...</p>
-          </div>
-        </div>
-        {showLoyaltyCard && (
-          <LoyaltyCard userPurchases={userPurchases} onClose={() => setShowLoyaltyCard(false)} />
-        )}
-      </>
-    )
-  }
+  const fmt = (p) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(p)
 
   if (cart.length === 0) {
     return (
       <div className="min-h-screen bg-secondary-50 flex items-center justify-center">
         <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full mx-4 text-center">
-          <div className="text-6xl mb-4">🛒</div>
-          <h2 className="text-2xl font-bold text-secondary-800 mb-2">Tu carrito esta vacio</h2>
-          <p className="text-secondary-600 mb-6">Agrega algunos productos antes de proceder al checkout.</p>
+          <h2 className="text-2xl font-bold text-secondary-800 mb-2">Tu carrito está vacío</h2>
+          <p className="text-secondary-600 mb-6">Agregá algunos productos antes de continuar.</p>
           <button onClick={() => navigate('/menu')} className="btn btn-primary">Ver Productos</button>
         </div>
       </div>
@@ -140,13 +156,15 @@ const Checkout = () => {
               <span>Volver al inicio</span>
             </button>
             <h1 className="text-2xl font-bold text-secondary-800">Finalizar Pedido</h1>
-            <div></div>
+            <div />
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+          {/* Columna izquierda: carrito + descuento */}
           <div className="space-y-6">
             <div className="card p-6">
               <h2 className="text-xl font-semibold text-secondary-800 mb-4">Tu Carrito</h2>
@@ -155,7 +173,7 @@ const Checkout = () => {
                   <div key={item.variante_id ? `${item.id}_${item.variante_id}` : item.id} className="flex items-center justify-between p-4 bg-secondary-50 rounded-lg">
                     <div className="flex-1">
                       <h4 className="font-medium text-secondary-800">{item.nombre || item.name} {item.talla && <span className="text-primary-500">({item.talla})</span>}</h4>
-                      <p className="text-sm text-secondary-600">{formatPrice(item.precio || item.price || 0)} c/u</p>
+                      <p className="text-sm text-secondary-600">{fmt(item.precio || item.price || 0)} c/u</p>
                     </div>
                     <div className="flex items-center space-x-3">
                       <div className="flex items-center space-x-2">
@@ -164,7 +182,7 @@ const Checkout = () => {
                         <button onClick={() => handleQuantityChange(item.id, item.quantity + 1, item.variante_id)} className="w-8 h-8 rounded-full bg-secondary-200 hover:bg-secondary-300 flex items-center justify-center">+</button>
                       </div>
                       <div className="text-right">
-                        <div className="font-medium text-secondary-800">{formatPrice((item.precio || item.price || 0) * item.quantity)}</div>
+                        <div className="font-medium text-secondary-800">{fmt((item.precio || item.price || 0) * item.quantity)}</div>
                         <button onClick={() => removeFromCart(item.id, item.variante_id)} className="text-red-500 hover:text-red-700 text-sm">Eliminar</button>
                       </div>
                     </div>
@@ -174,115 +192,156 @@ const Checkout = () => {
             </div>
 
             <div className="card p-6">
-              <h3 className="text-lg font-semibold text-secondary-800 mb-4">Codigo de Descuento</h3>
+              <h3 className="text-lg font-semibold text-secondary-800 mb-4">Código de Descuento</h3>
               <div className="flex space-x-2">
-                <input type="text" placeholder="Ingresa codigo de descuento" value={discountCode} onChange={(e) => setDiscountCode(e.target.value)} className="input flex-1" />
+                <input type="text" placeholder="Ingresá tu código" value={discountCode} onChange={e => setDiscountCode(e.target.value)} className="input flex-1" />
                 <button onClick={handleApplyDiscount} className="btn btn-secondary px-6">Aplicar</button>
               </div>
-              {appliedDiscount > 0 && <p className="text-green-600 mt-2">Descuento aplicado: -{formatPrice(appliedDiscount)}</p>}
+              {appliedDiscount > 0 && <p className="text-green-600 mt-2 text-sm">Descuento aplicado: -{fmt(appliedDiscount)}</p>}
             </div>
           </div>
 
+          {/* Columna derecha: resumen + formulario */}
           <div className="space-y-6">
+
+            {/* Resumen */}
             <div className="card p-6">
               <h2 className="text-xl font-semibold text-secondary-800 mb-4">Resumen del Pedido</h2>
-              <div className="space-y-3">
-{cart.map(item => {
-                   const precio = item.precio || item.price || 0
-                   const is2x1 = item.is2x1
-                   const unidadesCobradas = is2x1 ? Math.ceil(item.quantity / 2) : item.quantity
-                   const subtotalItem = precio * unidadesCobradas
-                   return (
-                     <div key={item.variante_id ? `${item.id}_${item.variante_id}` : item.id} className="flex justify-between items-start text-sm">
-                       <div>
-                         <span className="text-secondary-800 font-medium">
-                           {item.nombre || item.name} {item.talla && <span className="text-primary-500">({item.talla})</span>}
-                         </span>
-                         {is2x1 ? (
-                           <p className="text-xs text-purple-600 mt-0.5">
-                             {item.quantity} unidades · paga {unidadesCobradas} x {formatPrice(precio)}
-                           </p>
-                         ) : (
-                           <p className="text-xs text-secondary-500 mt-0.5">
-                             {item.quantity} x {formatPrice(precio)}
-                           </p>
-                         )}
-                       </div>
-                       <span className="font-medium text-secondary-800">{formatPrice(subtotalItem)}</span>
-                     </div>
-                   )
-                 })}
-
-                <div className="border-t border-secondary-200 pt-3 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-secondary-600">Subtotal</span>
-                    <span>{formatPrice(subtotal)}</span>
+              <div className="space-y-2 text-sm">
+                {cart.map(item => {
+                  const precio = item.precio || item.price || 0
+                  const unidades = item.is2x1 ? Math.ceil(item.quantity / 2) : item.quantity
+                  return (
+                    <div key={item.variante_id ? `${item.id}_${item.variante_id}` : item.id} className="flex justify-between">
+                      <span className="text-secondary-700">{item.nombre || item.name} {item.talla && `(${item.talla})`} × {item.quantity}</span>
+                      <span className="font-medium">{fmt(precio * unidades)}</span>
+                    </div>
+                  )
+                })}
+                <div className="border-t border-secondary-200 pt-3 space-y-2 mt-2">
+                  <div className="flex justify-between text-secondary-600">
+                    <span>Subtotal</span><span>{fmt(subtotal)}</span>
                   </div>
                   {discount > 0 && (
-                    <div className="flex justify-between text-sm text-green-600">
-                      <span>Descuento ({discountCode.toUpperCase()})</span>
-                      <span>- {formatPrice(discount)}</span>
+                    <div className="flex justify-between text-green-600">
+                      <span>Descuento</span><span>-{fmt(discount)}</span>
                     </div>
                   )}
+                  <div className="flex justify-between text-secondary-600">
+                    <span>Envío</span>
+                    <span>
+                      {shippingMethod === 'pickup' ? 'Gratis (retiro)' :
+                        shippingCost === null ? <span className="text-secondary-400 italic">Seleccioná ciudad</span> :
+                        shippingCost === 0 ? <span className="text-green-600">Gratis</span> :
+                        fmt(shippingCost)
+                      }
+                    </span>
+                  </div>
                   <div className="flex justify-between text-lg font-bold border-t border-secondary-200 pt-2">
                     <span>Total</span>
-                    <span className="text-primary-600">{formatPrice(total)}</span>
+                    <span className="text-primary-600">{fmt(total)}</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            <form onSubmit={handleSubmitOrder} className="card p-6 space-y-6">
-              <h3 className="text-lg font-semibold text-secondary-800">Informacion de Contacto</h3>
+            {/* Formulario */}
+            <form onSubmit={handleSubmitOrder} className="card p-6 space-y-5">
+              <h3 className="text-lg font-semibold text-secondary-800">Datos de contacto</h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-secondary-700 mb-1">Nombre completo *</label>
-                  <input type="text" required value={customerInfo.name} onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})} className="input w-full" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-secondary-700 mb-1">Telefono *</label>
-                  <input type="tel" required value={customerInfo.phone} onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})} className="input w-full" />
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Field label="Nombre y apellido" name="name" required error={fieldErrors.name}>
+                  <input type="text" value={customerInfo.name} onChange={e => setCustomerInfo({ ...customerInfo, name: e.target.value })} className={`input w-full ${fieldErrors.name ? 'border-red-400' : ''}`} />
+                </Field>
+                <Field label="Teléfono" name="phone" required error={fieldErrors.phone}>
+                  <input type="tel" value={customerInfo.phone} onChange={e => setCustomerInfo({ ...customerInfo, phone: e.target.value })} className={`input w-full ${fieldErrors.phone ? 'border-red-400' : ''}`} />
+                </Field>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-1">Email *</label>
-                <input type="email" required value={customerInfo.email} onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})} className="input w-full" />
-              </div>
+              <Field label="Email" name="email" required error={fieldErrors.email}>
+                <input type="email" value={customerInfo.email} onChange={e => setCustomerInfo({ ...customerInfo, email: e.target.value })} className={`input w-full ${fieldErrors.email ? 'border-red-400' : ''}`} />
+              </Field>
 
+              {/* Método de envío */}
               <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-1">Direccion (opcional)</label>
-                <textarea value={customerInfo.address} onChange={(e) => setCustomerInfo({...customerInfo, address: e.target.value})} placeholder="Direccion de entrega" className="input w-full h-20 resize-none" />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-1">Notas del pedido (opcional)</label>
-                <textarea value={orderNotes} onChange={(e) => setOrderNotes(e.target.value)} placeholder="Instrucciones especiales" className="input w-full h-20 resize-none" />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-3">Metodo de Pago</label>
-                <div className="space-y-2">
-                  <label className="flex items-center space-x-3 p-3 border border-secondary-200 rounded-lg cursor-pointer hover:bg-secondary-50">
-                    <input type="radio" name="paymentMethod" value="card" checked={paymentMethod === 'card'} onChange={(e) => setPaymentMethod(e.target.value)} />
-                    <CreditCard className="w-5 h-5 text-secondary-600" />
-                    <span>Tarjeta de Credito/Debito</span>
-                  </label>
-                  <label className="flex items-center space-x-3 p-3 border border-secondary-200 rounded-lg cursor-pointer hover:bg-secondary-50">
-                    <input type="radio" name="paymentMethod" value="cash" checked={paymentMethod === 'cash'} onChange={(e) => setPaymentMethod(e.target.value)} />
-                    <span className="text-2xl">💵</span>
-                    <span>Efectivo</span>
-                  </label>
+                <p className="text-sm font-medium text-secondary-700 mb-2">Método de entrega</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <button type="button" onClick={() => setShippingMethod('delivery')}
+                    className={`flex items-center gap-2 p-3 rounded-xl border-2 text-sm font-medium transition-all ${shippingMethod === 'delivery' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-secondary-200 text-secondary-600 hover:border-secondary-300'}`}>
+                    <Truck className="w-4 h-4" /> Envío a domicilio
+                  </button>
+                  {shippingConfig.retiro_local_activo && (
+                    <button type="button" onClick={() => setShippingMethod('pickup')}
+                      className={`flex items-center gap-2 p-3 rounded-xl border-2 text-sm font-medium transition-all ${shippingMethod === 'pickup' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-secondary-200 text-secondary-600 hover:border-secondary-300'}`}>
+                      <Store className="w-4 h-4" /> Retiro en local
+                    </button>
+                  )}
                 </div>
               </div>
+
+              {/* Dirección de envío */}
+              {shippingMethod === 'delivery' && (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-sm font-medium text-secondary-700">
+                    <MapPin className="w-4 h-4 text-primary-500" /> Dirección de envío
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Field label="Provincia" required error={fieldErrors.provincia}>
+                      <input type="text" value={customerInfo.provincia} onChange={e => setCustomerInfo({ ...customerInfo, provincia: e.target.value })} className={`input w-full ${fieldErrors.provincia ? 'border-red-400' : ''}`} placeholder="Ej: Buenos Aires" />
+                    </Field>
+                    <Field label="Ciudad / Localidad" required error={fieldErrors.ciudad}>
+                      <input
+                        type="text"
+                        list="cities-list"
+                        value={selectedCity}
+                        onChange={e => handleCityChange(e.target.value)}
+                        className={`input w-full ${fieldErrors.ciudad ? 'border-red-400' : ''}`}
+                        placeholder="Escribí o seleccioná"
+                      />
+                      <datalist id="cities-list">
+                        {allCities.map(c => <option key={c.id} value={c.nombre} />)}
+                      </datalist>
+                      {selectedZone && (
+                        <p className="text-xs text-primary-600 mt-1">
+                          Zona: {selectedZone.nombre} — Envío: {shippingCost === 0 ? 'Gratis' : fmt(selectedZone.precio)}
+                        </p>
+                      )}
+                    </Field>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field label="Calle" required error={fieldErrors.calle}>
+                      <input type="text" value={customerInfo.calle} onChange={e => setCustomerInfo({ ...customerInfo, calle: e.target.value })} className={`input w-full ${fieldErrors.calle ? 'border-red-400' : ''}`} />
+                    </Field>
+                    <Field label="Número" required error={fieldErrors.numero}>
+                      <input type="text" value={customerInfo.numero} onChange={e => setCustomerInfo({ ...customerInfo, numero: e.target.value })} className={`input w-full ${fieldErrors.numero ? 'border-red-400' : ''}`} />
+                    </Field>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <Field label="Piso">
+                      <input type="text" value={customerInfo.piso} onChange={e => setCustomerInfo({ ...customerInfo, piso: e.target.value })} className="input w-full" placeholder="Opcional" />
+                    </Field>
+                    <Field label="Depto">
+                      <input type="text" value={customerInfo.depto} onChange={e => setCustomerInfo({ ...customerInfo, depto: e.target.value })} className="input w-full" placeholder="Opcional" />
+                    </Field>
+                    <Field label="Código Postal">
+                      <input type="text" value={customerInfo.cp} onChange={e => setCustomerInfo({ ...customerInfo, cp: e.target.value })} className="input w-full" placeholder="Opcional" />
+                    </Field>
+                  </div>
+
+                  <Field label="Referencias">
+                    <input type="text" value={customerInfo.referencias} onChange={e => setCustomerInfo({ ...customerInfo, referencias: e.target.value })} className="input w-full" placeholder="Ej: Portón azul, timbre 2 (opcional)" />
+                  </Field>
+                </div>
+              )}
 
               <button type="submit" disabled={isProcessing} className="w-full bg-[#009ee3] hover:bg-[#0088cc] text-white py-4 rounded-xl text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-3">
-                {isProcessing ? (
-                  <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> Redirigiendo...</>
-                ) : (
-                  <>🔒 Pagar {formatPrice(total)} con Mercado Pago</>
-                )}
+                {isProcessing
+                  ? <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> Redirigiendo...</>
+                  : <>Pagar {fmt(total)} con Mercado Pago</>
+                }
               </button>
             </form>
           </div>
