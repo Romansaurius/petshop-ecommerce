@@ -46,7 +46,7 @@ const Header = () => {
             <img src="/logosolo.png" alt="MauLu" className="w-10 h-10 object-contain" />
             <div className="flex flex-col leading-none">
               <span className="text-lg font-semibold text-secondary-800 tracking-tight">MauLu</span>
-              <span className="text-[10px] text-secondary-400 tracking-widest uppercase">PetShop</span>
+              <span className="text-[10px] text-secondary-400 tracking-widest uppercase">Amor canino actitud felina</span>
             </div>
           </Link>
 

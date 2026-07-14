@@ -3,6 +3,18 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { ArrowLeft } from 'lucide-react'
 
+const Field = ({ label, name, type = 'text', placeholder, value, onChange, error }) => (
+  <div>
+    <label className="block text-sm font-medium text-secondary-700 mb-1.5">{label}</label>
+    <input
+      type={type} name={name} value={value} onChange={onChange}
+      placeholder={placeholder}
+      className={`input ${error ? 'border-red-400 focus:ring-red-400' : ''}`}
+    />
+    {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+  </div>
+)
+
 const Register = () => {
   const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '', phone: '' })
   const [errors, setErrors] = useState({})
@@ -36,18 +48,6 @@ const Register = () => {
     setLoading(false)
   }
 
-  const Field = ({ label, name, type = 'text', placeholder }) => (
-    <div>
-      <label className="block text-sm font-medium text-secondary-700 mb-1.5">{label}</label>
-      <input
-        type={type} name={name} value={formData[name]} onChange={handleChange}
-        placeholder={placeholder}
-        className={`input ${errors[name] ? 'border-red-400 focus:ring-red-400' : ''}`}
-      />
-      {errors[name] && <p className="mt-1 text-xs text-red-500">{errors[name]}</p>}
-    </div>
-  )
-
   return (
     <div className="min-h-screen bg-secondary-50 flex items-center justify-center py-12 px-4">
       <div className="w-full max-w-sm space-y-8">
@@ -64,11 +64,11 @@ const Register = () => {
         </div>
 
         <form className="space-y-4" onSubmit={handleSubmit}>
-          <Field label="Nombre completo" name="name" placeholder="Tu nombre" />
-          <Field label="Email" name="email" type="email" placeholder="tu@email.com" />
-          <Field label="Teléfono" name="phone" type="tel" placeholder="Tu teléfono" />
-          <Field label="Contraseña" name="password" type="password" placeholder="Mínimo 6 caracteres" />
-          <Field label="Confirmar contraseña" name="confirmPassword" type="password" placeholder="Repetí tu contraseña" />
+          <Field label="Nombre completo" name="name" placeholder="Tu nombre" value={formData.name} onChange={handleChange} error={errors.name} />
+          <Field label="Email" name="email" type="email" placeholder="tu@email.com" value={formData.email} onChange={handleChange} error={errors.email} />
+          <Field label="Teléfono" name="phone" type="tel" placeholder="Tu teléfono" value={formData.phone} onChange={handleChange} error={errors.phone} />
+          <Field label="Contraseña" name="password" type="password" placeholder="Mínimo 6 caracteres" value={formData.password} onChange={handleChange} error={errors.password} />
+          <Field label="Confirmar contraseña" name="confirmPassword" type="password" placeholder="Repetí tu contraseña" value={formData.confirmPassword} onChange={handleChange} error={errors.confirmPassword} />
 
           <button type="submit" disabled={loading} className="w-full btn btn-primary py-3 font-semibold disabled:opacity-50 mt-2">
             {loading ? 'Creando cuenta...' : 'Crear cuenta'}
