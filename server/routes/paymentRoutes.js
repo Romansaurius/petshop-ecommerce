@@ -9,7 +9,7 @@ const getClient = () => new MercadoPagoConfig({ accessToken: process.env.MP_ACCE
 // POST /api/payment/create
 router.post('/create', async (req, res) => {
   try {
-    const { items, customerInfo, usuario_id } = req.body;
+    const { items, customerInfo, usuario_id, costo_envio, metodo_envio } = req.body;
 
     const mpItems = items.map(item => {
       const precio = parseFloat(item.precio || item.price || 0);
@@ -23,6 +23,17 @@ router.post('/create', async (req, res) => {
       };
     });
 
+    // Agregar costo de envío como ítem en MP si aplica
+    if (costo_envio && costo_envio > 0) {
+      mpItems.push({
+        id: 'envio',
+        title: metodo_envio || 'Envío',
+        quantity: 1,
+        unit_price: Number(parseFloat(costo_envio).toFixed(2)),
+        currency_id: 'ARS'
+      });
+    }
+
     const orderItems = items.map(item => ({
       producto_id: item.id,
       cantidad: item.is2x1 ? Math.ceil(item.quantity / 2) : item.quantity,
@@ -30,7 +41,7 @@ router.post('/create', async (req, res) => {
       talla: item.talla || null
     }));
 
-    const total = orderItems.reduce((s, i) => s + i.precio_unitario * i.cantidad, 0);
+    const total = orderItems.reduce((s, i) => s + i.precio_unitario * i.cantidad, 0) + (parseFloat(costo_envio) || 0);
 
     // Crear pedido pendiente AHORA (no esperar webhook)
     const orderId = await Order.create({
@@ -40,6 +51,8 @@ router.post('/create', async (req, res) => {
       telefono_contacto: customerInfo.phone || '',
       email: customerInfo.email || '',
       nombre_contacto: customerInfo.name || '',
+      costo_envio: parseFloat(costo_envio) || 0,
+      metodo_envio: metodo_envio || '',
       items: orderItems
     });
 

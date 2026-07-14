@@ -10,6 +10,7 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const loyaltyRoutes = require('./routes/loyaltyRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const sectionsRoutes = require('./routes/sectionsRoutes');
+const shippingRoutes = require('./routes/shippingRoutes');
 
 const db = require('./config/database');
 
@@ -24,6 +25,66 @@ async function ensureDbColumns() {
     await db.execute(`ALTER TABLE productos ADD COLUMN IF NOT EXISTS tipo VARCHAR(50) DEFAULT 'normal'`);
     await db.execute(`ALTER TABLE detalles_pedido MODIFY COLUMN nombre_producto VARCHAR(255) DEFAULT ''`);
     await db.execute(`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS nombre_contacto VARCHAR(255) DEFAULT ''`);
+    await db.execute(`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS costo_envio DECIMAL(10,2) DEFAULT 0`);
+    await db.execute(`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS metodo_envio VARCHAR(100) DEFAULT ''`);
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS shipping_zones (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        nombre VARCHAR(100) NOT NULL,
+        precio DECIMAL(10,2) NOT NULL DEFAULT 0,
+        activo BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS shipping_cities (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        nombre VARCHAR(100) NOT NULL,
+        provincia VARCHAR(100) DEFAULT '',
+        shipping_zone_id INT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (shipping_zone_id) REFERENCES shipping_zones(id) ON DELETE RESTRICT
+      )
+    `);
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS shipping_config (
+        id INT PRIMARY KEY DEFAULT 1,
+        envio_gratis_activo BOOLEAN DEFAULT FALSE,
+        monto_envio_gratis DECIMAL(10,2) DEFAULT 50000,
+        retiro_local_activo BOOLEAN DEFAULT TRUE,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+    // Seed config y zonas por defecto
+    const [[{sc}]] = await db.execute('SELECT COUNT(*) as sc FROM shipping_config');
+    if (sc === 0) {
+      await db.execute('INSERT INTO shipping_config (id, envio_gratis_activo, monto_envio_gratis, retiro_local_activo) VALUES (1, FALSE, 50000, TRUE)');
+    }
+    const [[{sz}]] = await db.execute('SELECT COUNT(*) as sz FROM shipping_zones');
+    if (sz === 0) {
+      await db.execute(`INSERT INTO shipping_zones (nombre, precio) VALUES
+        ('Zona Norte', 3500),
+        ('CABA', 6000),
+        ('AMBA', 7000),
+        ('Interior de Buenos Aires', 8000),
+        ('Interior del País', 9500)`);
+      // Seed ciudades de ejemplo
+      const [[{z1}]] = await db.execute("SELECT id FROM shipping_zones WHERE nombre='Zona Norte' LIMIT 1");
+      const [[{z2}]] = await db.execute("SELECT id FROM shipping_zones WHERE nombre='CABA' LIMIT 1");
+      const [[{z3}]] = await db.execute("SELECT id FROM shipping_zones WHERE nombre='AMBA' LIMIT 1");
+      await db.execute(`INSERT INTO shipping_cities (nombre, provincia, shipping_zone_id) VALUES
+        ('Malvinas Argentinas', 'Buenos Aires', ?),
+        ('Pilar', 'Buenos Aires', ?),
+        ('Escobar', 'Buenos Aires', ?),
+        ('San Miguel', 'Buenos Aires', ?)`, [z1, z1, z1, z1]);
+      await db.execute(`INSERT INTO shipping_cities (nombre, provincia, shipping_zone_id) VALUES
+        ('CABA', 'Ciudad Autónoma de Buenos Aires', ?)`, [z2]);
+      await db.execute(`INSERT INTO shipping_cities (nombre, provincia, shipping_zone_id) VALUES
+        ('La Plata', 'Buenos Aires', ?),
+        ('Quilmes', 'Buenos Aires', ?),
+        ('Lomas de Zamora', 'Buenos Aires', ?)`, [z3, z3, z3]);
+    }
     await db.execute(`ALTER TABLE productos ADD COLUMN IF NOT EXISTS tiene_talles BOOLEAN DEFAULT FALSE`);
     await db.execute(`
       CREATE TABLE IF NOT EXISTS home_secciones (
@@ -145,6 +206,7 @@ app.use('/api/payment', paymentRoutes);
 app.use('/api/loyalty', loyaltyRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/sections', sectionsRoutes);
+app.use('/api/shipping', shippingRoutes);
 
 // Catch all handler - debe ir al final
 app.get('*', (req, res) => {

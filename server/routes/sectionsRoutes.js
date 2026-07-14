@@ -21,7 +21,6 @@ router.get('/', async (req, res) => {
          ORDER BY hsp.orden ASC`,
         [section.id]
       );
-      // Cargar variantes
       if (items.length) {
         const ids = items.map(i => i.id);
         const [variantes] = await db.execute(
@@ -42,6 +41,8 @@ router.get('/', async (req, res) => {
     res.json(sections);
   } catch (e) {
     console.error('sections GET error:', e.message);
+    // Si la tabla no existe aún, devolver array vacío en lugar de 500
+    if (e.message.includes("doesn't exist")) return res.json([]);
     res.status(500).json({ error: e.message });
   }
 });
@@ -49,7 +50,7 @@ router.get('/', async (req, res) => {
 // PUT /api/sections/:id/productos — admin: reemplaza los productos de una sección
 router.put('/:id/productos', auth, async (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ error: 'Acceso denegado' });
-  const { producto_ids } = req.body; // array de hasta 5 ids
+  const { producto_ids } = req.body;
   if (!Array.isArray(producto_ids)) return res.status(400).json({ error: 'producto_ids debe ser un array' });
 
   const conn = await db.getConnection();
