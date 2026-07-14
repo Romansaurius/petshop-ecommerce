@@ -8,7 +8,7 @@ const Hero = () => (
         {/* Logo */}
         <div className="flex flex-col items-center justify-center">
           <img
-            src="/logo2 (1).png"
+            src="/logo2.jpg"
             alt="MauLu PetShop"
             className="w-64 sm:w-80 lg:w-[380px] object-contain"
           />
