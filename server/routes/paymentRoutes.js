@@ -9,7 +9,7 @@ const getClient = () => new MercadoPagoConfig({ accessToken: process.env.MP_ACCE
 // POST /api/payment/create
 router.post('/create', async (req, res) => {
   try {
-    const { items, customerInfo, usuario_id, costo_envio, metodo_envio } = req.body;
+    const { items, customerInfo, usuario_id, costo_envio, metodo_envio, cp_alerta } = req.body;
 
     const mpItems = items.map(item => {
       const precio = parseFloat(item.precio || item.price || 0);
@@ -53,6 +53,7 @@ router.post('/create', async (req, res) => {
       nombre_contacto: customerInfo.name || '',
       costo_envio: parseFloat(costo_envio) || 0,
       metodo_envio: metodo_envio || '',
+      cp_alerta: cp_alerta || null,
       items: orderItems
     });
 

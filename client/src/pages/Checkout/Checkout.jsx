@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react'
 import { useCart } from '../../context/CartContext'
 import { useAuth } from '../../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, CreditCard, MapPin, Truck, Store } from 'lucide-react'
+import { ArrowLeft, MapPin, Truck, Store } from 'lucide-react'
 
-const Field = ({ label, name, required, children, error }) => (
+const Field = ({ label, required, children, error }) => (
   <div>
     <label className="block text-sm font-medium text-secondary-700 mb-1">
       {label} {required && <span className="text-red-400">*</span>}
@@ -15,7 +15,7 @@ const Field = ({ label, name, required, children, error }) => (
 )
 
 const Checkout = () => {
-  const { cart, getTotalPrice, clearCart, updateQuantity, removeFromCart } = useCart()
+  const { cart, getTotalPrice, updateQuantity, removeFromCart } = useCart()
   const { user, isAuthenticated } = useAuth()
   const navigate = useNavigate()
 
@@ -25,11 +25,9 @@ const Checkout = () => {
   const [appliedDiscount, setAppliedDiscount] = useState(0)
   const [isProcessing, setIsProcessing] = useState(false)
   const [fieldErrors, setFieldErrors] = useState({})
-
-  const [shippingMethod, setShippingMethod] = useState('delivery') // 'delivery' | 'pickup'
+  const [shippingMethod, setShippingMethod] = useState('delivery')
   const [selectedZone, setSelectedZone] = useState(null)
-  const [selectedCity, setSelectedCity] = useState('')
-
+  const [cpStatus, setCpStatus] = useState(null) // null | 'checking' | 'ok' | 'mismatch' | 'unknown'
   const [customerInfo, setCustomerInfo] = useState({
     name: '', email: '', phone: '',
     provincia: '', ciudad: '', calle: '', numero: '',
@@ -43,31 +41,39 @@ const Checkout = () => {
   }, [isAuthenticated, user])
 
   useEffect(() => {
-    fetch('/api/shipping/zones').then(r => r.json()).then(setZones).catch(() => {})
+    fetch('/api/shipping/zones').then(r => r.json()).then(d => setZones(Array.isArray(d) ? d : [])).catch(() => {})
     fetch('/api/shipping/config').then(r => r.json()).then(setShippingConfig).catch(() => {})
   }, [])
 
-  // Todas las ciudades aplanadas
   const allCities = zones.flatMap(z => (z.cities || []).map(c => ({ ...c, zona: z })))
+  const provincias = [...new Set(allCities.map(c => c.provincia).filter(Boolean))].sort()
+  const citiesByProvincia = customerInfo.provincia
+    ? allCities.filter(c => c.provincia === customerInfo.provincia)
+    : allCities
+
+  const handleProvinciaChange = (prov) => {
+    setCustomerInfo(prev => ({ ...prev, provincia: prov, ciudad: '' }))
+    setSelectedZone(null)
+  }
 
   const handleCityChange = (cityName) => {
-    setSelectedCity(cityName)
     const found = allCities.find(c => c.nombre === cityName)
     setSelectedZone(found ? found.zona : null)
     setCustomerInfo(prev => ({ ...prev, ciudad: cityName }))
   }
 
+  const subtotal = getTotalPrice()
+  const discount = appliedDiscount
+
   const shippingCost = (() => {
     if (shippingMethod === 'pickup') return 0
     if (!selectedZone) return null
-    const subtotal = getTotalPrice() - appliedDiscount
-    if (shippingConfig.envio_gratis_activo && subtotal >= shippingConfig.monto_envio_gratis) return 0
-    return selectedZone.precio
+    const sub = subtotal - discount
+    if (shippingConfig.envio_gratis_activo && sub >= Number(shippingConfig.monto_envio_gratis)) return 0
+    return Number(selectedZone.precio)
   })()
 
-  const subtotal = getTotalPrice()
-  const discount = appliedDiscount
-  const total = subtotal - discount + (shippingCost || 0)
+  const total = subtotal - discount + (shippingCost ?? 0)
 
   const validDiscounts = { 'DESCUENTO10': 0.1, 'PETSHOP20': 0.2, 'PRIMERA5': 0.05 }
 
@@ -75,6 +81,26 @@ const Checkout = () => {
     const d = validDiscounts[discountCode.toUpperCase()]
     if (d) setAppliedDiscount(getTotalPrice() * d)
     else { alert('Código de descuento inválido'); setAppliedDiscount(0) }
+  }
+
+  const handleCpBlur = async () => {
+    const cp = customerInfo.cp.trim()
+    const ciudad = customerInfo.ciudad.trim()
+    if (!cp || !ciudad || cp.length < 4) return
+    setCpStatus('checking')
+    try {
+      const res = await fetch(`https://apis.datos.gob.ar/georef/api/localidades?codigo_postal=${cp}&max=10`)
+      const data = await res.json()
+      const localidades = data.localidades || []
+      if (!localidades.length) { setCpStatus('unknown'); return }
+      const match = localidades.some(l =>
+        l.nombre.toLowerCase().includes(ciudad.toLowerCase()) ||
+        ciudad.toLowerCase().includes(l.nombre.toLowerCase())
+      )
+      setCpStatus(match ? 'ok' : 'mismatch')
+    } catch {
+      setCpStatus(null)
+    }
   }
 
   const handleQuantityChange = (productId, qty, variante_id = null) => {
@@ -118,8 +144,11 @@ const Checkout = () => {
           customerInfo: { ...customerInfo, address },
           usuario_id: user?.id || null,
           discount: appliedDiscount,
-          costo_envio: shippingCost || 0,
-          metodo_envio: shippingMethod === 'pickup' ? 'Retiro en local' : `Envío a ${customerInfo.ciudad} (${selectedZone?.nombre})`
+          costo_envio: shippingCost ?? 0,
+          metodo_envio: shippingMethod === 'pickup'
+            ? 'Retiro en local'
+            : `Envío a ${customerInfo.ciudad} (${selectedZone?.nombre ?? 'zona a confirmar'})`,
+          cp_alerta: ['mismatch', 'unknown'].includes(cpStatus) ? cpStatus : null
         })
       })
       const data = await res.json()
@@ -132,7 +161,7 @@ const Checkout = () => {
     }
   }
 
-  const fmt = (p) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(p)
+  const fmt = (p) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(Number(p) || 0)
 
   if (cart.length === 0) {
     return (
@@ -152,8 +181,7 @@ const Checkout = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <button onClick={() => navigate('/')} className="flex items-center space-x-2 text-secondary-600 hover:text-primary-500 transition-colors">
-              <ArrowLeft className="w-5 h-5" />
-              <span>Volver al inicio</span>
+              <ArrowLeft className="w-5 h-5" /><span>Volver al inicio</span>
             </button>
             <h1 className="text-2xl font-bold text-secondary-800">Finalizar Pedido</h1>
             <div />
@@ -164,7 +192,7 @@ const Checkout = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-          {/* Columna izquierda: carrito + descuento */}
+          {/* Izquierda: carrito + descuento */}
           <div className="space-y-6">
             <div className="card p-6">
               <h2 className="text-xl font-semibold text-secondary-800 mb-4">Tu Carrito</h2>
@@ -201,7 +229,7 @@ const Checkout = () => {
             </div>
           </div>
 
-          {/* Columna derecha: resumen + formulario */}
+          {/* Derecha: resumen + formulario */}
           <div className="space-y-6">
 
             {/* Resumen */}
@@ -209,7 +237,7 @@ const Checkout = () => {
               <h2 className="text-xl font-semibold text-secondary-800 mb-4">Resumen del Pedido</h2>
               <div className="space-y-2 text-sm">
                 {cart.map(item => {
-                  const precio = item.precio || item.price || 0
+                  const precio = Number(item.precio || item.price || 0)
                   const unidades = item.is2x1 ? Math.ceil(item.quantity / 2) : item.quantity
                   return (
                     <div key={item.variante_id ? `${item.id}_${item.variante_id}` : item.id} className="flex justify-between">
@@ -230,10 +258,13 @@ const Checkout = () => {
                   <div className="flex justify-between text-secondary-600">
                     <span>Envío</span>
                     <span>
-                      {shippingMethod === 'pickup' ? 'Gratis (retiro)' :
-                        shippingCost === null ? <span className="text-secondary-400 italic">Seleccioná ciudad</span> :
-                        shippingCost === 0 ? <span className="text-green-600">Gratis</span> :
-                        fmt(shippingCost)
+                      {shippingMethod === 'pickup'
+                        ? <span className="text-green-600">Gratis (retiro)</span>
+                        : shippingCost === null
+                          ? <span className="text-secondary-400 italic">Seleccioná ciudad</span>
+                          : shippingCost === 0
+                            ? <span className="text-green-600">Gratis</span>
+                            : fmt(shippingCost)
                       }
                     </span>
                   </div>
@@ -250,19 +281,19 @@ const Checkout = () => {
               <h3 className="text-lg font-semibold text-secondary-800">Datos de contacto</h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Field label="Nombre y apellido" name="name" required error={fieldErrors.name}>
+                <Field label="Nombre y apellido" required error={fieldErrors.name}>
                   <input type="text" value={customerInfo.name} onChange={e => setCustomerInfo({ ...customerInfo, name: e.target.value })} className={`input w-full ${fieldErrors.name ? 'border-red-400' : ''}`} />
                 </Field>
-                <Field label="Teléfono" name="phone" required error={fieldErrors.phone}>
+                <Field label="Teléfono" required error={fieldErrors.phone}>
                   <input type="tel" value={customerInfo.phone} onChange={e => setCustomerInfo({ ...customerInfo, phone: e.target.value })} className={`input w-full ${fieldErrors.phone ? 'border-red-400' : ''}`} />
                 </Field>
               </div>
 
-              <Field label="Email" name="email" required error={fieldErrors.email}>
+              <Field label="Email" required error={fieldErrors.email}>
                 <input type="email" value={customerInfo.email} onChange={e => setCustomerInfo({ ...customerInfo, email: e.target.value })} className={`input w-full ${fieldErrors.email ? 'border-red-400' : ''}`} />
               </Field>
 
-              {/* Método de envío */}
+              {/* Método de entrega */}
               <div>
                 <p className="text-sm font-medium text-secondary-700 mb-2">Método de entrega</p>
                 <div className="grid grid-cols-2 gap-3">
@@ -279,7 +310,7 @@ const Checkout = () => {
                 </div>
               </div>
 
-              {/* Dirección de envío */}
+              {/* Dirección */}
               {shippingMethod === 'delivery' && (
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 text-sm font-medium text-secondary-700">
@@ -288,24 +319,43 @@ const Checkout = () => {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Field label="Provincia" required error={fieldErrors.provincia}>
-                      <input type="text" value={customerInfo.provincia} onChange={e => setCustomerInfo({ ...customerInfo, provincia: e.target.value })} className={`input w-full ${fieldErrors.provincia ? 'border-red-400' : ''}`} placeholder="Ej: Buenos Aires" />
+                      <select
+                        value={customerInfo.provincia}
+                        onChange={e => handleProvinciaChange(e.target.value)}
+                        className={`input w-full ${fieldErrors.provincia ? 'border-red-400' : ''}`}
+                      >
+                        <option value="">Seleccioná provincia...</option>
+                        {provincias.map(p => <option key={p} value={p}>{p}</option>)}
+                        {provincias.length > 0 && <option value="Otra">Otra provincia</option>}
+                      </select>
                     </Field>
+
                     <Field label="Ciudad / Localidad" required error={fieldErrors.ciudad}>
-                      <input
-                        type="text"
-                        list="cities-list"
-                        value={selectedCity}
-                        onChange={e => handleCityChange(e.target.value)}
-                        className={`input w-full ${fieldErrors.ciudad ? 'border-red-400' : ''}`}
-                        placeholder="Escribí o seleccioná"
-                      />
-                      <datalist id="cities-list">
-                        {allCities.map(c => <option key={c.id} value={c.nombre} />)}
-                      </datalist>
+                      {citiesByProvincia.length > 0 ? (
+                        <select
+                          value={customerInfo.ciudad}
+                          onChange={e => handleCityChange(e.target.value)}
+                          className={`input w-full ${fieldErrors.ciudad ? 'border-red-400' : ''}`}
+                        >
+                          <option value="">Seleccioná ciudad...</option>
+                          {citiesByProvincia.map(c => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}
+                        </select>
+                      ) : (
+                        <input
+                          type="text"
+                          value={customerInfo.ciudad}
+                          onChange={e => handleCityChange(e.target.value)}
+                          className={`input w-full ${fieldErrors.ciudad ? 'border-red-400' : ''}`}
+                          placeholder="Ingresá tu ciudad"
+                        />
+                      )}
                       {selectedZone && (
                         <p className="text-xs text-primary-600 mt-1">
                           Zona: {selectedZone.nombre} — Envío: {shippingCost === 0 ? 'Gratis' : fmt(selectedZone.precio)}
                         </p>
+                      )}
+                      {!selectedZone && customerInfo.ciudad && (
+                        <p className="text-xs text-amber-600 mt-1">Ciudad fuera de nuestras zonas. Te contactaremos para coordinar el envío.</p>
                       )}
                     </Field>
                   </div>
@@ -327,7 +377,21 @@ const Checkout = () => {
                       <input type="text" value={customerInfo.depto} onChange={e => setCustomerInfo({ ...customerInfo, depto: e.target.value })} className="input w-full" placeholder="Opcional" />
                     </Field>
                     <Field label="Código Postal">
-                      <input type="text" value={customerInfo.cp} onChange={e => setCustomerInfo({ ...customerInfo, cp: e.target.value })} className="input w-full" placeholder="Opcional" />
+                      <input
+                        type="text"
+                        value={customerInfo.cp}
+                        onChange={e => { setCustomerInfo({ ...customerInfo, cp: e.target.value }); setCpStatus(null) }}
+                        onBlur={handleCpBlur}
+                        className={`input w-full ${
+                          cpStatus === 'ok' ? 'border-green-400 focus:ring-green-400' :
+                          cpStatus === 'mismatch' ? 'border-amber-400 focus:ring-amber-400' : ''
+                        }`}
+                        placeholder="Opcional"
+                      />
+                      {cpStatus === 'checking' && <p className="mt-1 text-xs text-secondary-400">Verificando...</p>}
+                      {cpStatus === 'ok' && <p className="mt-1 text-xs text-green-600">CP coincide con la ciudad</p>}
+                      {cpStatus === 'mismatch' && <p className="mt-1 text-xs text-amber-600">⚠️ El CP no coincide con la ciudad seleccionada. Verificá que sea correcto, de lo contrario el pedido no podrá realizarse con éxito.</p>}
+                      {cpStatus === 'unknown' && <p className="mt-1 text-xs text-amber-600">⚠️ No pudimos verificar este CP. Verificá que sea correcto, de lo contrario el pedido no podrá realizarse con éxito.</p>}
                     </Field>
                   </div>
 
