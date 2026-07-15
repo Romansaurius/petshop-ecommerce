@@ -14,78 +14,35 @@ const shippingRoutes = require('./routes/shippingRoutes');
 
 const db = require('./config/database');
 
+async function addColumnIfNotExists(table, column, definition) {
+  try {
+    await db.execute(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+  } catch (e) {
+    if (!e.message.includes('Duplicate column name')) throw e;
+  }
+}
+
 async function ensureDbColumns() {
   try {
-    await db.execute(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS role ENUM('user','admin') DEFAULT 'user'`);
-    await db.execute(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS compras_realizadas INT DEFAULT 0`);
-    await db.execute(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS puntos INT DEFAULT 0`);
-    await db.execute(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS puntos_historicos INT DEFAULT 0`);
-    await db.execute(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS nivel VARCHAR(20) DEFAULT 'normal'`);
-    await db.execute(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS nivel_expira DATETIME NULL`);
-    await db.execute(`ALTER TABLE productos ADD COLUMN IF NOT EXISTS tipo VARCHAR(50) DEFAULT 'normal'`);
-    await db.execute(`ALTER TABLE detalles_pedido MODIFY COLUMN nombre_producto VARCHAR(255) DEFAULT ''`);
-    await db.execute(`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS nombre_contacto VARCHAR(255) DEFAULT ''`);
-    await db.execute(`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS costo_envio DECIMAL(10,2) DEFAULT 0`);
-    await db.execute(`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS metodo_envio VARCHAR(100) DEFAULT ''`);
-    await db.execute(`
-      CREATE TABLE IF NOT EXISTS shipping_zones (
-        id INT PRIMARY KEY AUTO_INCREMENT,
-        nombre VARCHAR(100) NOT NULL,
-        precio DECIMAL(10,2) NOT NULL DEFAULT 0,
-        activo BOOLEAN DEFAULT TRUE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-      )
-    `);
-    await db.execute(`
-      CREATE TABLE IF NOT EXISTS shipping_cities (
-        id INT PRIMARY KEY AUTO_INCREMENT,
-        nombre VARCHAR(100) NOT NULL,
-        provincia VARCHAR(100) DEFAULT '',
-        shipping_zone_id INT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (shipping_zone_id) REFERENCES shipping_zones(id) ON DELETE RESTRICT
-      )
-    `);
-    await db.execute(`
-      CREATE TABLE IF NOT EXISTS shipping_config (
-        id INT PRIMARY KEY DEFAULT 1,
-        envio_gratis_activo BOOLEAN DEFAULT FALSE,
-        monto_envio_gratis DECIMAL(10,2) DEFAULT 50000,
-        retiro_local_activo BOOLEAN DEFAULT TRUE,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-      )
-    `);
-    // Seed config y zonas por defecto
-    const [[{sc}]] = await db.execute('SELECT COUNT(*) as sc FROM shipping_config');
-    if (sc === 0) {
-      await db.execute('INSERT INTO shipping_config (id, envio_gratis_activo, monto_envio_gratis, retiro_local_activo) VALUES (1, FALSE, 50000, TRUE)');
-    }
-    const [[{sz}]] = await db.execute('SELECT COUNT(*) as sz FROM shipping_zones');
-    if (sz === 0) {
-      await db.execute(`INSERT INTO shipping_zones (nombre, precio) VALUES
-        ('Zona Norte', 3500),
-        ('CABA', 6000),
-        ('AMBA', 7000),
-        ('Interior de Buenos Aires', 8000),
-        ('Interior del País', 9500)`);
-      // Seed ciudades de ejemplo
-      const [[{z1}]] = await db.execute("SELECT id FROM shipping_zones WHERE nombre='Zona Norte' LIMIT 1");
-      const [[{z2}]] = await db.execute("SELECT id FROM shipping_zones WHERE nombre='CABA' LIMIT 1");
-      const [[{z3}]] = await db.execute("SELECT id FROM shipping_zones WHERE nombre='AMBA' LIMIT 1");
-      await db.execute(`INSERT INTO shipping_cities (nombre, provincia, shipping_zone_id) VALUES
-        ('Malvinas Argentinas', 'Buenos Aires', ?),
-        ('Pilar', 'Buenos Aires', ?),
-        ('Escobar', 'Buenos Aires', ?),
-        ('San Miguel', 'Buenos Aires', ?)`, [z1, z1, z1, z1]);
-      await db.execute(`INSERT INTO shipping_cities (nombre, provincia, shipping_zone_id) VALUES
-        ('CABA', 'Ciudad Autónoma de Buenos Aires', ?)`, [z2]);
-      await db.execute(`INSERT INTO shipping_cities (nombre, provincia, shipping_zone_id) VALUES
-        ('La Plata', 'Buenos Aires', ?),
-        ('Quilmes', 'Buenos Aires', ?),
-        ('Lomas de Zamora', 'Buenos Aires', ?)`, [z3, z3, z3]);
-    }
-    await db.execute(`ALTER TABLE productos ADD COLUMN IF NOT EXISTS tiene_talles BOOLEAN DEFAULT FALSE`);
+    await addColumnIfNotExists('usuarios', 'role', "ENUM('user','admin') DEFAULT 'user'");
+    await addColumnIfNotExists('usuarios', 'compras_realizadas', 'INT DEFAULT 0');
+    await addColumnIfNotExists('usuarios', 'puntos', 'INT DEFAULT 0');
+    await addColumnIfNotExists('usuarios', 'puntos_historicos', 'INT DEFAULT 0');
+    await addColumnIfNotExists('usuarios', 'nivel', "VARCHAR(20) DEFAULT 'normal'");
+    await addColumnIfNotExists('usuarios', 'nivel_expira', 'DATETIME NULL');
+    await addColumnIfNotExists('productos', 'tipo', "VARCHAR(50) DEFAULT 'normal'");
+    await addColumnIfNotExists('productos', 'tiene_talles', 'BOOLEAN DEFAULT FALSE');
+    await addColumnIfNotExists('pedidos', 'nombre_contacto', "VARCHAR(255) DEFAULT ''");
+    await addColumnIfNotExists('pedidos', 'costo_envio', 'DECIMAL(10,2) DEFAULT 0');
+    await addColumnIfNotExists('pedidos', 'metodo_envio', "VARCHAR(100) DEFAULT ''");
+    try { await db.execute(`ALTER TABLE detalles_pedido MODIFY COLUMN nombre_producto VARCHAR(255) DEFAULT ''`); } catch(e) {}
+    console.log('Columnas DB verificadas');
+  } catch (e) {
+    console.log('DB columns check error:', e.message);
+  }
+
+  // Tablas auxiliares
+  try {
     await db.execute(`
       CREATE TABLE IF NOT EXISTS home_secciones (
         id INT PRIMARY KEY AUTO_INCREMENT,
@@ -105,8 +62,7 @@ async function ensureDbColumns() {
         FOREIGN KEY (producto_id) REFERENCES productos(id) ON DELETE CASCADE
       )
     `);
-    // Seed secciones por defecto
-    const [[{sc: sc2}]] = await db.execute('SELECT COUNT(*) as sc FROM home_secciones');
+    const [[{sc2}]] = await db.execute('SELECT COUNT(*) as sc2 FROM home_secciones');
     if (sc2 === 0) {
       await db.execute(`INSERT INTO home_secciones (clave, nombre, orden) VALUES
         ('lanzamientos', 'Lanzamientos Exclusivos', 1),
@@ -114,6 +70,9 @@ async function ensureDbColumns() {
         ('camas', 'El descanso que se merece', 3),
         ('juguetes', 'Ideales para los más juguetones', 4)`);
     }
+  } catch (e) { console.log('home_secciones:', e.message); }
+
+  try {
     await db.execute(`
       CREATE TABLE IF NOT EXISTS producto_variantes (
         id INT PRIMARY KEY AUTO_INCREMENT,
@@ -125,6 +84,9 @@ async function ensureDbColumns() {
         FOREIGN KEY (producto_id) REFERENCES productos(id) ON DELETE CASCADE
       )
     `);
+  } catch (e) { console.log('producto_variantes:', e.message); }
+
+  try {
     await db.execute(`
       CREATE TABLE IF NOT EXISTS canjes (
         id INT PRIMARY KEY AUTO_INCREMENT,
@@ -173,10 +135,68 @@ async function ensureDbColumns() {
         await db.execute('INSERT INTO canjes (nombre,descripcion,puntos_requeridos,categoria,tipo,valor_descuento,tope_descuento) VALUES (?,?,?,?,?,?,?)', c);
       }
     }
-    console.log('Columnas DB verificadas');
-  } catch (e) {
-    console.log('DB columns check:', e.message);
-  }
+  } catch (e) { console.log('canjes:', e.message); }
+
+  // Tablas de shipping — bloque independiente
+  try {
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS shipping_zones (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        nombre VARCHAR(100) NOT NULL,
+        precio DECIMAL(10,2) NOT NULL DEFAULT 0,
+        activo BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS shipping_cities (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        nombre VARCHAR(100) NOT NULL,
+        provincia VARCHAR(100) DEFAULT '',
+        shipping_zone_id INT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (shipping_zone_id) REFERENCES shipping_zones(id) ON DELETE RESTRICT
+      )
+    `);
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS shipping_config (
+        id INT PRIMARY KEY DEFAULT 1,
+        envio_gratis_activo BOOLEAN DEFAULT FALSE,
+        monto_envio_gratis DECIMAL(10,2) DEFAULT 50000,
+        retiro_local_activo BOOLEAN DEFAULT TRUE,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+    const [[{sc}]] = await db.execute('SELECT COUNT(*) as sc FROM shipping_config');
+    if (sc === 0) {
+      await db.execute('INSERT INTO shipping_config (id, envio_gratis_activo, monto_envio_gratis, retiro_local_activo) VALUES (1, FALSE, 50000, TRUE)');
+    }
+    const [[{sz}]] = await db.execute('SELECT COUNT(*) as sz FROM shipping_zones');
+    if (sz === 0) {
+      await db.execute(`INSERT INTO shipping_zones (nombre, precio) VALUES
+        ('Zona Norte', 3500),
+        ('CABA', 6000),
+        ('AMBA', 7000),
+        ('Interior de Buenos Aires', 8000),
+        ('Interior del País', 9500)`);
+      const [[z1row]] = await db.execute("SELECT id FROM shipping_zones WHERE nombre='Zona Norte' LIMIT 1");
+      const [[z2row]] = await db.execute("SELECT id FROM shipping_zones WHERE nombre='CABA' LIMIT 1");
+      const [[z3row]] = await db.execute("SELECT id FROM shipping_zones WHERE nombre='AMBA' LIMIT 1");
+      const z1 = z1row.id, z2 = z2row.id, z3 = z3row.id;
+      await db.execute(`INSERT INTO shipping_cities (nombre, provincia, shipping_zone_id) VALUES
+        ('Malvinas Argentinas', 'Buenos Aires', ?),
+        ('Pilar', 'Buenos Aires', ?),
+        ('Escobar', 'Buenos Aires', ?),
+        ('San Miguel', 'Buenos Aires', ?)`, [z1, z1, z1, z1]);
+      await db.execute(`INSERT INTO shipping_cities (nombre, provincia, shipping_zone_id) VALUES ('CABA', 'Ciudad Autónoma de Buenos Aires', ?)`, [z2]);
+      await db.execute(`INSERT INTO shipping_cities (nombre, provincia, shipping_zone_id) VALUES
+        ('La Plata', 'Buenos Aires', ?),
+        ('Quilmes', 'Buenos Aires', ?),
+        ('Lomas de Zamora', 'Buenos Aires', ?)`, [z3, z3, z3]);
+    }
+    console.log('Tablas shipping OK');
+  } catch (e) { console.log('shipping tables error:', e.message); }
 }
 ensureDbColumns();
 
