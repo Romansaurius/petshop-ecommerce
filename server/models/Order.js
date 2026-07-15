@@ -2,7 +2,7 @@ const db = require('../config/database');
 
 class Order {
   static async create(orderData) {
-    const { usuario_id, total, direccion_envio, telefono_contacto, email, nombre_contacto, costo_envio, metodo_envio, items } = orderData;
+    const { usuario_id, total, direccion_envio, telefono_contacto, email, nombre_contacto, costo_envio, metodo_envio, cp_alerta, items } = orderData;
     
     const connection = await db.getConnection();
     await connection.beginTransaction();
@@ -11,9 +11,9 @@ class Order {
       const numeroPedido = 'MP-' + Date.now();
 
       const [orderResult] = await connection.execute(
-        `INSERT INTO pedidos (numero_pedido, usuario_id, email_contacto, nombre_contacto, total, subtotal, direccion_envio, telefono_contacto, costo_envio, metodo_envio, estado, metodo_pago)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendiente', 'mercadopago')`,
-        [numeroPedido, usuario_id || null, email || '', nombre_contacto || '', total, total - (parseFloat(costo_envio) || 0), direccion_envio || 'A confirmar', telefono_contacto || '', parseFloat(costo_envio) || 0, metodo_envio || '']
+        `INSERT INTO pedidos (numero_pedido, usuario_id, email_contacto, nombre_contacto, total, subtotal, direccion_envio, telefono_contacto, costo_envio, metodo_envio, cp_alerta, estado, metodo_pago)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendiente', 'mercadopago')`,
+        [numeroPedido, usuario_id || null, email || '', nombre_contacto || '', total, total - (parseFloat(costo_envio) || 0), direccion_envio || 'A confirmar', telefono_contacto || '', parseFloat(costo_envio) || 0, metodo_envio || '', cp_alerta || null]
       );
       
       const orderId = orderResult.insertId;

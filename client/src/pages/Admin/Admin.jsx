@@ -1109,6 +1109,11 @@ const Admin = () => {
                         {!order.usuario_id && (
                           <span className="text-[10px] bg-secondary-100 text-secondary-500 px-1.5 py-0.5 rounded-full">Sin cuenta</span>
                         )}
+                        {order.cp_alerta && (
+                          <span className="inline-flex items-center gap-1 mt-1 text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-medium">
+                            ⚠️ CP {order.cp_alerta === 'mismatch' ? 'no coincide' : 'no verificado'}
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <p className="text-sm text-secondary-900">{order.cantidad_items || 0} items</p>
