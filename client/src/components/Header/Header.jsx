@@ -4,7 +4,7 @@ import { Search, ShoppingCart, Menu, X, User, Truck } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 
-const Header = () => {
+const Header = ({ onOpenCart }) => {
   const { getTotalItems } = useCart();
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
@@ -93,7 +93,7 @@ const Header = () => {
             )}
 
             {/* Cart */}
-            <Link to="/checkout" className="relative flex items-center gap-1.5 px-3 py-2 bg-secondary-50 hover:bg-primary-50 border border-secondary-200 hover:border-primary-300 rounded-xl transition-all">
+            <button onClick={onOpenCart} className="relative flex items-center gap-1.5 px-3 py-2 bg-secondary-50 hover:bg-primary-50 border border-secondary-200 hover:border-primary-300 rounded-xl transition-all">
               <ShoppingCart className="w-4 h-4 text-secondary-600" />
               <span className="text-sm font-medium text-secondary-700">{getTotalItems()}</span>
               {getTotalItems() > 0 && (
@@ -101,7 +101,7 @@ const Header = () => {
                   {getTotalItems()}
                 </span>
               )}
-            </Link>
+            </button>
 
             {/* Mobile menu toggle */}
             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden p-2 text-secondary-600 hover:text-primary-600 transition-colors">

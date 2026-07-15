@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { CartProvider } from './context/CartContext'
 import { AuthProvider } from './context/AuthContext'
 import Header from './components/Header/Header'
@@ -13,16 +13,19 @@ import Admin from './pages/Admin/Admin'
 import PaymentResult from './pages/PaymentResult/PaymentResult'
 import Profile from './pages/Profile/Profile'
 import CartToast from './components/Cart/CartToast'
+import Cart from './components/Cart/Cart'
 import { useCart } from './context/CartContext'
 
 function AppContent() {
   const { toastProduct, setToastProduct } = useCart()
   const { pathname } = useLocation()
+  const [cartOpen, setCartOpen] = useState(false)
   useEffect(() => { window.scrollTo(0, 0) }, [pathname])
 
   return (
     <div className="min-h-screen bg-secondary-50">
-      <Header />
+      <Header onOpenCart={() => setCartOpen(true)} />
+      <Cart isOpen={cartOpen} onClose={() => setCartOpen(false)} />
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
