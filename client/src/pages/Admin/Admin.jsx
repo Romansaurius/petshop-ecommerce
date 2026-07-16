@@ -57,7 +57,7 @@ const Admin = () => {
   const [shippingCities, setShippingCities] = useState([])
   const [shippingConfig, setShippingConfig] = useState({ envio_gratis_activo: false, monto_envio_gratis: 50000, retiro_local_activo: true })
   const [shippingTab, setShippingTab] = useState('zones')
-  const [zoneForm, setZoneForm] = useState({ nombre: '', precio: '' })
+  const [zoneForm, setZoneForm] = useState({ nombre: '', precio: '', monto_envio_gratis: '' })
   const [editingZone, setEditingZone] = useState(null)
   const [showZoneForm, setShowZoneForm] = useState(false)
   const [cityForm, setCityForm] = useState({ nombre: '', provincia: '', shipping_zone_id: '' })
@@ -104,8 +104,8 @@ const Admin = () => {
     const token = localStorage.getItem('token')
     const url = editingZone ? `/api/shipping/zones/${editingZone.id}` : '/api/shipping/zones'
     const method = editingZone ? 'PUT' : 'POST'
-    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ nombre: zoneForm.nombre, precio: parseFloat(zoneForm.precio), activo: true }) })
-    if (res.ok) { loadShipping(); setZoneForm({ nombre: '', precio: '' }); setEditingZone(null); setShowZoneForm(false) }
+    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ nombre: zoneForm.nombre, precio: parseFloat(zoneForm.precio), monto_envio_gratis: zoneForm.monto_envio_gratis ? parseFloat(zoneForm.monto_envio_gratis) : null, activo: true }) })
+    if (res.ok) { loadShipping(); setZoneForm({ nombre: '', precio: '', monto_envio_gratis: '' }); setEditingZone(null); setShowZoneForm(false) }
     else { const d = await res.json(); alert(d.error || 'Error') }
   }
 
@@ -1291,7 +1291,7 @@ const Admin = () => {
             {shippingTab === 'zones' && (
               <div className="space-y-4">
                 <div className="flex justify-end">
-                  <button onClick={() => { setShowZoneForm(true); setEditingZone(null); setZoneForm({ nombre: '', precio: '' }) }} className="btn btn-primary flex items-center gap-2">
+                  <button onClick={() => { setShowZoneForm(true); setEditingZone(null); setZoneForm({ nombre: '', precio: '', monto_envio_gratis: '' }) }} className="btn btn-primary flex items-center gap-2">
                     <Plus className="w-4 h-4" /> Nueva Zona
                   </button>
                 </div>
@@ -1305,6 +1305,10 @@ const Admin = () => {
                       <label className="block text-xs font-medium text-secondary-600 mb-1">Precio ($)</label>
                       <input required type="number" min="0" value={zoneForm.precio} onChange={e => setZoneForm({ ...zoneForm, precio: e.target.value })} className="input w-full" placeholder="6000" />
                     </div>
+                    <div className="w-44">
+                      <label className="block text-xs font-medium text-secondary-600 mb-1">Envío gratis desde ($)</label>
+                      <input type="number" min="0" value={zoneForm.monto_envio_gratis} onChange={e => setZoneForm({ ...zoneForm, monto_envio_gratis: e.target.value })} className="input w-full" placeholder="Sin mínimo" />
+                    </div>
                     <button type="submit" className="btn btn-primary px-4">{editingZone ? 'Guardar' : 'Agregar'}</button>
                     <button type="button" onClick={() => { setShowZoneForm(false); setEditingZone(null) }} className="btn btn-secondary px-4">Cancelar</button>
                   </form>
@@ -1315,6 +1319,7 @@ const Admin = () => {
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase">Zona</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase">Precio</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase">Envío gratis desde</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase">Ciudades</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase">Acciones</th>
                       </tr>
@@ -1325,10 +1330,13 @@ const Admin = () => {
                         <tr key={z.id} className="hover:bg-secondary-50">
                           <td className="px-6 py-4 font-medium text-secondary-800">{z.nombre}</td>
                           <td className="px-6 py-4 text-secondary-700">{formatPrice(z.precio)}</td>
+                          <td className="px-6 py-4 text-sm">
+                            {z.monto_envio_gratis ? <span className="text-green-600 font-medium">{formatPrice(z.monto_envio_gratis)}</span> : <span className="text-secondary-400">—</span>}
+                          </td>
                           <td className="px-6 py-4 text-secondary-500 text-sm">{shippingCities.filter(c => c.shipping_zone_id === z.id).length} ciudades</td>
                           <td className="px-6 py-4">
                             <div className="flex gap-2">
-                              <button onClick={() => { setEditingZone(z); setZoneForm({ nombre: z.nombre, precio: z.precio }); setShowZoneForm(true) }} className="text-blue-600 hover:text-blue-800"><Edit className="w-4 h-4" /></button>
+                              <button onClick={() => { setEditingZone(z); setZoneForm({ nombre: z.nombre, precio: z.precio, monto_envio_gratis: z.monto_envio_gratis || '' }); setShowZoneForm(true) }} className="text-blue-600 hover:text-blue-800"><Edit className="w-4 h-4" /></button>
                               <button onClick={() => handleDeleteZone(z.id)} className="text-red-500 hover:text-red-700"><Trash2 className="w-4 h-4" /></button>
                             </div>
                           </td>

@@ -36,6 +36,7 @@ async function ensureDbColumns() {
     await addColumnIfNotExists('pedidos', 'costo_envio', 'DECIMAL(10,2) DEFAULT 0');
     await addColumnIfNotExists('pedidos', 'metodo_envio', "VARCHAR(100) DEFAULT ''");
     await addColumnIfNotExists('pedidos', 'cp_alerta', "VARCHAR(20) DEFAULT NULL");
+    await addColumnIfNotExists('shipping_zones', 'monto_envio_gratis', 'DECIMAL(10,2) DEFAULT NULL');
     try { await db.execute(`ALTER TABLE detalles_pedido MODIFY COLUMN nombre_producto VARCHAR(255) DEFAULT ''`); } catch(e) {}
     console.log('Columnas DB verificadas');
   } catch (e) {

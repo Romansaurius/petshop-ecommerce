@@ -36,15 +36,15 @@ const adminOnly = (req, res, next) => {
 
 // Zonas
 router.post('/zones', auth, adminOnly, async (req, res) => {
-  const { nombre, precio } = req.body;
+  const { nombre, precio, monto_envio_gratis } = req.body;
   if (!nombre || precio == null) return res.status(400).json({ error: 'nombre y precio requeridos' });
-  const [r] = await db.execute('INSERT INTO shipping_zones (nombre, precio) VALUES (?, ?)', [nombre, precio]);
-  res.json({ id: r.insertId, nombre, precio, activo: true });
+  const [r] = await db.execute('INSERT INTO shipping_zones (nombre, precio, monto_envio_gratis) VALUES (?, ?, ?)', [nombre, precio, monto_envio_gratis || null]);
+  res.json({ id: r.insertId, nombre, precio, monto_envio_gratis: monto_envio_gratis || null, activo: true });
 });
 
 router.put('/zones/:id', auth, adminOnly, async (req, res) => {
-  const { nombre, precio, activo } = req.body;
-  await db.execute('UPDATE shipping_zones SET nombre=?, precio=?, activo=? WHERE id=?', [nombre, precio, activo ?? true, req.params.id]);
+  const { nombre, precio, activo, monto_envio_gratis } = req.body;
+  await db.execute('UPDATE shipping_zones SET nombre=?, precio=?, activo=?, monto_envio_gratis=? WHERE id=?', [nombre, precio, activo ?? true, monto_envio_gratis || null, req.params.id]);
   res.json({ ok: true });
 });
 
