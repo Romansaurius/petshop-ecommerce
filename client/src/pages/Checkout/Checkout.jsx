@@ -69,7 +69,10 @@ const Checkout = () => {
     if (shippingMethod === 'pickup') return 0
     if (!selectedZone) return null
     const sub = subtotal - discount
-    if (shippingConfig.envio_gratis_activo && sub >= Number(shippingConfig.monto_envio_gratis)) return 0
+    const montoGratis = selectedZone.monto_envio_gratis
+      ? Number(selectedZone.monto_envio_gratis)
+      : (shippingConfig.envio_gratis_activo ? Number(shippingConfig.monto_envio_gratis) : null)
+    if (montoGratis !== null && sub >= montoGratis) return 0
     return Number(selectedZone.precio)
   })()
 
@@ -351,7 +354,10 @@ const Checkout = () => {
                       )}
                       {selectedZone && (
                         <p className="text-xs text-primary-600 mt-1">
-                          Zona: {selectedZone.nombre} — Envío: {shippingCost === 0 ? 'Gratis' : fmt(selectedZone.precio)}
+                          Zona: {selectedZone.nombre} — Envío: {shippingCost === 0 ? 'Gratis ✅' : fmt(selectedZone.precio)}
+                          {selectedZone.monto_envio_gratis && shippingCost > 0 && (
+                            <span className="text-secondary-400"> (gratis desde {fmt(selectedZone.monto_envio_gratis)})</span>
+                          )}
                         </p>
                       )}
                       {!selectedZone && customerInfo.ciudad && (
