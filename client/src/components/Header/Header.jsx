@@ -202,5 +202,6 @@ const Header = ({ onOpenCart }) => {
       {showLoyalty && <LoyaltyCard onClose={() => setShowLoyalty(false)} />}
     </header>
   );
+};
 
 export default Header;
