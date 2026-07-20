@@ -7,9 +7,9 @@ const Admin = () => {
   const { user, isAuthenticated } = useAuth()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('dashboard')
-  const [loyaltyPrograms, setLoyaltyPrograms] = useState([])
-  const [loyaltyStats, setLoyaltyStats] = useState({})
+  const [canjes, setCanjes] = useState([])
   const [coupons, setCoupons] = useState([])
+  const [loyaltyTab, setLoyaltyTab] = useState('canjes')
   const [showCouponForm, setShowCouponForm] = useState(false)
   const [editingCoupon, setEditingCoupon] = useState(null)
   const [couponForm, setCouponForm] = useState({
@@ -20,13 +20,10 @@ const Admin = () => {
     fecha_expiracion: '',
     usos_maximos: ''
   })
-  const [showProgramForm, setShowProgramForm] = useState(false)
-  const [editingProgram, setEditingProgram] = useState(null)
-  const [programForm, setProgramForm] = useState({
-    nombre: '',
-    descripcion: '',
-    compras_requeridas: '',
-    recompensa: ''
+  const [showCanjeForm, setShowCanjeForm] = useState(false)
+  const [editingCanje, setEditingCanje] = useState(null)
+  const [canjeForm, setCanjeForm] = useState({
+    nombre: '', descripcion: '', puntos_requeridos: '', categoria: 'normal', tipo: 'porcentaje', valor_descuento: '', tope_descuento: ''
   })
   const [products, setProducts] = useState([])
   const [orders, setOrders] = useState([])
@@ -73,8 +70,7 @@ const Admin = () => {
   useEffect(() => {
     loadProducts()
     loadOrders()
-    loadLoyaltyPrograms()
-    loadLoyaltyStats()
+    loadCanjes()
     loadCoupons()
     loadBrands()
     loadCategories()
@@ -203,18 +199,12 @@ const Admin = () => {
     }
   }
 
-  const loadLoyaltyStats = async () => {
+  const loadCanjes = async () => {
     try {
-      const response = await fetch('/api/loyalty/stats', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      })
-      const data = await response.json()
-      setLoyaltyStats(data)
-    } catch (error) {
-      console.error('Error cargando estadísticas:', error)
-    }
+      const res = await fetch('/api/loyalty/admin/canjes', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
+      const data = await res.json()
+      setCanjes(Array.isArray(data) ? data : [])
+    } catch (e) { console.error('Error cargando canjes:', e) }
   }
 
   const loadCoupons = async () => {
@@ -254,18 +244,27 @@ const Admin = () => {
     }
   }
 
-  const loadLoyaltyPrograms = async () => {
-    try {
-      const response = await fetch('/api/loyalty/programs', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      })
-      const data = await response.json()
-      setLoyaltyPrograms(data)
-    } catch (error) {
-      console.error('Error cargando programas:', error)
-    }
+  const handleCanjeSubmit = async (e) => {
+    e.preventDefault()
+    const token = localStorage.getItem('token')
+    const url = editingCanje ? `/api/loyalty/admin/canjes/${editingCanje.id}` : '/api/loyalty/admin/canjes'
+    const method = editingCanje ? 'PUT' : 'POST'
+    const body = { ...canjeForm, puntos_requeridos: parseInt(canjeForm.puntos_requeridos), valor_descuento: parseFloat(canjeForm.valor_descuento) || 0, tope_descuento: parseFloat(canjeForm.tope_descuento) || 0, activo: editingCanje ? editingCanje.activo : true }
+    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(body) })
+    if (res.ok) { loadCanjes(); setCanjeForm({ nombre: '', descripcion: '', puntos_requeridos: '', categoria: 'normal', tipo: 'porcentaje', valor_descuento: '', tope_descuento: '' }); setEditingCanje(null); setShowCanjeForm(false) }
+    else { const d = await res.json(); alert(d.error || 'Error') }
+  }
+
+  const handleEditCanje = (c) => {
+    setEditingCanje(c)
+    setCanjeForm({ nombre: c.nombre, descripcion: c.descripcion || '', puntos_requeridos: c.puntos_requeridos.toString(), categoria: c.categoria, tipo: c.tipo, valor_descuento: c.valor_descuento?.toString() || '', tope_descuento: c.tope_descuento?.toString() || '' })
+    setShowCanjeForm(true)
+  }
+
+  const handleDeleteCanje = async (id) => {
+    if (!confirm('¿Desactivar este canje?')) return
+    await fetch(`/api/loyalty/admin/canjes/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
+    loadCanjes()
   }
 
   const handleProductSubmit = async (e) => {
@@ -458,74 +457,6 @@ const Admin = () => {
     }
   }
 
-  const handleProgramSubmit = async (e) => {
-    e.preventDefault()
-    
-    try {
-      const url = editingProgram ? `/api/loyalty/programs/${editingProgram.id}` : '/api/loyalty/programs'
-      const method = editingProgram ? 'PUT' : 'POST'
-      
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          ...programForm,
-          activo: editingProgram ? editingProgram.activo : true
-        })
-      })
-      
-      if (response.ok) {
-        loadLoyaltyPrograms()
-        setProgramForm({ nombre: '', descripcion: '', compras_requeridas: '', recompensa: '' })
-        setEditingProgram(null)
-        setShowProgramForm(false)
-      } else {
-        const error = await response.json()
-        alert(error.error || 'Error al guardar programa')
-      }
-    } catch (error) {
-      console.error('Error:', error)
-      alert('Error de conexión')
-    }
-  }
-
-  const handleEditProgram = (program) => {
-    setEditingProgram(program)
-    setProgramForm({
-      nombre: program.nombre,
-      descripcion: program.descripcion,
-      compras_requeridas: program.compras_requeridas.toString(),
-      recompensa: program.recompensa
-    })
-    setShowProgramForm(true)
-  }
-
-  const handleDeleteProgram = async (id) => {
-    if (confirm('¿Estás seguro de eliminar este programa?')) {
-      try {
-        const response = await fetch(`/api/loyalty/programs/${id}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        })
-        
-        if (response.ok) {
-          loadLoyaltyPrograms()
-        } else {
-          const error = await response.json()
-          alert(error.error || 'Error al eliminar programa')
-        }
-      } catch (error) {
-        console.error('Error:', error)
-        alert('Error de conexión')
-      }
-    }
-  }
-
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
       const res = await fetch(`/api/orders/${orderId}/estado`, {
@@ -560,7 +491,7 @@ const Admin = () => {
       <header className="bg-white shadow-sm border-b border-secondary-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <h1 className="text-2xl font-bold text-primary-500">🛠️ Panel de Administración</h1>
+            <h1 className="text-2xl font-bold text-primary-500">??�?Panel de Administración</h1>
             <div className="text-sm text-secondary-600">
               Bienvenido, {user?.name}
             </div>
@@ -908,9 +839,9 @@ const Admin = () => {
                       <label className="block text-sm font-medium text-secondary-700 mb-2">Tipo de producto</label>
                       <div className="grid grid-cols-3 gap-2">
                         {[
-                          { value: 'normal', label: 'Normal', emoji: '📦' },
-                          { value: '2x1', label: '2x1', emoji: '🎁' },
-                          { value: 'importado', label: 'Importado', emoji: '✈️' }
+                          { value: 'normal', label: 'Normal', emoji: '?��' },
+                          { value: '2x1', label: '2x1', emoji: '??' },
+                          { value: 'importado', label: 'Importado', emoji: '?��?' }
                         ].map(opt => (
                           <button
                             key={opt.value}
@@ -928,10 +859,10 @@ const Admin = () => {
                         ))}
                       </div>
                       {productForm.discount > 0 && productForm.tipo !== 'normal' && (
-                        <p className="text-xs text-green-600 mt-1">✅ Con descuento, aparecerá también en Ofertas</p>
+                        <p className="text-xs text-green-600 mt-1">??Con descuento, aparecerá también en Ofertas</p>
                       )}
                       {productForm.discount > 0 && productForm.tipo === 'normal' && (
-                        <p className="text-xs text-green-600 mt-1">✅ Con descuento, aparecerá en la sección Ofertas</p>
+                        <p className="text-xs text-green-600 mt-1">??Con descuento, aparecerá en la sección Ofertas</p>
                       )}
                     </div>
                     
@@ -998,7 +929,7 @@ const Admin = () => {
                               {product.nombre || product.name}
                               {(product.destacado || product.featured) && (
                                 <span className="ml-2 px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">
-                                  ⭐ Destacado
+                                  �?Destacado
                                 </span>
                               )}
                             </div>
@@ -1111,7 +1042,7 @@ const Admin = () => {
                         )}
                         {order.cp_alerta && (
                           <span className="inline-flex items-center gap-1 mt-1 text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-medium">
-                            ⚠️ CP {order.cp_alerta === 'mismatch' ? 'no coincide' : 'no verificado'}
+                            ?��? CP {order.cp_alerta === 'mismatch' ? 'no coincide' : 'no verificado'}
                           </span>
                         )}
                       </td>
@@ -1176,7 +1107,7 @@ const Admin = () => {
                       >
                         <h3 className="font-semibold text-secondary-800 mb-1">{section.nombre}</h3>
                         <p className="text-xs text-secondary-400">{count}/5 productos seleccionados</p>
-                        <div className="mt-3 text-xs text-primary-500 font-medium">Editar →</div>
+                        <div className="mt-3 text-xs text-primary-500 font-medium">Editar ??/div>
                       </button>
                     )
                   })}
@@ -1195,7 +1126,7 @@ const Admin = () => {
                       onClick={() => setActiveSectionId(null)}
                       className="text-sm text-secondary-500 hover:text-secondary-800 flex items-center gap-1"
                     >
-                      ← Volver
+                      ??Volver
                     </button>
                     <div>
                       <h2 className="text-xl font-semibold text-secondary-800">{section?.nombre}</h2>
@@ -1254,7 +1185,7 @@ const Admin = () => {
                           <div className="w-10 h-10 rounded-lg overflow-hidden bg-secondary-100 shrink-0">
                             {p.imagen
                               ? <img src={p.imagen} alt="" className="w-full h-full object-cover" />
-                              : <div className="w-full h-full flex items-center justify-center text-secondary-300 text-lg">🐾</div>
+                              : <div className="w-full h-full flex items-center justify-center text-secondary-300 text-lg">?��</div>
                             }
                           </div>
                           <div className="flex-1 min-w-0">
@@ -1331,7 +1262,7 @@ const Admin = () => {
                           <td className="px-6 py-4 font-medium text-secondary-800">{z.nombre}</td>
                           <td className="px-6 py-4 text-secondary-700">{formatPrice(z.precio)}</td>
                           <td className="px-6 py-4 text-sm">
-                            {z.monto_envio_gratis ? <span className="text-green-600 font-medium">{formatPrice(z.monto_envio_gratis)}</span> : <span className="text-secondary-400">—</span>}
+                            {z.monto_envio_gratis ? <span className="text-green-600 font-medium">{formatPrice(z.monto_envio_gratis)}</span> : <span className="text-secondary-400">??/span>}
                           </td>
                           <td className="px-6 py-4 text-secondary-500 text-sm">{shippingCities.filter(c => c.shipping_zone_id === z.id).length} ciudades</td>
                           <td className="px-6 py-4">
@@ -1434,230 +1365,199 @@ const Admin = () => {
 
         {activeTab === 'loyalty' && (
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-secondary-800">Sistema de Fidelización</h2>
-              <button 
-                onClick={() => setShowProgramForm(true)}
-                className="btn btn-primary flex items-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                Nuevo Programa
-              </button>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {loyaltyPrograms.map(program => (
-                <div key={program.id} className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-primary-500">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold">{program.nombre}</h3>
-                    <Gift className="w-6 h-6 text-primary-500" />
-                  </div>
-                  <p className="text-secondary-600 mb-2">
-                    <strong>Requisito:</strong> {program.compras_requeridas} compras
-                  </p>
-                  <p className="text-secondary-600 mb-4">
-                    <strong>Recompensa:</strong> {program.recompensa}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className={`px-3 py-1 text-sm font-medium rounded-full ${
-                      program.activo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+              <div className="flex gap-2">
+                {['canjes', 'cupones'].map(t => (
+                  <button key={t} onClick={() => setLoyaltyTab(t)}
+                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                      loyaltyTab === t ? 'bg-primary-500 text-white' : 'bg-secondary-100 text-secondary-600 hover:bg-secondary-200'
                     }`}>
-                      {program.activo ? 'Activo' : 'Inactivo'}
-                    </span>
-                    <div className="flex space-x-2">
-                      <button 
-                        onClick={() => handleEditProgram(program)}
-                        className="text-blue-600 hover:text-blue-900"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button 
-                        onClick={() => handleDeleteProgram(program.id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                    {t === 'canjes' ? 'Canjes' : 'Cupones'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {loyaltyTab === 'canjes' && (
+              <div className="space-y-4">
+                <div className="flex justify-end">
+                  <button onClick={() => { setShowCanjeForm(true); setEditingCanje(null); setCanjeForm({ nombre: '', descripcion: '', puntos_requeridos: '', categoria: 'normal', tipo: 'porcentaje', valor_descuento: '', tope_descuento: '' }) }} className="btn btn-primary flex items-center gap-2">
+                    <Plus className="w-4 h-4" /> Nuevo Canje
+                  </button>
+                </div>
+
+                {showCanjeForm && (
+                  <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-xl max-w-md w-full">
+                      <div className="p-6 border-b border-secondary-200">
+                        <h3 className="text-lg font-semibold">{editingCanje ? 'Editar Canje' : 'Nuevo Canje'}</h3>
+                      </div>
+                      <form onSubmit={handleCanjeSubmit} className="p-6 space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-secondary-700 mb-1">Nombre</label>
+                          <input required value={canjeForm.nombre} onChange={e => setCanjeForm({ ...canjeForm, nombre: e.target.value })} className="input w-full" placeholder="Ej: Descuento 10%" />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-secondary-700 mb-1">Descripción</label>
+                          <textarea value={canjeForm.descripcion} onChange={e => setCanjeForm({ ...canjeForm, descripcion: e.target.value })} className="input w-full h-16 resize-none" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-sm font-medium text-secondary-700 mb-1">Puntos requeridos</label>
+                            <input required type="number" min="1" value={canjeForm.puntos_requeridos} onChange={e => setCanjeForm({ ...canjeForm, puntos_requeridos: e.target.value })} className="input w-full" />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-secondary-700 mb-1">Categoría</label>
+                            <select value={canjeForm.categoria} onChange={e => setCanjeForm({ ...canjeForm, categoria: e.target.value })} className="input w-full">
+                              <option value="normal">Normal</option>
+                              <option value="gold">Gold</option>
+                              <option value="platinum">Platinum</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-sm font-medium text-secondary-700 mb-1">Tipo</label>
+                            <select value={canjeForm.tipo} onChange={e => setCanjeForm({ ...canjeForm, tipo: e.target.value })} className="input w-full">
+                              <option value="porcentaje">Porcentaje</option>
+                              <option value="monto_fijo">Monto fijo</option>
+                              <option value="envio_gratis">Envío gratis</option>
+                              <option value="nivel">Nivel</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-secondary-700 mb-1">Valor descuento</label>
+                            <input type="number" min="0" value={canjeForm.valor_descuento} onChange={e => setCanjeForm({ ...canjeForm, valor_descuento: e.target.value })} className="input w-full" placeholder="0" />
+                          </div>
+                        </div>
+                        {canjeForm.tipo === 'porcentaje' && (
+                          <div>
+                            <label className="block text-sm font-medium text-secondary-700 mb-1">Tope descuento ($)</label>
+                            <input type="number" min="0" value={canjeForm.tope_descuento} onChange={e => setCanjeForm({ ...canjeForm, tope_descuento: e.target.value })} className="input w-full" placeholder="Sin tope" />
+                          </div>
+                        )}
+                        <div className="flex gap-3 pt-2">
+                          <button type="submit" className="btn btn-primary flex-1">{editingCanje ? 'Guardar' : 'Crear'}</button>
+                          <button type="button" onClick={() => { setShowCanjeForm(false); setEditingCanje(null) }} className="btn btn-secondary flex-1">Cancelar</button>
+                        </div>
+                      </form>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-            
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="text-lg font-semibold mb-4">Estadísticas de Fidelización</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-primary-600">{loyaltyStats.usuariosActivos || 0}</div>
-                  <div className="text-sm text-secondary-600">Usuarios con cuenta</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-green-600">{loyaltyStats.recompensasCanjeadas || 0}</div>
-                  <div className="text-sm text-secondary-600">Canjes realizados</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-600">{loyaltyStats.tasaRetencion || 0}%</div>
-                  <div className="text-sm text-secondary-600">Tasa de Retención</div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Cupones de Descuento</h3>
-                <button 
-                  onClick={() => setShowCouponForm(true)}
-                  className="btn btn-primary flex items-center gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Nuevo Cupón
-                </button>
-              </div>
-              
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-secondary-50">
-                    <tr>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-secondary-500 uppercase">Código</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-secondary-500 uppercase">Nombre</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-secondary-500 uppercase">Tipo</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-secondary-500 uppercase">Valor</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-secondary-500 uppercase">Estado</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-secondary-500 uppercase">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-secondary-200">
-                    {coupons.map(coupon => (
-                      <tr key={coupon.id}>
-                        <td className="px-4 py-2 font-mono text-sm">{coupon.codigo}</td>
-                        <td className="px-4 py-2">{coupon.nombre}</td>
-                        <td className="px-4 py-2">
-                          <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
-                            {coupon.tipo === 'porcentaje' ? 'Porcentaje' : 'Monto Fijo'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-2">
-                          {coupon.tipo === 'porcentaje' ? `${coupon.valor}%` : formatPrice(coupon.valor)}
-                        </td>
-                        <td className="px-4 py-2">
-                          <span className={`px-2 py-1 text-xs rounded ${
-                            coupon.activo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                          }`}>
-                            {coupon.activo ? 'Activo' : 'Inactivo'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-2">
-                          <div className="flex space-x-2">
-                            <button 
-                              onClick={() => handleEditCoupon(coupon)}
-                              className="text-blue-600 hover:text-blue-900"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button 
-                              onClick={() => handleDeleteCoupon(coupon.id)}
-                              className="text-red-600 hover:text-red-900"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
+                )}
+
+                <div className="card overflow-hidden">
+                  <table className="min-w-full divide-y divide-secondary-200">
+                    <thead className="bg-secondary-50">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary-500 uppercase">Nombre</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary-500 uppercase">Puntos</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary-500 uppercase">Categoría</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary-500 uppercase">Tipo</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary-500 uppercase">Valor</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary-500 uppercase">Estado</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary-500 uppercase">Acciones</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            
-            {/* Modal para Programa de Fidelización */}
-            {showProgramForm && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-                <div className="bg-white rounded-xl max-w-md w-full">
-                  <div className="p-6 border-b border-secondary-200">
-                    <h3 className="text-lg font-semibold">
-                      {editingProgram ? 'Editar Programa' : 'Nuevo Programa de Fidelización'}
-                    </h3>
-                  </div>
-                  <div className="p-6">
-                    <form onSubmit={handleProgramSubmit} className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-secondary-700 mb-1">
-                          Nombre del Programa
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={programForm.nombre}
-                          onChange={(e) => setProgramForm({...programForm, nombre: e.target.value})}
-                          className="input w-full"
-                          placeholder="Ej: Cliente VIP"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-secondary-700 mb-1">
-                          Descripción
-                        </label>
-                        <textarea
-                          required
-                          value={programForm.descripcion}
-                          onChange={(e) => setProgramForm({...programForm, descripcion: e.target.value})}
-                          className="input w-full h-20 resize-none"
-                          placeholder="Describe los beneficios del programa"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-secondary-700 mb-1">
-                          Compras Requeridas
-                        </label>
-                        <input
-                          type="number"
-                          required
-                          min="1"
-                          value={programForm.compras_requeridas}
-                          onChange={(e) => setProgramForm({...programForm, compras_requeridas: e.target.value})}
-                          className="input w-full"
-                          placeholder="Número de compras necesarias"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-secondary-700 mb-1">
-                          Recompensa
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={programForm.recompensa}
-                          onChange={(e) => setProgramForm({...programForm, recompensa: e.target.value})}
-                          className="input w-full"
-                          placeholder="Ej: 15% de descuento en la próxima compra"
-                        />
-                      </div>
-                      
-                      <div className="flex space-x-3 pt-4">
-                        <button type="submit" className="btn btn-primary flex-1">
-                          {editingProgram ? 'Actualizar' : 'Crear'} Programa
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setShowProgramForm(false)
-                            setEditingProgram(null)
-                            setProgramForm({ nombre: '', descripcion: '', compras_requeridas: '', recompensa: '' })
-                          }}
-                          className="btn btn-secondary flex-1"
-                        >
-                          Cancelar
-                        </button>
-                      </div>
-                    </form>
-                  </div>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-secondary-200">
+                      {canjes.length === 0 && <tr><td colSpan="7" className="px-4 py-8 text-center text-secondary-400">No hay canjes configurados</td></tr>}
+                      {canjes.map(c => (
+                        <tr key={c.id} className="hover:bg-secondary-50">
+                          <td className="px-4 py-3">
+                            <p className="text-sm font-medium text-secondary-800">{c.nombre}</p>
+                            {c.descripcion && <p className="text-xs text-secondary-400 truncate max-w-[180px]">{c.descripcion}</p>}
+                          </td>
+                          <td className="px-4 py-3 text-sm font-semibold text-primary-600">{c.puntos_requeridos} pts</td>
+                          <td className="px-4 py-3">
+                            <span className={`px-2 py-1 text-xs rounded-full font-medium ${
+                              c.categoria === 'platinum' ? 'bg-purple-100 text-purple-700' :
+                              c.categoria === 'gold' ? 'bg-yellow-100 text-yellow-700' :
+                              'bg-secondary-100 text-secondary-600'
+                            }`}>{c.categoria}</span>
+                          </td>
+                          <td className="px-4 py-3 text-xs text-secondary-600">{c.tipo}</td>
+                          <td className="px-4 py-3 text-sm">
+                            {c.tipo === 'porcentaje' ? `${c.valor_descuento}%` :
+                             c.tipo === 'monto_fijo' ? formatPrice(c.valor_descuento) :
+                             c.tipo === 'envio_gratis' ? 'Envío gratis' : c.tipo}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`px-2 py-1 text-xs rounded-full ${
+                              c.activo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            }`}>{c.activo ? 'Activo' : 'Inactivo'}</span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex gap-2">
+                              <button onClick={() => handleEditCanje(c)} className="text-blue-600 hover:text-blue-800"><Edit className="w-4 h-4" /></button>
+                              <button onClick={() => handleDeleteCanje(c.id)} className="text-red-500 hover:text-red-700"><Trash2 className="w-4 h-4" /></button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             )}
-            
-            {/* Modal para Cupón */}
+
+            {loyaltyTab === 'cupones' && (
+              <div className="space-y-4">
+                <div className="flex justify-end">
+                  <button onClick={() => setShowCouponForm(true)} className="btn btn-primary flex items-center gap-2">
+                    <Plus className="w-4 h-4" /> Nuevo Cupón
+                  </button>
+                </div>
+
+                <div className="card overflow-hidden">
+                  <table className="min-w-full divide-y divide-secondary-200">
+                    <thead className="bg-secondary-50">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary-500 uppercase">Código</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary-500 uppercase">Nombre</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary-500 uppercase">Tipo</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary-500 uppercase">Valor</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary-500 uppercase">Usos</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary-500 uppercase">Estado</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary-500 uppercase">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-secondary-200">
+                      {coupons.length === 0 && <tr><td colSpan="7" className="px-4 py-8 text-center text-secondary-400">No hay cupones</td></tr>}
+                      {coupons.map(coupon => (
+                        <tr key={coupon.id} className="hover:bg-secondary-50">
+                          <td className="px-4 py-3 font-mono text-sm font-semibold">{coupon.codigo}</td>
+                          <td className="px-4 py-3 text-sm">{coupon.nombre}</td>
+                          <td className="px-4 py-3">
+                            <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
+                              {coupon.tipo === 'porcentaje' ? 'Porcentaje' : 'Monto Fijo'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            {coupon.tipo === 'porcentaje' ? `${coupon.valor}%` : formatPrice(coupon.valor)}
+                          </td>
+                          <td className="px-4 py-3 text-xs text-secondary-500">
+                            {coupon.usos_actuales || 0}{coupon.usos_maximos ? `/${coupon.usos_maximos}` : ''}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`px-2 py-1 text-xs rounded ${
+                              coupon.activo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            }`}>{coupon.activo ? 'Activo' : 'Inactivo'}</span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex gap-2">
+                              <button onClick={() => handleEditCoupon(coupon)} className="text-blue-600 hover:text-blue-800"><Edit className="w-4 h-4" /></button>
+                              <button onClick={() => handleDeleteCoupon(coupon.id)} className="text-red-500 hover:text-red-700"><Trash2 className="w-4 h-4" /></button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Modal Cupón */}
             {showCouponForm && (
               <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
                 <div className="bg-white rounded-xl max-w-md w-full">

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Search, ShoppingCart, Menu, X, User, Truck } from 'lucide-react';
+import { Search, ShoppingCart, Menu, X, User, Truck, Star } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
+import LoyaltyCard from '../LoyaltyCard/LoyaltyCard';
 
 const Header = ({ onOpenCart }) => {
   const { getTotalItems } = useCart();
@@ -11,6 +12,7 @@ const Header = ({ onOpenCart }) => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showLoyalty, setShowLoyalty] = useState(false);
 
   const categories = [
     { name: 'Todos', value: 'todos', href: '/menu' },
@@ -68,6 +70,10 @@ const Header = ({ onOpenCart }) => {
           <div className="flex items-center gap-3">
             {isAuthenticated ? (
               <div className="hidden sm:flex items-center gap-3">
+                <button onClick={() => setShowLoyalty(true)} className="flex items-center gap-1.5 text-sm text-yellow-600 hover:text-yellow-700 transition-colors">
+                  <Star className="w-4 h-4 fill-yellow-400" />
+                  <span className="font-medium">Puntos</span>
+                </button>
                 <Link to="/perfil" className="flex items-center gap-1.5 text-sm text-secondary-600 hover:text-primary-600 transition-colors">
                   <User className="w-4 h-4" />
                   <span className="font-medium">{user?.name}</span>
@@ -164,6 +170,9 @@ const Header = ({ onOpenCart }) => {
             <div className="pt-3 border-t border-secondary-100 space-y-1">
               {isAuthenticated ? (
                 <>
+                  <button onClick={() => { setShowLoyalty(true); setIsMenuOpen(false) }} className="w-full flex items-center gap-2 p-3 text-yellow-600 hover:bg-yellow-50 rounded-xl text-sm transition-colors">
+                    <Star className="w-4 h-4 fill-yellow-400" /><span>Mis Puntos</span>
+                  </button>
                   <Link to="/perfil" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-2 p-3 text-secondary-600 hover:text-primary-600 hover:bg-primary-50 rounded-xl text-sm transition-colors">
                     <User className="w-4 h-4" /><span>Mi perfil</span>
                   </Link>
@@ -190,8 +199,8 @@ const Header = ({ onOpenCart }) => {
           </div>
         </div>
       )}
+      {showLoyalty && <LoyaltyCard onClose={() => setShowLoyalty(false)} />}
     </header>
   );
-};
 
 export default Header;
