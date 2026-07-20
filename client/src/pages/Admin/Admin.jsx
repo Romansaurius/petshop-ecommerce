@@ -1107,7 +1107,7 @@ const Admin = () => {
                       >
                         <h3 className="font-semibold text-secondary-800 mb-1">{section.nombre}</h3>
                         <p className="text-xs text-secondary-400">{count}/5 productos seleccionados</p>
-                        <div className="mt-3 text-xs text-primary-500 font-medium">Editar ??/div>
+                        <div className="mt-3 text-xs text-primary-500 font-medium">Editar &rarr;</div>
                       </button>
                     )
                   })}
@@ -1126,7 +1126,7 @@ const Admin = () => {
                       onClick={() => setActiveSectionId(null)}
                       className="text-sm text-secondary-500 hover:text-secondary-800 flex items-center gap-1"
                     >
-                      ??Volver
+                      &larr; Volver
                     </button>
                     <div>
                       <h2 className="text-xl font-semibold text-secondary-800">{section?.nombre}</h2>
@@ -1262,7 +1262,7 @@ const Admin = () => {
                           <td className="px-6 py-4 font-medium text-secondary-800">{z.nombre}</td>
                           <td className="px-6 py-4 text-secondary-700">{formatPrice(z.precio)}</td>
                           <td className="px-6 py-4 text-sm">
-                            {z.monto_envio_gratis ? <span className="text-green-600 font-medium">{formatPrice(z.monto_envio_gratis)}</span> : <span className="text-secondary-400">??/span>}
+                            {z.monto_envio_gratis ? <span className="text-green-600 font-medium">{formatPrice(z.monto_envio_gratis)}</span> : <span className="text-secondary-400">-</span>}
                           </td>
                           <td className="px-6 py-4 text-secondary-500 text-sm">{shippingCities.filter(c => c.shipping_zone_id === z.id).length} ciudades</td>
                           <td className="px-6 py-4">
