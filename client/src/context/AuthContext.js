@@ -35,27 +35,17 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-      
       const data = await response.json();
-      
-      if (!response.ok) {
-        return { success: false, error: data.error };
-      }
-      
-      const userData = {
-        ...data.user,
-        name: data.user.nombre
-      };
-      
+      if (!response.ok) return { success: false, error: data.error };
+      // 2FA requerido
+      if (data.requires2FA) return { success: false, requires2FA: true, userId: data.userId };
+      const userData = { ...data.user, name: data.user.nombre };
       setUser(userData);
       localStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('token', data.token);
-      
       return { success: true, user: userData };
     } catch (error) {
       return { success: false, error: 'Error de conexión' };
@@ -98,6 +88,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const loginWithToken = (token, userData) => {
+    const formatted = { ...userData, name: userData.nombre };
+    setUser(formatted);
+    localStorage.setItem('user', JSON.stringify(formatted));
+    localStorage.setItem('token', token);
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
@@ -111,6 +108,7 @@ export const AuthProvider = ({ children }) => {
       login,
       register,
       logout,
+      loginWithToken,
       isAuthenticated: !!user
     }}>
       {children}

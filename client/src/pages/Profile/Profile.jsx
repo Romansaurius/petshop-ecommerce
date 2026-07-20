@@ -36,6 +36,8 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState('resumen')
   const [canjeando, setCanjeando] = useState(null)
   const [mensaje, setMensaje] = useState(null)
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false)
+  const [toggling2fa, setToggling2fa] = useState(false)
 
   useEffect(() => {
     if (!isAuthenticated) { navigate('/login'); return }
@@ -47,13 +49,28 @@ export default function Profile() {
       fetch('/api/loyalty/perfil', { headers }).then(r => r.json()),
       fetch('/api/loyalty/canjes').then(r => r.json()),
       fetch('/api/loyalty/historial', { headers }).then(r => r.json()),
-    ]).then(([ordersData, loyalty, canjesData, historial]) => {
+      fetch('/api/auth/2fa-status', { headers }).then(r => r.json()),
+    ]).then(([ordersData, loyalty, canjesData, historial, twofa]) => {
       setOrders(Array.isArray(ordersData) ? ordersData : [])
       if (loyalty.puntos !== undefined) setLoyaltyData(loyalty)
       setCanjes(Array.isArray(canjesData) ? canjesData : [])
       setHistorialCanjes(Array.isArray(historial) ? historial : [])
+      if (twofa.two_factor_enabled !== undefined) setTwoFactorEnabled(twofa.two_factor_enabled)
     }).catch(() => {}).finally(() => setLoading(false))
   }, [user, isAuthenticated, navigate])
+
+  const handleToggle2FA = async () => {
+    setToggling2fa(true)
+    try {
+      const res = await fetch('/api/auth/toggle-2fa', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      })
+      const data = await res.json()
+      if (res.ok) setTwoFactorEnabled(data.two_factor_enabled)
+    } catch {}
+    setToggling2fa(false)
+  }
 
   const handleCanjear = async (canje) => {
     if (loyaltyData.puntos < canje.puntos_requeridos) return
@@ -206,6 +223,27 @@ export default function Profile() {
                 </div>
               </div>
             )}
+
+            {/* Seguridad - 2FA */}
+            <div className="bg-white rounded-2xl border border-gray-100 p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-gray-900">Verificación en dos pasos</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Al iniciar sesión te pediremos un código por email</p>
+                </div>
+                <button
+                  onClick={handleToggle2FA}
+                  disabled={toggling2fa}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                    twoFactorEnabled ? 'bg-primary-500' : 'bg-gray-200'
+                  }`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                    twoFactorEnabled ? 'translate-x-6' : 'translate-x-1'
+                  }`} />
+                </button>
+              </div>
+            </div>
 
             {orders.length > 0 && (
               <div className="bg-white rounded-2xl border border-gray-100 p-5">
