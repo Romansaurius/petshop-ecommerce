@@ -36,8 +36,10 @@ async function ensureDbColumns() {
     await addColumnIfNotExists('pedidos', 'costo_envio', 'DECIMAL(10,2) DEFAULT 0');
     await addColumnIfNotExists('pedidos', 'metodo_envio', "VARCHAR(100) DEFAULT ''");
     await addColumnIfNotExists('pedidos', 'cp_alerta', "VARCHAR(20) DEFAULT NULL");
+    await addColumnIfNotExists('pedidos', 'cupon_codigo', "VARCHAR(50) DEFAULT NULL");
     await addColumnIfNotExists('shipping_zones', 'monto_envio_gratis', 'DECIMAL(10,2) DEFAULT NULL');
     try { await db.execute(`ALTER TABLE detalles_pedido MODIFY COLUMN nombre_producto VARCHAR(255) DEFAULT ''`); } catch(e) {}
+    try { await db.execute(`ALTER TABLE canjes MODIFY COLUMN tipo VARCHAR(30) DEFAULT 'porcentaje'`); } catch(e) {}
     console.log('Columnas DB verificadas');
   } catch (e) {
     console.log('DB columns check error:', e.message);
@@ -96,11 +98,10 @@ async function ensureDbColumns() {
         descripcion TEXT,
         puntos_requeridos INT NOT NULL,
         categoria ENUM('normal','gold','platinum') DEFAULT 'normal',
-        tipo ENUM('producto','descuento','servicio') DEFAULT 'producto',
-        valor_descuento INT DEFAULT 0,
+        tipo VARCHAR(30) DEFAULT 'porcentaje',
+        valor_descuento DECIMAL(10,2) DEFAULT 0,
         tope_descuento DECIMAL(10,2) DEFAULT 0,
         activo BOOLEAN DEFAULT TRUE,
-        stock INT DEFAULT -1,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -138,6 +139,23 @@ async function ensureDbColumns() {
       }
     }
   } catch (e) { console.log('canjes:', e.message); }
+
+  try {
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS cupones (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        codigo VARCHAR(50) NOT NULL UNIQUE,
+        nombre VARCHAR(200) NOT NULL,
+        tipo ENUM('porcentaje','monto_fijo') DEFAULT 'monto_fijo',
+        valor DECIMAL(10,2) NOT NULL,
+        fecha_expiracion DATE DEFAULT NULL,
+        usos_maximos INT DEFAULT NULL,
+        usos_actuales INT DEFAULT 0,
+        activo BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+  } catch (e) { console.log('cupones:', e.message); }
 
   // Tablas de shipping — bloque independiente
   try {

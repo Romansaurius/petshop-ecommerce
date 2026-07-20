@@ -23,6 +23,8 @@ const Checkout = () => {
   const [shippingConfig, setShippingConfig] = useState({})
   const [discountCode, setDiscountCode] = useState('')
   const [appliedDiscount, setAppliedDiscount] = useState(0)
+  const [appliedCoupon, setAppliedCoupon] = useState(null)
+  const [couponError, setCouponError] = useState('')
   const [isProcessing, setIsProcessing] = useState(false)
   const [fieldErrors, setFieldErrors] = useState({})
   const [shippingMethod, setShippingMethod] = useState('delivery')
@@ -78,12 +80,22 @@ const Checkout = () => {
 
   const total = subtotal - discount + (shippingCost ?? 0)
 
-  const validDiscounts = { 'DESCUENTO10': 0.1, 'PETSHOP20': 0.2, 'PRIMERA5': 0.05 }
-
-  const handleApplyDiscount = () => {
-    const d = validDiscounts[discountCode.toUpperCase()]
-    if (d) setAppliedDiscount(getTotalPrice() * d)
-    else { alert('Código de descuento inválido'); setAppliedDiscount(0) }
+  const handleApplyDiscount = async () => {
+    const code = discountCode.trim().toUpperCase()
+    if (!code) return
+    setCouponError('')
+    try {
+      const res = await fetch(`/api/loyalty/validate-coupon/${code}`)
+      const data = await res.json()
+      if (!res.ok) { setCouponError(data.error || 'Cupón inválido'); setAppliedDiscount(0); setAppliedCoupon(null); return }
+      const valor = data.tipo === 'porcentaje'
+        ? getTotalPrice() * (Number(data.valor) / 100)
+        : Number(data.valor)
+      setAppliedDiscount(valor)
+      setAppliedCoupon(data)
+    } catch {
+      setCouponError('Error al verificar el cupón')
+    }
   }
 
   const handleCpBlur = async () => {
@@ -151,7 +163,8 @@ const Checkout = () => {
           metodo_envio: shippingMethod === 'pickup'
             ? 'Retiro en local'
             : `Envío a ${customerInfo.ciudad} (${selectedZone?.nombre ?? 'zona a confirmar'})`,
-          cp_alerta: ['mismatch', 'unknown'].includes(cpStatus) ? cpStatus : null
+          cp_alerta: ['mismatch', 'unknown'].includes(cpStatus) ? cpStatus : null,
+          cupon_codigo: appliedCoupon?.codigo || null
         })
       })
       const data = await res.json()
@@ -225,10 +238,13 @@ const Checkout = () => {
             <div className="card p-6">
               <h3 className="text-lg font-semibold text-secondary-800 mb-4">Código de Descuento</h3>
               <div className="flex space-x-2">
-                <input type="text" placeholder="Ingresá tu código" value={discountCode} onChange={e => setDiscountCode(e.target.value)} className="input flex-1" />
+                <input type="text" placeholder="Ingresá tu código" value={discountCode}
+                  onChange={e => { setDiscountCode(e.target.value); setCouponError(''); setAppliedDiscount(0); setAppliedCoupon(null) }}
+                  className="input flex-1" />
                 <button onClick={handleApplyDiscount} className="btn btn-secondary px-6">Aplicar</button>
               </div>
-              {appliedDiscount > 0 && <p className="text-green-600 mt-2 text-sm">Descuento aplicado: -{fmt(appliedDiscount)}</p>}
+              {couponError && <p className="text-red-500 mt-2 text-sm">{couponError}</p>}
+              {appliedCoupon && <p className="text-green-600 mt-2 text-sm">✓ {appliedCoupon.nombre} — -{fmt(appliedDiscount)}</p>}
             </div>
           </div>
 

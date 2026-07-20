@@ -9,7 +9,7 @@ const getClient = () => new MercadoPagoConfig({ accessToken: process.env.MP_ACCE
 // POST /api/payment/create
 router.post('/create', async (req, res) => {
   try {
-    const { items, customerInfo, usuario_id, costo_envio, metodo_envio, cp_alerta } = req.body;
+    const { items, customerInfo, usuario_id, costo_envio, metodo_envio, cp_alerta, cupon_codigo } = req.body;
 
     const mpItems = items.map(item => {
       const precio = parseFloat(item.precio || item.price || 0);
@@ -54,6 +54,7 @@ router.post('/create', async (req, res) => {
       costo_envio: parseFloat(costo_envio) || 0,
       metodo_envio: metodo_envio || '',
       cp_alerta: cp_alerta || null,
+      cupon_codigo: cupon_codigo || null,
       items: orderItems
     });
 
@@ -98,6 +99,11 @@ router.post('/webhook', async (req, res) => {
           "UPDATE pedidos SET estado = 'confirmado' WHERE id = ?",
           [ref.order_id]
         );
+        // Incrementar usos del cupón si aplica
+        const [[pedido]] = await db.execute('SELECT cupon_codigo FROM pedidos WHERE id = ?', [ref.order_id]);
+        if (pedido?.cupon_codigo) {
+          await db.execute('UPDATE cupones SET usos_actuales = usos_actuales + 1 WHERE codigo = ?', [pedido.cupon_codigo]);
+        }
         // Sumar puntos si tiene cuenta
         if (ref.usuario_id) {
           const puntos = Math.floor(payment.transaction_amount / 100);

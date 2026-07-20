@@ -185,4 +185,73 @@ router.put('/admin/canjes/:id', auth, async (req, res) => {
   res.json({ success: true });
 });
 
+// ADMIN - DELETE /api/loyalty/admin/canjes/:id
+router.delete('/admin/canjes/:id', auth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'No autorizado' });
+  await db.execute(`UPDATE canjes SET activo = FALSE WHERE id = ?`, [req.params.id]);
+  res.json({ success: true });
+});
+
+// ADMIN - GET /api/loyalty/coupons
+router.get('/coupons', auth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'No autorizado' });
+  try {
+    const [rows] = await db.execute(`SELECT * FROM cupones ORDER BY created_at DESC`);
+    res.json(rows);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ADMIN - POST /api/loyalty/coupons
+router.post('/coupons', auth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'No autorizado' });
+  try {
+    const { codigo, nombre, tipo, valor, fecha_expiracion, usos_maximos } = req.body;
+    const [result] = await db.execute(
+      `INSERT INTO cupones (codigo, nombre, tipo, valor, fecha_expiracion, usos_maximos) VALUES (?, ?, ?, ?, ?, ?)`,
+      [codigo, nombre, tipo, valor, fecha_expiracion || null, usos_maximos || null]
+    );
+    res.json({ id: result.insertId });
+  } catch (e) {
+    if (e.code === 'ER_DUP_ENTRY') return res.status(400).json({ error: 'El código ya existe' });
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ADMIN - PUT /api/loyalty/coupons/:id
+router.put('/coupons/:id', auth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'No autorizado' });
+  try {
+    const { codigo, nombre, tipo, valor, fecha_expiracion, usos_maximos, activo } = req.body;
+    await db.execute(
+      `UPDATE cupones SET codigo=?, nombre=?, tipo=?, valor=?, fecha_expiracion=?, usos_maximos=?, activo=? WHERE id=?`,
+      [codigo, nombre, tipo, valor, fecha_expiracion || null, usos_maximos || null, activo, req.params.id]
+    );
+    res.json({ success: true });
+  } catch (e) {
+    if (e.code === 'ER_DUP_ENTRY') return res.status(400).json({ error: 'El código ya existe' });
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ADMIN - DELETE /api/loyalty/coupons/:id
+router.delete('/coupons/:id', auth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'No autorizado' });
+  try {
+    await db.execute(`DELETE FROM cupones WHERE id = ?`, [req.params.id]);
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// PUBLIC - GET /api/loyalty/validate-coupon/:codigo
+router.get('/validate-coupon/:codigo', async (req, res) => {
+  try {
+    const [[cupon]] = await db.execute(
+      `SELECT * FROM cupones WHERE codigo = ? AND activo = TRUE AND (fecha_expiracion IS NULL OR fecha_expiracion >= CURDATE()) AND (usos_maximos IS NULL OR usos_actuales < usos_maximos)`,
+      [req.params.codigo]
+    );
+    if (!cupon) return res.status(404).json({ error: 'Cupón inválido o expirado' });
+    res.json({ valido: true, tipo: cupon.tipo, valor: cupon.valor, nombre: cupon.nombre });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 module.exports = router;
