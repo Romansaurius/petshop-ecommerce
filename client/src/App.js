@@ -12,6 +12,7 @@ import Checkout from './pages/Checkout/Checkout'
 import Admin from './pages/Admin/Admin'
 import PaymentResult from './pages/PaymentResult/PaymentResult'
 import Profile from './pages/Profile/Profile'
+import ResetPassword from './pages/ResetPassword/ResetPassword'
 import CartToast from './components/Cart/CartToast'
 import Cart from './components/Cart/Cart'
 import { useCart } from './context/CartContext'
@@ -35,6 +36,7 @@ function AppContent() {
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/perfil" element={<Profile />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/pago/exitoso" element={<PaymentResult status="success" />} />
           <Route path="/pago/fallido" element={<PaymentResult status="failure" />} />
           <Route path="/pago/pendiente" element={<PaymentResult status="pending" />} />

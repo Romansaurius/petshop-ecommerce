@@ -25,6 +25,11 @@ async function addColumnIfNotExists(table, column, definition) {
 async function ensureDbColumns() {
   try {
     await addColumnIfNotExists('usuarios', 'role', "ENUM('user','admin') DEFAULT 'user'");
+    await addColumnIfNotExists('usuarios', 'two_factor_enabled', 'BOOLEAN DEFAULT FALSE');
+    await addColumnIfNotExists('usuarios', 'two_factor_code', 'VARCHAR(6) DEFAULT NULL');
+    await addColumnIfNotExists('usuarios', 'two_factor_expires', 'DATETIME DEFAULT NULL');
+    await addColumnIfNotExists('usuarios', 'reset_token', 'VARCHAR(64) DEFAULT NULL');
+    await addColumnIfNotExists('usuarios', 'reset_token_expires', 'DATETIME DEFAULT NULL');
     await addColumnIfNotExists('usuarios', 'compras_realizadas', 'INT DEFAULT 0');
     await addColumnIfNotExists('usuarios', 'puntos', 'INT DEFAULT 0');
     await addColumnIfNotExists('usuarios', 'puntos_historicos', 'INT DEFAULT 0');
