@@ -12,10 +12,11 @@ const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
   const [relatedProducts, setRelatedProducts] = useState([])
   const [selectedTalla, setSelectedTalla] = useState(null)
   const [selectedPrecio, setSelectedPrecio] = useState(null)
+  const [descExpanded, setDescExpanded] = useState(false)
   
   useEffect(() => {
     if (product) {
-      // Si el producto tiene talles, seleccionar el primero por defecto
+      setDescExpanded(false)
       if (product.variantes && product.variantes.length > 0) {
         const sortedVariantes = [...product.variantes].sort((a, b) => {
           const orden = { 'S': 1, 'M': 2, 'L': 3, 'XL': 4, 'XXL': 5 }
@@ -249,10 +250,24 @@ const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
                 </span>
               </div>
 
-              {/* Descripción */}
-              {getProductDescription() && (
-                <p className="text-secondary-600 text-sm leading-relaxed">{getProductDescription()}</p>
-              )}
+              {/* Descripción con Ver más */}
+              {getProductDescription() && (() => {
+                const desc = getProductDescription()
+                const isLong = desc.length > 180
+                return (
+                  <div className="text-secondary-600 text-sm leading-relaxed">
+                    <p>{isLong && !descExpanded ? desc.slice(0, 180) + '...' : desc}</p>
+                    {isLong && (
+                      <button
+                        onClick={() => setDescExpanded(v => !v)}
+                        className="mt-1 text-primary-600 hover:text-primary-700 text-xs font-medium"
+                      >
+                        {descExpanded ? 'Ver menos ▲' : 'Ver más ▼'}
+                      </button>
+                    )}
+                  </div>
+                )
+              })()}
 
               {/* Selector de talles */}
               {product?.variantes && product.variantes.length > 0 && (

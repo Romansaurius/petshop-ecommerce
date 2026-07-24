@@ -132,7 +132,7 @@ const Menu = () => {
   }
 
   const getCategoryLabel = (name) => {
-    const labels = { 'todos': 'Todos', 'ofertas': 'Ofertas', '2x1': '2 x 1', 'importados': 'Importados' }
+    const labels = { 'todos': 'Todos', 'ofertas': 'Ofertas', '2x1': '2 x 1', 'importados': 'Importados', 'snacks': 'Mordedores y Snacks Naturales' }
     return labels[name] || name.charAt(0).toUpperCase() + name.slice(1)
   }
 
