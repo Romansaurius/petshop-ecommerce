@@ -86,12 +86,9 @@ const Menu = () => {
     } else if (selectedCategory === 'importados') {
       filtered = filtered.filter(p => p.tipo === 'importado')
     } else if (selectedCategory !== 'todos') {
-      const isSnacks = selectedCategory === 'snacks'
-      filtered = filtered.filter(product => {
-        const cat = (product.categoria || product.category || '')
-        if (isSnacks) return cat === 'snacks' || cat === 'Mordedores y Snacks Naturales'
-        return cat === selectedCategory
-      })
+      filtered = filtered.filter(product =>
+        (product.categoria || product.category || '') === selectedCategory
+      )
     }
 
     if (selectedBrand !== 'todas') {
@@ -129,15 +126,13 @@ const Menu = () => {
       ...cat,
       count: cat.nombre === 'todos'
         ? products.length
-        : cat.nombre === 'snacks'
-          ? products.filter(p => (p.categoria || p.category) === 'snacks' || (p.categoria || p.category) === 'Mordedores y Snacks Naturales').length
-          : products.filter(p => (p.categoria || p.category) === cat.nombre).length
+        : products.filter(p => (p.categoria || p.category) === cat.nombre).length
     }))
     return [...normalCats, ...specialCats]
   }
 
   const getCategoryLabel = (name) => {
-    const labels = { 'todos': 'Todos', 'ofertas': 'Ofertas', '2x1': '2 x 1', 'importados': 'Importados', 'snacks': 'Mordedores y Snacks Naturales' }
+    const labels = { 'todos': 'Todos', 'ofertas': 'Ofertas', '2x1': '2 x 1', 'importados': 'Importados' }
     return labels[name] || name.charAt(0).toUpperCase() + name.slice(1)
   }
 
