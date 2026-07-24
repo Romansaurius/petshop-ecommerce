@@ -781,7 +781,7 @@ const Admin = () => {
                     
                     <div>
                       <label className="block text-sm font-medium text-secondary-700 mb-1">
-                        Imágenes (máximo 5)
+                        Imágenes (máximo 10)
                       </label>
                       <input
                         type="file"
@@ -791,7 +791,7 @@ const Admin = () => {
                         className="input w-full"
                       />
                       <p className="text-xs text-secondary-500 mt-1">
-                        Puedes seleccionar hasta 5 imágenes
+                        Hasta 10 imágenes · Máx 15MB por imagen
                       </p>
                     </div>
                     

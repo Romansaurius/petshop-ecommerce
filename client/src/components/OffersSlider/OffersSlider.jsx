@@ -33,7 +33,7 @@ const slides = [
     title: 'Alimentación Natural para una Vida Mejor',
     subtitle: 'Snacks, premios y productos seleccionados por sus ingredientes naturales y beneficios reales',
     description: 'Porque lo que come tu mascota define cómo vive cada día.',
-    link: '/menu?category=accesorios',
+    link: '/menu?category=snacks',
     buttonText: 'Descubrir productos naturales',
     image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=800&auto=format&fit=crop',
     bg: 'from-primary-600 to-primary-400',

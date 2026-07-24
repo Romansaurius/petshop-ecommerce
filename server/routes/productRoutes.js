@@ -17,7 +17,7 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }
+  limits: { fileSize: 15 * 1024 * 1024 } // 15MB
 });
 
 // GET /api/products/categories - Obtener categorías
@@ -101,7 +101,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST /api/products - Crear producto (solo admin)
-router.post('/', auth, upload.array('imagenes', 5), async (req, res) => {
+router.post('/', auth, upload.array('imagenes', 10), async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Acceso denegado' });
@@ -151,7 +151,7 @@ router.post('/', auth, upload.array('imagenes', 5), async (req, res) => {
 });
 
 // PUT /api/products/:id - Actualizar producto (solo admin)
-router.put('/:id', auth, upload.array('imagenes', 5), async (req, res) => {
+router.put('/:id', auth, upload.array('imagenes', 10), async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Acceso denegado' });
