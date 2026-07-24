@@ -45,7 +45,6 @@ async function ensureDbColumns() {
     await addColumnIfNotExists('shipping_zones', 'monto_envio_gratis', 'DECIMAL(10,2) DEFAULT NULL');
     try { await db.execute(`ALTER TABLE detalles_pedido MODIFY COLUMN nombre_producto VARCHAR(255) DEFAULT ''`); } catch(e) {}
     try { await db.execute(`ALTER TABLE canjes MODIFY COLUMN tipo VARCHAR(30) DEFAULT 'porcentaje'`); } catch(e) {}
-    try { await db.execute(`UPDATE productos SET categoria = 'Mordedores y Snacks Naturales' WHERE categoria = 'snacks'`); } catch(e) {}
     console.log('Columnas DB verificadas');
   } catch (e) {
     console.log('DB columns check error:', e.message);
