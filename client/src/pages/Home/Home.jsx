@@ -156,7 +156,7 @@ const Home = () => {
           <SectionHeader
             eyebrow="Snacks · Premios · Mordedores · Nutrición premium"
             title="Nuestra Selección Natural"
-            link="/menu?category=snacks"
+            link="/menu?category=Mordedores y Snacks Naturales"
             linkLabel="Ver todos"
           />
 
