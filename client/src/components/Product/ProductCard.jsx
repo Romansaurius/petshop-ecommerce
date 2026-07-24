@@ -104,6 +104,7 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
             <ProductImageGallery 
               images={getProductImages()}
               productName={getProductName()}
+              imagenConfig={product.imagen_config}
               className="w-full h-full rounded-xl"
             />
             
@@ -200,6 +201,7 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
           <ProductImageGallery
             images={getProductImages()}
             productName={getProductName()}
+            imagenConfig={product.imagen_config}
             className="w-full h-52"
           />
 

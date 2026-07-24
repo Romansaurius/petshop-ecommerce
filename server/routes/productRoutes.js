@@ -128,7 +128,8 @@ router.post('/', auth, upload.array('imagenes', 10), async (req, res) => {
       descuento_porcentaje: req.body.descuento_porcentaje || 0,
       stock: req.body.stock || 100,
       sku,
-      tipo: req.body.tipo || 'normal'
+      tipo: req.body.tipo || 'normal',
+      imagen_config: req.body.imagen_config || 'cover|center'
     };
     
     // Parsear variantes de talles
@@ -166,7 +167,8 @@ router.put('/:id', auth, upload.array('imagenes', 10), async (req, res) => {
       marca: req.body.marca,
       destacado: req.body.destacado === 'true',
       descuento_porcentaje: req.body.descuento_porcentaje || 0,
-      stock: req.body.stock
+      stock: req.body.stock,
+      imagen_config: req.body.imagen_config || 'cover|center'
     };
     
     // Parsear variantes de talles
