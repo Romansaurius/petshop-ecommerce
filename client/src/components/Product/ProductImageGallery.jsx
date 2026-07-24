@@ -1,8 +1,14 @@
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-const ProductImageGallery = ({ images = [], productName, className = "" }) => {
+const ProductImageGallery = ({ images = [], productName, className = "", imagenConfig = 'cover|center' }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const [fit, position] = (imagenConfig || 'cover|center').split('|');
+  const objectFit = fit || 'cover';
+  const objectPosition = position || 'center';
+
+  const imgStyle = { objectFit, objectPosition };
 
   if (!images || images.length === 0) {
     return (
@@ -15,7 +21,7 @@ const ProductImageGallery = ({ images = [], productName, className = "" }) => {
   if (images.length === 1) {
     return (
       <div className={`relative overflow-hidden ${className}`}>
-        <img src={images[0]} alt={productName} className="w-full h-full object-cover" />
+        <img src={images[0]} alt={productName} className="w-full h-full" style={imgStyle} />
       </div>
     );
   }
@@ -35,7 +41,8 @@ const ProductImageGallery = ({ images = [], productName, className = "" }) => {
       <img
         src={images[currentImageIndex]}
         alt={`${productName} - ${currentImageIndex + 1}`}
-        className="w-full h-full object-cover transition-opacity duration-300"
+        className="w-full h-full transition-opacity duration-300"
+        style={imgStyle}
       />
 
       <button

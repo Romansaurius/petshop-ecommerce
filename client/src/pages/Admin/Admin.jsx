@@ -46,7 +46,8 @@ const Admin = () => {
     tipo: 'normal',
     esProductoPorTalles: false,
     tallesSeleccionados: { S: false, M: false, L: false, XL: false, XXL: false },
-    preciosTalles: { S: '', M: '', L: '', XL: '', XXL: '' }
+    preciosTalles: { S: '', M: '', L: '', XL: '', XXL: '' },
+    imagen_config: 'cover|center'
   })
   const [brands, setBrands] = useState([])
   const [categories, setCategories] = useState([])
@@ -280,6 +281,7 @@ const Admin = () => {
     formData.append('descuento_porcentaje', productForm.discount || 0)
     formData.append('stock', productForm.stock || 100)
     formData.append('tipo', productForm.tipo || 'normal')
+    formData.append('imagen_config', productForm.imagen_config || 'cover|center')
     
     // Procesar variantes de talles
     if (productForm.esProductoPorTalles) {
@@ -320,7 +322,7 @@ const Admin = () => {
       
       if (response.ok) {
         loadProducts()
-        setProductForm({ name: '', price: '', category: categories[0]?.nombre || '', brand: '', description: '', image: null, featured: false, discount: 0, stock: 100, tipo: 'normal', esProductoPorTalles: false, tallesSeleccionados: { S: false, M: false, L: false, XL: false, XXL: false }, preciosTalles: { S: '', M: '', L: '', XL: '', XXL: '' } })
+        setProductForm({ name: '', price: '', category: categories[0]?.nombre || '', brand: '', description: '', image: null, featured: false, discount: 0, stock: 100, tipo: 'normal', esProductoPorTalles: false, tallesSeleccionados: { S: false, M: false, L: false, XL: false, XXL: false }, preciosTalles: { S: '', M: '', L: '', XL: '', XXL: '' }, imagen_config: 'cover|center' })
         setEditingProduct(null)
         setShowProductForm(false)
       } else {
@@ -360,7 +362,8 @@ const Admin = () => {
       tipo: product.tipo || 'normal',
       esProductoPorTalles: product.tiene_talles || false,
       tallesSeleccionados,
-      preciosTalles
+      preciosTalles,
+      imagen_config: product.imagen_config || 'cover|center'
     })
     setShowProductForm(true)
   }
@@ -794,6 +797,68 @@ const Admin = () => {
                         Hasta 10 imágenes · Máx 15MB por imagen
                       </p>
                     </div>
+
+                    {/* Config de imagen */}
+                    <div>
+                      <label className="block text-sm font-medium text-secondary-700 mb-2">Ajuste de imagen</label>
+                      <div className="space-y-3 p-3 bg-secondary-50 rounded-xl">
+                        <div>
+                          <p className="text-xs text-secondary-500 mb-1.5">Recorte</p>
+                          <div className="flex gap-2">
+                            {[['cover','Recortar'],['contain','Completa'],['fill','Estirar']].map(([val, label]) => (
+                              <button key={val} type="button"
+                                onClick={() => {
+                                  const pos = (productForm.imagen_config || 'cover|center').split('|')[1] || 'center'
+                                  setProductForm({...productForm, imagen_config: `${val}|${pos}`})
+                                }}
+                                className={`flex-1 py-1.5 text-xs rounded-lg border-2 font-medium transition-all ${
+                                  (productForm.imagen_config || 'cover|center').split('|')[0] === val
+                                    ? 'border-primary-500 bg-primary-50 text-primary-700'
+                                    : 'border-secondary-200 text-secondary-600'
+                                }`}>
+                                {label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-xs text-secondary-500 mb-1.5">Posición</p>
+                          <div className="grid grid-cols-3 gap-1.5">
+                            {[['top left','↖'],['top center','↑'],['top right','↗'],['center left','←'],['center','·'],['center right','→'],['bottom left','↙'],['bottom center','↓'],['bottom right','↘']].map(([val, icon]) => (
+                              <button key={val} type="button"
+                                onClick={() => {
+                                  const fit = (productForm.imagen_config || 'cover|center').split('|')[0] || 'cover'
+                                  setProductForm({...productForm, imagen_config: `${fit}|${val}`})
+                                }}
+                                className={`py-1.5 text-sm rounded-lg border-2 transition-all ${
+                                  (productForm.imagen_config || 'cover|center').split('|')[1] === val
+                                    ? 'border-primary-500 bg-primary-50'
+                                    : 'border-secondary-200 hover:border-secondary-300'
+                                }`}>
+                                {icon}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        {/* Preview */}
+                        {(productForm.image?.[0] || (editingProduct?.imagenes && JSON.parse(editingProduct.imagenes || '[]')[0]) || editingProduct?.imagen) && (
+                          <div>
+                            <p className="text-xs text-secondary-500 mb-1.5">Preview</p>
+                            <div className="w-full h-32 rounded-lg overflow-hidden border border-secondary-200 bg-secondary-100">
+                              <img
+                                src={productForm.image?.[0] ? URL.createObjectURL(productForm.image[0]) : (JSON.parse(editingProduct?.imagenes || '[]')[0] || editingProduct?.imagen)}
+                                alt="preview"
+                                className="w-full h-full"
+                                style={{
+                                  objectFit: (productForm.imagen_config || 'cover|center').split('|')[0],
+                                  objectPosition: (productForm.imagen_config || 'cover|center').split('|')[1]
+                                }}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -875,7 +940,7 @@ const Admin = () => {
                          onClick={() => {
                            setShowProductForm(false)
                            setEditingProduct(null)
-                           setProductForm({ name: '', price: '', category: 'comederos', description: '', image: null, featured: false, discount: 0, stock: 100, tipo: 'normal', esProductoPorTalles: false, tallesSeleccionados: { S: false, M: false, L: false, XL: false, XXL: false }, preciosTalles: { S: '', M: '', L: '', XL: '', XXL: '' } })
+                           setProductForm({ name: '', price: '', category: 'comederos', description: '', image: null, featured: false, discount: 0, stock: 100, tipo: 'normal', esProductoPorTalles: false, tallesSeleccionados: { S: false, M: false, L: false, XL: false, XXL: false }, preciosTalles: { S: '', M: '', L: '', XL: '', XXL: '' }, imagen_config: 'cover|center' })
                          }}
                          className="btn btn-secondary flex-1"
                        >
