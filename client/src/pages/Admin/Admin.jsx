@@ -841,22 +841,31 @@ const Admin = () => {
                           </div>
                         </div>
                         {/* Preview */}
-                        {(productForm.image?.[0] || (editingProduct?.imagenes && JSON.parse(editingProduct.imagenes || '[]')[0]) || editingProduct?.imagen) && (
-                          <div>
-                            <p className="text-xs text-secondary-500 mb-1.5">Preview</p>
-                            <div className="w-full h-32 rounded-lg overflow-hidden border border-secondary-200 bg-secondary-100">
-                              <img
-                                src={productForm.image?.[0] ? URL.createObjectURL(productForm.image[0]) : (JSON.parse(editingProduct?.imagenes || '[]')[0] || editingProduct?.imagen)}
-                                alt="preview"
-                                className="w-full h-full"
-                                style={{
-                                  objectFit: (productForm.imagen_config || 'cover|center').split('|')[0],
-                                  objectPosition: (productForm.imagen_config || 'cover|center').split('|')[1]
-                                }}
-                              />
+                        {(productForm.image?.[0] || editingProduct) && (() => {
+                          let previewSrc = null
+                          if (productForm.image?.[0]) {
+                            previewSrc = URL.createObjectURL(productForm.image[0])
+                          } else if (editingProduct) {
+                            try {
+                              const imgs = typeof editingProduct.imagenes === 'string' ? JSON.parse(editingProduct.imagenes) : editingProduct.imagenes
+                              previewSrc = Array.isArray(imgs) && imgs.length > 0 ? imgs[0] : editingProduct.imagen
+                            } catch { previewSrc = editingProduct.imagen }
+                          }
+                          if (!previewSrc) return null
+                          return (
+                            <div>
+                              <p className="text-xs text-secondary-500 mb-1.5">Preview</p>
+                              <div className="w-full h-32 rounded-lg overflow-hidden border border-secondary-200 bg-secondary-100">
+                                <img src={previewSrc} alt="preview" className="w-full h-full"
+                                  style={{
+                                    objectFit: (productForm.imagen_config || 'cover|center').split('|')[0],
+                                    objectPosition: (productForm.imagen_config || 'cover|center').split('|')[1]
+                                  }}
+                                />
+                              </div>
                             </div>
-                          </div>
-                        )}
+                          )
+                        })()}
                       </div>
                     </div>
                     
