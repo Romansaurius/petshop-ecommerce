@@ -61,6 +61,7 @@ const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
 
   const images = getProductImages()
   const is2x1 = getProductTipo() === '2x1'
+  const [imgFit, imgPos] = (product?.imagen_config || 'contain|center').split('|')
   const RECOMMENDED_IDS = [1, 2, 3, 4, 5]
   const recommendedProducts = allProducts.filter(p => RECOMMENDED_IDS.includes(p.id)).slice(0, 5)
   
@@ -136,7 +137,8 @@ const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
                   <img
                     src={images[selectedImage]}
                     alt={`${getProductName()} ${selectedImage + 1}`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full"
+                    style={{ objectFit: imgFit || 'contain', objectPosition: imgPos || 'center' }}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-secondary-100">
@@ -182,7 +184,7 @@ const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
                         selectedImage === index ? 'border-primary-500 shadow-md' : 'border-secondary-200 hover:border-secondary-400'
                       }`}
                     >
-                      <img src={img} alt={`miniatura ${index + 1}`} className="w-full h-full object-cover" />
+                      <img src={img} alt={`miniatura ${index + 1}`} className="w-full h-full" style={{ objectFit: imgFit || 'contain', objectPosition: imgPos || 'center' }} />
                     </button>
                   ))}
                 </div>
