@@ -47,7 +47,7 @@ const Admin = () => {
     esProductoPorTalles: false,
     tallesSeleccionados: { S: false, M: false, L: false, XL: false, XXL: false },
     preciosTalles: { S: '', M: '', L: '', XL: '', XXL: '' },
-    imagen_config: 'cover|center'
+    imagen_config: 'contain|center'
   })
   const [brands, setBrands] = useState([])
   const [categories, setCategories] = useState([])
@@ -281,7 +281,7 @@ const Admin = () => {
     formData.append('descuento_porcentaje', productForm.discount || 0)
     formData.append('stock', productForm.stock || 100)
     formData.append('tipo', productForm.tipo || 'normal')
-    formData.append('imagen_config', productForm.imagen_config || 'cover|center')
+    formData.append('imagen_config', productForm.imagen_config || 'contain|center')
     
     // Procesar variantes de talles
     if (productForm.esProductoPorTalles) {
@@ -322,7 +322,7 @@ const Admin = () => {
       
       if (response.ok) {
         loadProducts()
-        setProductForm({ name: '', price: '', category: categories[0]?.nombre || '', brand: '', description: '', image: null, featured: false, discount: 0, stock: 100, tipo: 'normal', esProductoPorTalles: false, tallesSeleccionados: { S: false, M: false, L: false, XL: false, XXL: false }, preciosTalles: { S: '', M: '', L: '', XL: '', XXL: '' }, imagen_config: 'cover|center' })
+        setProductForm({ name: '', price: '', category: categories[0]?.nombre || '', brand: '', description: '', image: null, featured: false, discount: 0, stock: 100, tipo: 'normal', esProductoPorTalles: false, tallesSeleccionados: { S: false, M: false, L: false, XL: false, XXL: false }, preciosTalles: { S: '', M: '', L: '', XL: '', XXL: '' }, imagen_config: 'contain|center' })
         setEditingProduct(null)
         setShowProductForm(false)
       } else {
@@ -363,7 +363,7 @@ const Admin = () => {
       esProductoPorTalles: product.tiene_talles || false,
       tallesSeleccionados,
       preciosTalles,
-      imagen_config: product.imagen_config || 'cover|center'
+      imagen_config: product.imagen_config || 'contain|center'
     })
     setShowProductForm(true)
   }
@@ -808,11 +808,11 @@ const Admin = () => {
                             {[['cover','Recortar'],['contain','Completa'],['fill','Estirar']].map(([val, label]) => (
                               <button key={val} type="button"
                                 onClick={() => {
-                                  const pos = (productForm.imagen_config || 'cover|center').split('|')[1] || 'center'
+                                  const pos = (productForm.imagen_config || 'contain|center').split('|')[1] || 'center'
                                   setProductForm({...productForm, imagen_config: `${val}|${pos}`})
                                 }}
                                 className={`flex-1 py-1.5 text-xs rounded-lg border-2 font-medium transition-all ${
-                                  (productForm.imagen_config || 'cover|center').split('|')[0] === val
+                                  (productForm.imagen_config || 'contain|center').split('|')[0] === val
                                     ? 'border-primary-500 bg-primary-50 text-primary-700'
                                     : 'border-secondary-200 text-secondary-600'
                                 }`}>
@@ -827,11 +827,11 @@ const Admin = () => {
                             {[['top left','↖'],['top center','↑'],['top right','↗'],['center left','←'],['center','·'],['center right','→'],['bottom left','↙'],['bottom center','↓'],['bottom right','↘']].map(([val, icon]) => (
                               <button key={val} type="button"
                                 onClick={() => {
-                                  const fit = (productForm.imagen_config || 'cover|center').split('|')[0] || 'cover'
+                                  const fit = (productForm.imagen_config || 'contain|center').split('|')[0] || 'contain'
                                   setProductForm({...productForm, imagen_config: `${fit}|${val}`})
                                 }}
                                 className={`py-1.5 text-sm rounded-lg border-2 transition-all ${
-                                  (productForm.imagen_config || 'cover|center').split('|')[1] === val
+                                  (productForm.imagen_config || 'contain|center').split('|')[1] === val
                                     ? 'border-primary-500 bg-primary-50'
                                     : 'border-secondary-200 hover:border-secondary-300'
                                 }`}>
@@ -858,8 +858,8 @@ const Admin = () => {
                               <div className="w-full h-32 rounded-lg overflow-hidden border border-secondary-200 bg-secondary-100">
                                 <img src={previewSrc} alt="preview" className="w-full h-full"
                                   style={{
-                                    objectFit: (productForm.imagen_config || 'cover|center').split('|')[0],
-                                    objectPosition: (productForm.imagen_config || 'cover|center').split('|')[1]
+                                    objectFit: (productForm.imagen_config || 'contain|center').split('|')[0],
+                                    objectPosition: (productForm.imagen_config || 'contain|center').split('|')[1]
                                   }}
                                 />
                               </div>
@@ -949,7 +949,7 @@ const Admin = () => {
                          onClick={() => {
                            setShowProductForm(false)
                            setEditingProduct(null)
-                           setProductForm({ name: '', price: '', category: 'comederos', description: '', image: null, featured: false, discount: 0, stock: 100, tipo: 'normal', esProductoPorTalles: false, tallesSeleccionados: { S: false, M: false, L: false, XL: false, XXL: false }, preciosTalles: { S: '', M: '', L: '', XL: '', XXL: '' }, imagen_config: 'cover|center' })
+                           setProductForm({ name: '', price: '', category: 'comederos', description: '', image: null, featured: false, discount: 0, stock: 100, tipo: 'normal', esProductoPorTalles: false, tallesSeleccionados: { S: false, M: false, L: false, XL: false, XXL: false }, preciosTalles: { S: '', M: '', L: '', XL: '', XXL: '' }, imagen_config: 'contain|center' })
                          }}
                          className="btn btn-secondary flex-1"
                        >
