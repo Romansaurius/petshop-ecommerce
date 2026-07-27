@@ -79,10 +79,8 @@ const Menu = () => {
     let filtered = products
 
     if (selectedCategory === 'ofertas') {
-      filtered = filtered.filter(p => (p.descuento_porcentaje || p.discount || 0) > 0)
+      filtered = filtered.filter(p => (p.descuento_porcentaje || p.discount || 0) >= 40 || p.tipo === '2x1')
         .sort((a, b) => (b.descuento_porcentaje || b.discount || 0) - (a.descuento_porcentaje || a.discount || 0))
-    } else if (selectedCategory === '2x1') {
-      filtered = filtered.filter(p => p.tipo === '2x1')
     } else if (selectedCategory === 'importados') {
       filtered = filtered.filter(p => p.tipo === 'importado')
     } else if (selectedCategory !== 'todos') {
@@ -118,8 +116,7 @@ const Menu = () => {
 
   const getCategoryStats = () => {
     const specialCats = [
-      { id: 'ofertas', nombre: 'ofertas', count: products.filter(p => (p.descuento_porcentaje || p.discount || 0) > 0).length },
-      { id: '2x1', nombre: '2x1', count: products.filter(p => p.tipo === '2x1').length },
+      { id: 'ofertas', nombre: 'ofertas', count: products.filter(p => (p.descuento_porcentaje || p.discount || 0) >= 40 || p.tipo === '2x1').length },
       { id: 'importados', nombre: 'importados', count: products.filter(p => p.tipo === 'importado').length },
     ]
     const normalCats = categories.map(cat => ({
@@ -132,7 +129,7 @@ const Menu = () => {
   }
 
   const getCategoryLabel = (name) => {
-    const labels = { 'todos': 'Todos', 'ofertas': 'Ofertas', '2x1': '2 x 1', 'importados': 'Importados' }
+    const labels = { 'todos': 'Todos', 'ofertas': 'Promo Lanzamientos', 'importados': 'Importados' }
     return labels[name] || name.charAt(0).toUpperCase() + name.slice(1)
   }
 
