@@ -69,9 +69,7 @@ const ProductSlider = ({ products, loading, emptyMsg, allProducts, addToCart }) 
     return () => el?.removeEventListener('scroll', checkScroll)
   }, [products])
 
-  const scroll = (dir) => {
-    ref.current?.scrollBy({ left: dir * 280, behavior: 'smooth' })
-  }
+  const scroll = (dir) => ref.current?.scrollBy({ left: dir * 280, behavior: 'smooth' })
 
   if (loading) return <SkeletonSlider />
   if (!products.length) return <p className="text-center py-10 text-secondary-400 text-sm">{emptyMsg}</p>
@@ -125,15 +123,15 @@ const Home = () => {
     return fallback
   }
 
-  const promos2x1  = allProducts.filter(p => p.tipo === '2x1')
-  const promos50   = allProducts.filter(p => (p.descuento_porcentaje || 0) >= 50)
+  const promos2x1 = allProducts.filter(p => p.tipo === '2x1')
+  const promos50  = allProducts.filter(p => (p.descuento_porcentaje || 0) >= 50)
 
   const lanzamientosFallback = [...promos2x1, ...promos50]
     .filter((p, i, arr) => arr.findIndex(x => x.id === p.id) === i).slice(0, 10)
   const lanzamientos = getSectionProducts('lanzamientos', lanzamientosFallback)
 
   const naturalFallback = allProducts
-    .filter(p => ['accesorios', 'snacks', 'premios', 'natural'].some(k => (p.categoria || '').toLowerCase().includes(k)))
+    .filter(p => ['snacks', 'premios', 'natural', 'mordedor'].some(k => (p.categoria || '').toLowerCase().includes(k)))
     .slice(0, 10)
   const naturalProducts = getSectionProducts('natural', naturalFallback.length ? naturalFallback : allProducts.slice(0, 10))
 
@@ -161,7 +159,7 @@ const Home = () => {
           <SectionHeader
             eyebrow="Promo apertura · Tiempo limitado"
             title="Lanzamientos Exclusivos"
-            link="/menu?ofertas=true"
+            link="/menu?filter=ofertas"
             linkLabel="Ver ofertas"
           />
           <ProductSlider
@@ -183,7 +181,7 @@ const Home = () => {
           <SectionHeader
             eyebrow="Snacks · Premios · Mordedores · Nutrición premium"
             title="Nuestra Selección Natural"
-            link="/menu?category=Mordedores y Snacks Naturales"
+            link="/menu?category=Snacks Naturales"
             linkLabel="Ver todos"
           />
           <ProductSlider
@@ -222,7 +220,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ── 4. JUGUETES PREMIUM ── */}
+      {/* ── 4. JUGUETES ── */}
       <section className="py-14 border-t border-secondary-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader
@@ -274,21 +272,9 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             {[
-              {
-                emoji: '🚚',
-                title: 'Envíos rápidos y seguros',
-                desc: 'Entrega confiable a Malvinas Argentinas, Pilar, San Isidro y alrededores. Envío gratis a partir de $35.000.'
-              },
-              {
-                emoji: '🌿',
-                title: 'Alimentación Natural',
-                desc: 'Productos cuidadosamente seleccionados para ofrecer ingredientes naturales, bienestar y una alimentación de calidad para perros y gatos.'
-              },
-              {
-                emoji: '🛏️',
-                title: 'Comodidad y Diversión',
-                desc: 'Encontrá camas premium, juguetes y accesorios pensados para acompañar cada etapa de la vida de tu mascota con calidad y amor.'
-              },
+              { emoji: '🚚', title: 'Envíos rápidos y seguros', desc: 'Entrega confiable a Malvinas Argentinas, Pilar, San Isidro y alrededores. Envío gratis a partir de $35.000.' },
+              { emoji: '🌿', title: 'Alimentación Natural', desc: 'Productos cuidadosamente seleccionados para ofrecer ingredientes naturales, bienestar y una alimentación de calidad para perros y gatos.' },
+              { emoji: '🛏️', title: 'Comodidad y Diversión', desc: 'Encontrá camas premium, juguetes y accesorios pensados para acompañar cada etapa de la vida de tu mascota con calidad y amor.' },
             ].map(f => (
               <div key={f.title}>
                 <div className="w-12 h-12 bg-white border border-secondary-100 rounded-2xl flex items-center justify-center mx-auto mb-3 text-xl shadow-sm">

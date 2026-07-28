@@ -85,6 +85,7 @@ async function ensureDbColumns() {
       try {
         await db.execute(`INSERT IGNORE INTO home_secciones (clave, nombre, orden) VALUES ('destacados', 'Productos Destacados', 5)`);
       } catch(e) {}
+    }
   } catch (e) { console.log('home_secciones:', e.message); }
 
   try {

@@ -16,12 +16,14 @@ const Header = ({ onOpenCart }) => {
 
   const categories = [
     { name: 'Todos', value: 'todos', href: '/menu' },
-    { name: 'Comederos', value: 'comederos', href: '/menu?category=comederos' },
+    { name: 'Promos de Lanzamiento', value: 'ofertas', href: '/menu?filter=ofertas' },
+    { name: 'Snacks Naturales', value: 'Snacks Naturales', href: '/menu?category=Snacks Naturales' },
     { name: 'Juguetes', value: 'juguetes', href: '/menu?category=juguetes' },
-    { name: 'Camas', value: 'camas', href: '/menu?category=camas' },
-    { name: 'Collares', value: 'collares', href: '/menu?category=collares' },
-    { name: 'Rascadores', value: 'rascadores', href: '/menu?category=rascadores' },
+    { name: 'Comederos y Bebederos', value: 'Comederos y Bebederos', href: '/menu?category=Comederos y Bebederos' },
     { name: 'Accesorios', value: 'accesorios', href: '/menu?category=accesorios' },
+    { name: 'Camas', value: 'camas', href: '/menu?category=camas' },
+    { name: 'Rascadores', value: 'rascadores', href: '/menu?category=rascadores' },
+    { name: 'Otros', value: 'otros', href: '/menu?category=otros' },
   ];
 
   const handleSearch = (e) => {
@@ -120,8 +122,9 @@ const Header = ({ onOpenCart }) => {
         <nav className="hidden md:flex gap-1 py-3 border-t border-secondary-100">
           {categories.map((cat) => {
             const params = new URLSearchParams(location.search);
+            const catParam = params.get('category') || params.get('filter');
             const isActive = location.pathname === '/menu' &&
-              (params.get('category') === cat.value || (!params.get('category') && cat.value === 'todos'));
+              (catParam === cat.value || (!catParam && cat.value === 'todos'));
             return (
               <Link
                 key={cat.value}
