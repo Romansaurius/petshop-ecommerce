@@ -189,8 +189,8 @@ class Product {
       const imagenPrincipal = imagenes && imagenes.length > 0 ? imagenes[0] : null;
       
       const [result] = await db.execute(`
-        INSERT INTO productos (nombre, descripcion, precio, categoria_id, marca_id, imagen, imagenes, destacado, descuento_porcentaje, stock, sku, tipo, imagen_config, activo)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+        INSERT INTO productos (nombre, descripcion, precio, categoria_id, marca_id, imagen, imagenes, destacado, descuento_porcentaje, stock, sku, tipo, imagen_config, promo_lanzamiento, activo)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
       `, [
         nombre,
         descripcion || '',
@@ -204,7 +204,8 @@ class Product {
         parseInt(stock) || 100,
         sku || null,
         tipo || 'normal',
-        productData.imagen_config || 'cover|center'
+        productData.imagen_config || 'cover|center',
+        productData.promo_lanzamiento ? 1 : 0
       ]);
       
       console.log(`✅ Producto creado con ID: ${result.insertId}, SKU: ${sku}`);
@@ -278,6 +279,11 @@ class Product {
         const imagenPrincipal = imagenes[0];
         query += ', imagen = ?, imagenes = ?';
         params.push(imagenPrincipal, imagenesJson);
+      }
+
+      if (productData.promo_lanzamiento !== undefined) {
+        query += ', promo_lanzamiento = ?';
+        params.push(productData.promo_lanzamiento ? 1 : 0);
       }
 
       if (productData.imagen_config !== undefined) {

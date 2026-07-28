@@ -30,42 +30,34 @@ const Menu = () => {
     const loadProducts = async () => {
       try {
         setLoading(true)
-        const response = await fetch('/api/products')
-        const data = await response.json()
+        const data = await fetch('/api/products').then(r => r.json())
         setProducts(data)
-        setFilteredProducts(data)
-      } catch (error) {
-        console.error('Error cargando productos:', error)
+      } catch (e) {
+        console.error(e)
       } finally {
         setLoading(false)
       }
     }
-
     const loadBrands = async () => {
       try {
-        const response = await fetch('/api/products/brands')
-        const data = await response.json()
+        const data = await fetch('/api/products/brands').then(r => r.json())
         setBrands([{ id: 0, nombre: 'todas' }, ...data])
-      } catch (error) {
-        console.error('Error cargando marcas:', error)
-      }
+      } catch (e) {}
     }
-
     loadProducts()
     loadBrands()
   }, [])
 
   useEffect(() => {
-    let filtered = products
+    let filtered = [...products]
 
     if (selectedCategory === 'ofertas') {
-      filtered = filtered.filter(p => (p.descuento_porcentaje || p.discount || 0) >= 40 || p.tipo === '2x1')
-        .sort((a, b) => (b.descuento_porcentaje || b.discount || 0) - (a.descuento_porcentaje || a.discount || 0))
+      filtered = filtered.filter(p => p.promo_lanzamiento)
     } else if (selectedCategory === 'importados') {
       filtered = filtered.filter(p => p.tipo === 'importado')
     } else if (selectedCategory !== 'todos') {
       filtered = filtered.filter(p =>
-        (p.categoria || p.category || '') === selectedCategory
+        (p.categoria || p.category || '').toLowerCase() === selectedCategory.toLowerCase()
       )
     }
 
@@ -74,18 +66,24 @@ const Menu = () => {
     }
 
     if (searchTerm) {
+      const q = searchTerm.toLowerCase()
       filtered = filtered.filter(p =>
-        (p.nombre || p.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (p.descripcion || p.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (p.marca || p.brand || '').toLowerCase().includes(searchTerm.toLowerCase())
+        (p.nombre || p.name || '').toLowerCase().includes(q) ||
+        (p.descripcion || p.description || '').toLowerCase().includes(q) ||
+        (p.marca || p.brand || '').toLowerCase().includes(q)
       )
     }
 
-    filtered = [...filtered].sort((a, b) => {
-      if (sortBy === 'price-asc') return (a.precio || a.price || 0) - (b.precio || b.price || 0)
-      if (sortBy === 'price-desc') return (b.precio || b.price || 0) - (a.precio || a.price || 0)
-      if (sortBy === 'featured') return ((b.destacado || b.featured) ? 1 : 0) - ((a.destacado || a.featured) ? 1 : 0)
-      return (a.nombre || a.name || '').localeCompare(b.nombre || b.name || '')
+    filtered.sort((a, b) => {
+      if (sortBy === 'price-asc') return (a.precio || 0) - (b.precio || 0)
+      if (sortBy === 'price-desc') return (b.precio || 0) - (a.precio || 0)
+      if (sortBy === 'discount') {
+        const da = a.tipo === '2x1' ? 999 : (a.descuento_porcentaje || 0)
+        const db = b.tipo === '2x1' ? 999 : (b.descuento_porcentaje || 0)
+        return db - da
+      }
+      if (sortBy === 'featured') return (b.destacado ? 1 : 0) - (a.destacado ? 1 : 0)
+      return (a.nombre || '').localeCompare(b.nombre || '')
     })
 
     setFilteredProducts(filtered)
@@ -95,77 +93,80 @@ const Menu = () => {
     return (
       <div className="py-20 text-center">
         <div className="w-10 h-10 border-4 border-primary-200 border-t-primary-500 rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-secondary-500">Cargando productos...</p>
+        <p className="text-secondary-500 text-sm">Cargando productos...</p>
       </div>
     )
   }
 
   return (
-    <div className="py-8 bg-gradient-to-b from-secondary-50 to-white">
+    <div className="py-6 bg-gradient-to-b from-secondary-50 to-white min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Header */}
-        <div className="mb-8">
-          <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1">Catálogo</p>
+        <div className="mb-5">
+          <p className="text-xs font-semibold uppercase tracking-widest text-secondary-400 mb-0.5">Catálogo</p>
           <div className="flex items-end justify-between">
-            <h1 className="text-3xl font-bold text-secondary-800">Productos para mascotas</h1>
-            <span className="text-sm text-secondary-400">{filteredProducts.length} productos</span>
+            <h1 className="text-2xl font-bold text-secondary-800">Productos</h1>
+            <span className="text-xs text-secondary-400">{filteredProducts.length} resultados</span>
           </div>
         </div>
 
-        {/* Controles: búsqueda + marca + orden + vista */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-8">
+        {/* Controles */}
+        <div className="space-y-2 mb-6">
           <input
             type="text"
             placeholder="Buscar por nombre, descripción o marca..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1 px-4 py-3 border-2 border-secondary-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-sm"
+            className="w-full px-4 py-3 border-2 border-secondary-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-sm"
           />
 
-          <select
-            value={selectedBrand}
-            onChange={(e) => setSelectedBrand(e.target.value)}
-            className="px-4 py-3 border-2 border-secondary-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white text-sm min-w-[160px]"
-          >
-            {brands.map(brand => (
-              <option key={brand.id} value={brand.nombre}>
-                {brand.nombre === 'todas' ? 'Todas las marcas' : brand.nombre}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="px-4 py-3 border-2 border-secondary-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white text-sm min-w-[180px]"
-          >
-            <option value="name">Nombre A-Z</option>
-            <option value="price-asc">Precio: menor a mayor</option>
-            <option value="price-desc">Precio: mayor a menor</option>
-            <option value="featured">Destacados primero</option>
-          </select>
-
-          <div className="flex bg-white border-2 border-secondary-200 rounded-xl p-1 shrink-0">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`p-2 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-primary-500 text-white' : 'text-secondary-600 hover:bg-secondary-100'}`}
+          <div className="flex gap-2">
+            <select
+              value={selectedBrand}
+              onChange={(e) => setSelectedBrand(e.target.value)}
+              className="flex-1 min-w-0 px-3 py-2.5 border-2 border-secondary-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white text-sm"
             >
-              <Grid className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`p-2 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-primary-500 text-white' : 'text-secondary-600 hover:bg-secondary-100'}`}
+              {brands.map(b => (
+                <option key={b.id} value={b.nombre}>
+                  {b.nombre === 'todas' ? 'Todas las marcas' : b.nombre}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="flex-1 min-w-0 px-3 py-2.5 border-2 border-secondary-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white text-sm"
             >
-              <List className="w-5 h-5" />
-            </button>
+              <option value="name">Nombre A-Z</option>
+              <option value="price-asc">Menor precio</option>
+              <option value="price-desc">Mayor precio</option>
+              <option value="discount">Mayor descuento</option>
+              <option value="featured">Destacados</option>
+            </select>
+
+            <div className="flex bg-white border-2 border-secondary-200 rounded-xl p-1 shrink-0">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-1.5 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-primary-500 text-white' : 'text-secondary-500'}`}
+              >
+                <Grid className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-1.5 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-primary-500 text-white' : 'text-secondary-500'}`}
+              >
+                <List className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Grilla de productos */}
+        {/* Grilla */}
         <div className={viewMode === 'grid'
-          ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5'
-          : 'space-y-4'
+          ? 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5'
+          : 'space-y-3'
         }>
           {filteredProducts.map(product => (
             <ProductCard
@@ -178,15 +179,14 @@ const Menu = () => {
           ))}
         </div>
 
-        {/* Empty state */}
         {filteredProducts.length === 0 && (
-          <div className="text-center py-20">
-            <p className="text-secondary-400 text-lg mb-4">No se encontraron productos</p>
+          <div className="text-center py-16">
+            <p className="text-secondary-400 mb-4">No se encontraron productos</p>
             <button
-              onClick={() => { setSearchTerm(''); setSelectedCategory('todos'); setSelectedBrand('todas') }}
+              onClick={() => { setSearchTerm(''); setSelectedCategory('todos'); setSelectedBrand('todas'); }}
               className="btn btn-primary"
             >
-              Ver todos los productos
+              Ver todos
             </button>
           </div>
         )}

@@ -129,7 +129,8 @@ router.post('/', auth, upload.array('imagenes', 10), async (req, res) => {
       stock: req.body.stock || 100,
       sku,
       tipo: req.body.tipo || 'normal',
-      imagen_config: req.body.imagen_config || 'cover|center'
+      imagen_config: req.body.imagen_config || 'cover|center',
+      promo_lanzamiento: req.body.promo_lanzamiento === 'true'
     };
     
     // Parsear variantes de talles
@@ -168,7 +169,8 @@ router.put('/:id', auth, upload.array('imagenes', 10), async (req, res) => {
       destacado: req.body.destacado === 'true',
       descuento_porcentaje: req.body.descuento_porcentaje || 0,
       stock: req.body.stock,
-      imagen_config: req.body.imagen_config || 'cover|center'
+      imagen_config: req.body.imagen_config || 'cover|center',
+      promo_lanzamiento: req.body.promo_lanzamiento === 'true'
     };
     
     // Parsear variantes de talles

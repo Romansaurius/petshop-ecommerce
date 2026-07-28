@@ -52,29 +52,31 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
       <>
         <div className="bg-white rounded-2xl border border-secondary-100 hover:shadow-md transition-all duration-200 overflow-hidden flex cursor-pointer"
           onClick={() => setShowPreview(true)}>
-          <div className="relative w-36 h-36 shrink-0">
+          <div className="relative w-28 sm:w-36 h-28 sm:h-36 shrink-0">
             <ProductImageGallery images={images()} productName={name()} imagenConfig={product.imagen_config} className="w-full h-full" />
-            {discount() > 0 && <span className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">-{discount()}%</span>}
-            {tipo() === '2x1' && <span className="absolute bottom-2 left-2 bg-primary-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">2×1</span>}
+            {discount() > 0 && <span className="absolute top-1.5 left-1.5 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">-{discount()}%</span>}
+            {tipo() === '2x1' && <span className="absolute bottom-1.5 left-1.5 bg-primary-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">2x1</span>}
           </div>
-          <div className="flex-1 p-4 flex flex-col justify-between min-w-0">
+          <div className="flex-1 p-3 sm:p-4 flex flex-col justify-between min-w-0">
             <div>
               <p className="font-semibold text-secondary-800 line-clamp-2 text-sm leading-snug mb-1">{name()}</p>
-              <p className="text-xs text-secondary-400 line-clamp-2">{desc()}</p>
+              <p className="text-xs text-secondary-400 line-clamp-1 sm:line-clamp-2">{desc()}</p>
             </div>
-            <div className="flex items-center justify-between mt-3">
+            <div className="flex items-center justify-between mt-2">
               <div>
                 {originalPrice && <p className="text-xs text-secondary-300 line-through">{fmt(originalPrice)}</p>}
-                <p className="text-lg font-bold text-secondary-800">{fmt(displayPrice)}</p>
+                <p className="text-base font-bold text-secondary-800">{fmt(displayPrice)}</p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-1.5">
                 <button onClick={e => { e.stopPropagation(); setShowPreview(true); }}
                   className="p-2 text-secondary-400 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors">
                   <Eye className="w-4 h-4" />
                 </button>
                 <button onClick={e => { e.stopPropagation(); handleAddToCart(); }} disabled={isAdding}
-                  className="btn btn-primary flex items-center gap-1.5 px-4 py-2 text-sm disabled:opacity-50">
-                  {isAdding ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><ShoppingCart className="w-4 h-4" />Agregar</>}
+                  className="btn btn-primary flex items-center gap-1 px-3 py-2 text-xs disabled:opacity-50">
+                  {isAdding
+                    ? <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    : <><ShoppingCart className="w-3.5 h-3.5" /><span className="hidden sm:inline">Agregar</span></>}
                 </button>
               </div>
             </div>
@@ -91,20 +93,20 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
       <div className="bg-white rounded-2xl border border-secondary-100 hover:border-secondary-200 hover:shadow-md transition-all duration-200 overflow-hidden group cursor-pointer flex flex-col"
         onClick={() => setShowPreview(true)}>
 
-        {/* Imagen — altura fija, contain por defecto para ver la imagen completa */}
-        <div className="relative w-full h-52 overflow-hidden bg-white border-b border-secondary-50">
+        {/* Imagen */}
+        <div className="relative w-full h-40 sm:h-52 overflow-hidden bg-white border-b border-secondary-50">
           <ProductImageGallery images={images()} productName={name()} imagenConfig={product.imagen_config} className="w-full h-full" />
 
           {/* Badges */}
-          <div className="absolute top-2 left-2 flex flex-col gap-1">
-            {discount() > 0 && <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">-{discount()}%</span>}
-            {tipo() === '2x1' && <span className="bg-primary-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">2×1</span>}
-            {tipo() === 'importado' && <span className="bg-secondary-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">Importado</span>}
+          <div className="absolute top-1.5 left-1.5 flex flex-col gap-1">
+            {discount() > 0 && <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">-{discount()}%</span>}
+            {tipo() === '2x1' && <span className="bg-primary-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">2x1</span>}
+            {tipo() === 'importado' && <span className="bg-secondary-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">Import.</span>}
           </div>
-          {featured() && <span className="absolute top-2 right-2 bg-amber-400 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">Destacado</span>}
+          {featured() && <span className="absolute top-1.5 right-1.5 bg-amber-400 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">Dest.</span>}
 
-          {/* Hover actions */}
-          <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          {/* Hover actions — solo desktop */}
+          <div className="absolute bottom-2 right-2 hidden sm:flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <button onClick={e => { e.stopPropagation(); setIsLiked(v => !v); }}
               className={`p-1.5 rounded-full shadow transition-all ${isLiked ? 'bg-red-500 text-white' : 'bg-white text-secondary-400 hover:text-red-500'}`}>
               <Heart className={`w-3.5 h-3.5 ${isLiked ? 'fill-current' : ''}`} />
@@ -117,8 +119,8 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
         </div>
 
         {/* Info */}
-        <div className="p-3 flex flex-col flex-1">
-          <p className="font-medium text-sm text-secondary-800 line-clamp-2 leading-snug group-hover:text-primary-600 transition-colors mb-1.5">
+        <div className="p-2.5 sm:p-3 flex flex-col flex-1">
+          <p className="font-medium text-xs sm:text-sm text-secondary-800 line-clamp-2 leading-snug group-hover:text-primary-600 transition-colors mb-1.5">
             {name()}
           </p>
 
@@ -126,23 +128,23 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
             <div className="flex flex-wrap gap-1 mb-2">
               {sortedVariantes.map(v => (
                 <button key={v.id} onClick={e => { e.stopPropagation(); setSelectedVariante(v); }}
-                  className={`px-2 py-0.5 text-[11px] border rounded-md font-medium transition-colors ${selectedVariante?.id === v.id ? 'border-primary-500 bg-primary-50 text-primary-600' : 'border-secondary-200 text-secondary-400 hover:border-primary-300'}`}>
+                  className={`px-1.5 py-0.5 text-[10px] border rounded font-medium transition-colors ${selectedVariante?.id === v.id ? 'border-primary-500 bg-primary-50 text-primary-600' : 'border-secondary-200 text-secondary-400'}`}>
                   {v.talla}
                 </button>
               ))}
             </div>
           )}
 
-          <div className="flex items-center justify-between mt-auto pt-2">
+          <div className="flex items-center justify-between mt-auto pt-1.5">
             <div>
-              {originalPrice && <p className="text-[11px] text-secondary-300 line-through leading-none mb-0.5">{fmt(originalPrice)}</p>}
-              <p className="text-base font-bold text-secondary-800">{fmt(displayPrice)}</p>
+              {originalPrice && <p className="text-[10px] text-secondary-300 line-through leading-none mb-0.5">{fmt(originalPrice)}</p>}
+              <p className="text-sm sm:text-base font-bold text-secondary-800">{fmt(displayPrice)}</p>
             </div>
             <button onClick={e => { e.stopPropagation(); handleAddToCart(); }} disabled={isAdding}
-              className="btn btn-primary px-3 py-2 text-xs disabled:opacity-50 flex items-center gap-1">
+              className="btn btn-primary px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs disabled:opacity-50 flex items-center gap-1">
               {isAdding
-                ? <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                : <><Plus className="w-3.5 h-3.5" /><span className="hidden sm:inline">Agregar</span></>}
+                ? <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                : <><Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5" /><span className="hidden sm:inline">Agregar</span></>}
             </button>
           </div>
         </div>

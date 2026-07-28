@@ -126,8 +126,7 @@ const Home = () => {
   const promos2x1 = allProducts.filter(p => p.tipo === '2x1')
   const promos50  = allProducts.filter(p => (p.descuento_porcentaje || 0) >= 50)
 
-  const lanzamientosFallback = [...promos2x1, ...promos50]
-    .filter((p, i, arr) => arr.findIndex(x => x.id === p.id) === i).slice(0, 10)
+  const lanzamientosFallback = allProducts.filter(p => p.promo_lanzamiento).slice(0, 10)
   const lanzamientos = getSectionProducts('lanzamientos', lanzamientosFallback)
 
   const naturalFallback = allProducts

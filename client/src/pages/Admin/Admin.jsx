@@ -47,7 +47,8 @@ const Admin = () => {
     esProductoPorTalles: false,
     tallesSeleccionados: { S: false, M: false, L: false, XL: false, XXL: false },
     preciosTalles: { S: '', M: '', L: '', XL: '', XXL: '' },
-    imagen_config: 'contain|center'
+    imagen_config: 'contain|center',
+    promo_lanzamiento: false
   })
   const [brands, setBrands] = useState([])
   const [categories, setCategories] = useState([])
@@ -282,6 +283,7 @@ const Admin = () => {
     formData.append('stock', productForm.stock || 100)
     formData.append('tipo', productForm.tipo || 'normal')
     formData.append('imagen_config', productForm.imagen_config || 'contain|center')
+    formData.append('promo_lanzamiento', productForm.promo_lanzamiento || false)
     
     // Procesar variantes de talles
     if (productForm.esProductoPorTalles) {
@@ -322,7 +324,7 @@ const Admin = () => {
       
       if (response.ok) {
         loadProducts()
-        setProductForm({ name: '', price: '', category: categories[0]?.nombre || '', brand: '', description: '', image: null, featured: false, discount: 0, stock: 100, tipo: 'normal', esProductoPorTalles: false, tallesSeleccionados: { S: false, M: false, L: false, XL: false, XXL: false }, preciosTalles: { S: '', M: '', L: '', XL: '', XXL: '' }, imagen_config: 'contain|center' })
+        setProductForm({ name: '', price: '', category: categories[0]?.nombre || '', brand: '', description: '', image: null, featured: false, discount: 0, stock: 100, tipo: 'normal', esProductoPorTalles: false, tallesSeleccionados: { S: false, M: false, L: false, XL: false, XXL: false }, preciosTalles: { S: '', M: '', L: '', XL: '', XXL: '' }, imagen_config: 'contain|center', promo_lanzamiento: false })
         setEditingProduct(null)
         setShowProductForm(false)
       } else {
@@ -363,7 +365,8 @@ const Admin = () => {
       esProductoPorTalles: product.tiene_talles || false,
       tallesSeleccionados,
       preciosTalles,
-      imagen_config: product.imagen_config || 'contain|center'
+      imagen_config: product.imagen_config || 'contain|center',
+      promo_lanzamiento: product.promo_lanzamiento || false
     })
     setShowProductForm(true)
   }
@@ -898,7 +901,7 @@ const Admin = () => {
                       </div>
                     </div>
                     
-                    <div className="flex items-center">
+                    <div className="flex flex-col gap-3">
                       <label className="flex items-center space-x-2">
                         <input
                           type="checkbox"
@@ -907,6 +910,15 @@ const Admin = () => {
                           className="rounded"
                         />
                         <span className="text-sm font-medium text-secondary-700">Producto destacado</span>
+                      </label>
+                      <label className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={productForm.promo_lanzamiento}
+                          onChange={(e) => setProductForm({...productForm, promo_lanzamiento: e.target.checked})}
+                          className="rounded"
+                        />
+                        <span className="text-sm font-medium text-secondary-700">Promo Lanzamiento</span>
                       </label>
                     </div>
                     <div>
@@ -949,7 +961,7 @@ const Admin = () => {
                          onClick={() => {
                            setShowProductForm(false)
                            setEditingProduct(null)
-                           setProductForm({ name: '', price: '', category: 'comederos', description: '', image: null, featured: false, discount: 0, stock: 100, tipo: 'normal', esProductoPorTalles: false, tallesSeleccionados: { S: false, M: false, L: false, XL: false, XXL: false }, preciosTalles: { S: '', M: '', L: '', XL: '', XXL: '' }, imagen_config: 'contain|center' })
+                           setProductForm({ name: '', price: '', category: 'comederos', description: '', image: null, featured: false, discount: 0, stock: 100, tipo: 'normal', esProductoPorTalles: false, tallesSeleccionados: { S: false, M: false, L: false, XL: false, XXL: false }, preciosTalles: { S: '', M: '', L: '', XL: '', XXL: '' }, imagen_config: 'contain|center', promo_lanzamiento: false })
                          }}
                          className="btn btn-secondary flex-1"
                        >
