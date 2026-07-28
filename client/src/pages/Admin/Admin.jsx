@@ -172,7 +172,7 @@ const Admin = () => {
       if (current.includes(productId)) {
         return { ...prev, [sectionId]: current.filter(id => id !== productId) }
       }
-      if (current.length >= 5) { alert('Máximo 5 productos por sección'); return prev }
+      if (current.length >= 10) { alert('Máximo 10 productos por sección'); return prev }
       return { ...prev, [sectionId]: [...current, productId] }
     })
   }

@@ -12,7 +12,7 @@ router.get('/', async (req, res) => {
     for (const section of sections) {
       const [items] = await db.execute(
         `SELECT p.id, p.nombre, p.precio, p.precio_oferta, p.descuento_porcentaje,
-                p.imagen, p.imagenes, p.stock, p.tipo, p.destacado, p.tiene_talles,
+                p.imagen, p.imagenes, p.imagen_config, p.stock, p.tipo, p.destacado, p.tiene_talles,
                 c.nombre as categoria
          FROM home_seccion_productos hsp
          JOIN productos p ON hsp.producto_id = p.id
@@ -57,7 +57,7 @@ router.put('/:id/productos', auth, async (req, res) => {
   await conn.beginTransaction();
   try {
     await conn.execute('DELETE FROM home_seccion_productos WHERE seccion_id = ?', [req.params.id]);
-    for (let i = 0; i < Math.min(producto_ids.length, 5); i++) {
+    for (let i = 0; i < Math.min(producto_ids.length, 10); i++) {
       await conn.execute(
         'INSERT INTO home_seccion_productos (seccion_id, producto_id, orden) VALUES (?, ?, ?)',
         [req.params.id, producto_ids[i], i + 1]

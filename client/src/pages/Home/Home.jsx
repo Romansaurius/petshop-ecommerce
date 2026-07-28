@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useCart } from '../../context/CartContext'
 import ProductCard from '../../components/Product/ProductCard'
 import Hero from '../../components/Hero/Hero'
 import OffersSlider from '../../components/OffersSlider/OffersSlider'
-import { ChevronDown, ChevronUp } from 'lucide-react'
+import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from 'lucide-react'
 
 const faqs = [
   { question: '¿Cómo realizo una compra?', answer: 'Navegá por nuestro catálogo, elegí los productos y agregalos al carrito. Luego completá tus datos de contacto y elegí el método de pago.' },
@@ -44,18 +44,60 @@ const SectionHeader = ({ eyebrow, title, link, linkLabel }) => (
   </div>
 )
 
-const Skeleton = () => (
-  <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-    {[...Array(4)].map((_, i) => <div key={i} className="bg-secondary-100 rounded-2xl h-72 animate-pulse" />)}
+const SkeletonSlider = () => (
+  <div className="flex gap-5 overflow-hidden">
+    {[...Array(4)].map((_, i) => <div key={i} className="bg-secondary-100 rounded-2xl h-72 w-56 shrink-0 animate-pulse" />)}
   </div>
 )
 
-const ProductGrid = ({ products, loading, emptyMsg, allProducts, addToCart }) => {
-  if (loading) return <Skeleton />
+const ProductSlider = ({ products, loading, emptyMsg, allProducts, addToCart }) => {
+  const ref = useRef(null)
+  const [canLeft, setCanLeft] = useState(false)
+  const [canRight, setCanRight] = useState(false)
+
+  const checkScroll = () => {
+    const el = ref.current
+    if (!el) return
+    setCanLeft(el.scrollLeft > 4)
+    setCanRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4)
+  }
+
+  useEffect(() => {
+    checkScroll()
+    const el = ref.current
+    if (el) el.addEventListener('scroll', checkScroll, { passive: true })
+    return () => el?.removeEventListener('scroll', checkScroll)
+  }, [products])
+
+  const scroll = (dir) => {
+    ref.current?.scrollBy({ left: dir * 280, behavior: 'smooth' })
+  }
+
+  if (loading) return <SkeletonSlider />
   if (!products.length) return <p className="text-center py-10 text-secondary-400 text-sm">{emptyMsg}</p>
+
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-      {products.map(p => <ProductCard key={p.id} product={p} onAddToCart={addToCart} allProducts={allProducts} />)}
+    <div className="relative">
+      {canLeft && (
+        <button onClick={() => scroll(-1)}
+          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 bg-white border border-secondary-200 shadow-md rounded-full p-2 hover:bg-secondary-50 transition-colors">
+          <ChevronLeft className="w-5 h-5 text-secondary-600" />
+        </button>
+      )}
+      {canRight && (
+        <button onClick={() => scroll(1)}
+          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 bg-white border border-secondary-200 shadow-md rounded-full p-2 hover:bg-secondary-50 transition-colors">
+          <ChevronRight className="w-5 h-5 text-secondary-600" />
+        </button>
+      )}
+      <div ref={ref} className="flex gap-5 overflow-x-auto pb-2 scroll-smooth"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        {products.map(p => (
+          <div key={p.id} className="shrink-0 w-56">
+            <ProductCard product={p} onAddToCart={addToCart} allProducts={allProducts} />
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -64,7 +106,6 @@ const Home = () => {
   const [allProducts, setAllProducts] = useState([])
   const [sections, setSections] = useState([])
   const [loading, setLoading] = useState(true)
-  const [showAllPromos, setShowAllPromos] = useState(false)
   const { addToCart } = useCart()
 
   useEffect(() => {
@@ -84,27 +125,26 @@ const Home = () => {
     return fallback
   }
 
-  const promos2x1     = allProducts.filter(p => p.tipo === '2x1')
-  const promos50      = allProducts.filter(p => (p.descuento_porcentaje || 0) >= 50)
-  const topPromos     = [...promos2x1, ...promos50].filter((p, i, arr) => arr.findIndex(x => x.id === p.id) === i).slice(0, 4)
-  const morePromos    = allProducts.filter(p =>
-    !topPromos.find(t => t.id === p.id) &&
-    (p.descuento_porcentaje || 0) >= 30
-  ).slice(0, 4)
+  const promos2x1  = allProducts.filter(p => p.tipo === '2x1')
+  const promos50   = allProducts.filter(p => (p.descuento_porcentaje || 0) >= 50)
+
+  const lanzamientosFallback = [...promos2x1, ...promos50]
+    .filter((p, i, arr) => arr.findIndex(x => x.id === p.id) === i).slice(0, 10)
+  const lanzamientos = getSectionProducts('lanzamientos', lanzamientosFallback)
 
   const naturalFallback = allProducts
     .filter(p => ['accesorios', 'snacks', 'premios', 'natural'].some(k => (p.categoria || '').toLowerCase().includes(k)))
-    .slice(0, 4)
-  const naturalProducts = getSectionProducts('natural', naturalFallback.length ? naturalFallback : allProducts.slice(0, 4))
+    .slice(0, 10)
+  const naturalProducts = getSectionProducts('natural', naturalFallback.length ? naturalFallback : allProducts.slice(0, 10))
 
-  const camasFallback = allProducts.filter(p => (p.categoria || '').toLowerCase().includes('cama')).slice(0, 4)
+  const camasFallback = allProducts.filter(p => (p.categoria || '').toLowerCase().includes('cama')).slice(0, 10)
   const camas = getSectionProducts('camas', camasFallback)
 
-  const juguetesFallback = allProducts.filter(p => (p.categoria || '').toLowerCase().includes('juguete')).slice(0, 4)
+  const juguetesFallback = allProducts.filter(p => (p.categoria || '').toLowerCase().includes('juguete')).slice(0, 10)
   const juguetes = getSectionProducts('juguetes', juguetesFallback)
 
-  const lanzamientosFallback = [...promos2x1, ...promos50].filter((p, i, arr) => arr.findIndex(x => x.id === p.id) === i).slice(0, 4)
-  const lanzamientos = getSectionProducts('lanzamientos', lanzamientosFallback)
+  const destacadosFallback = allProducts.filter(p => p.destacado || p.featured).slice(0, 10)
+  const destacados = getSectionProducts('destacados', destacadosFallback)
 
   return (
     <div className="bg-white">
@@ -124,29 +164,16 @@ const Home = () => {
             link="/menu?ofertas=true"
             linkLabel="Ver ofertas"
           />
-
-          <ProductGrid
-            products={showAllPromos ? [...lanzamientos, ...morePromos] : lanzamientos}
+          <ProductSlider
+            products={lanzamientos}
             loading={loading}
             emptyMsg="Próximamente nuevas promociones de lanzamiento."
             allProducts={allProducts}
             addToCart={addToCart}
           />
-
           <p className="text-sm text-secondary-500 mt-8 max-w-xl leading-relaxed">
             Aprovechá las ofertas de tiempo limitado por apertura. Descuentos únicos en productos seleccionados para que conozcas todo lo que tenemos para tu mascota.
           </p>
-
-          {!loading && morePromos.length > 0 && (
-            <div className="text-center mt-4">
-              <button
-                onClick={() => setShowAllPromos(!showAllPromos)}
-                className="btn btn-outline text-sm px-6"
-              >
-                {showAllPromos ? 'Ver menos' : 'Ver todas las promociones'}
-              </button>
-            </div>
-          )}
         </div>
       </section>
 
@@ -159,15 +186,13 @@ const Home = () => {
             link="/menu?category=Mordedores y Snacks Naturales"
             linkLabel="Ver todos"
           />
-
-          <ProductGrid
+          <ProductSlider
             products={naturalProducts}
             loading={loading}
             emptyMsg="Próximamente nuestra selección de productos naturales."
             allProducts={allProducts}
             addToCart={addToCart}
           />
-
           <p className="text-sm text-secondary-500 mt-8 max-w-xl leading-relaxed">
             Cuidar su alimentación también es una forma de demostrar amor. Descubrí productos seleccionados por su calidad, ingredientes naturales y beneficios para el bienestar diario de perros y gatos.
           </p>
@@ -183,19 +208,14 @@ const Home = () => {
             link="/menu?category=camas"
             linkLabel="Ver camas"
           />
-
-          {loading ? <Skeleton /> : camas.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-              {camas.map(p => <ProductCard key={p.id} product={p} onAddToCart={addToCart} allProducts={allProducts} />)}
-            </div>
+          {loading ? <SkeletonSlider /> : camas.length > 0 ? (
+            <ProductSlider products={camas} loading={false} emptyMsg="" allProducts={allProducts} addToCart={addToCart} />
           ) : (
             <div className="bg-white border border-secondary-100 rounded-2xl p-10 text-center">
-              <p className="text-4xl mb-3">🛏️</p>
               <p className="text-secondary-500 text-sm">Próximamente nuestra selección de camas premium.</p>
               <Link to="/menu" className="btn btn-primary mt-4 text-sm">Ver todos los productos</Link>
             </div>
           )}
-
           <p className="text-sm text-secondary-500 mt-8 max-w-xl leading-relaxed">
             Porque después de jugar, explorar y compartir momentos únicos, también necesitan un lugar cómodo para descansar y recargar energías.
           </p>
@@ -211,24 +231,43 @@ const Home = () => {
             link="/menu?category=juguetes"
             linkLabel="Ver juguetes"
           />
-
-          {loading ? <Skeleton /> : juguetes.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-              {juguetes.map(p => <ProductCard key={p.id} product={p} onAddToCart={addToCart} allProducts={allProducts} />)}
-            </div>
+          {loading ? <SkeletonSlider /> : juguetes.length > 0 ? (
+            <ProductSlider products={juguetes} loading={false} emptyMsg="" allProducts={allProducts} addToCart={addToCart} />
           ) : (
             <div className="bg-white border border-secondary-100 rounded-2xl p-10 text-center">
-              <p className="text-4xl mb-3">🎾</p>
               <p className="text-secondary-500 text-sm">Próximamente nuestra selección de juguetes premium.</p>
               <Link to="/menu" className="btn btn-primary mt-4 text-sm">Ver todos los productos</Link>
             </div>
           )}
-
           <p className="text-sm text-secondary-500 mt-8 max-w-xl leading-relaxed">
             Estimulación mental, entretenimiento y momentos inolvidables para todas las edades y personalidades.
           </p>
         </div>
       </section>
+
+      {/* ── 5. PRODUCTOS DESTACADOS ── */}
+      {(loading || destacados.length > 0) && (
+        <section className="py-14 bg-secondary-50 border-t border-secondary-100">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <SectionHeader
+              eyebrow="Lo mejor de nuestra tienda"
+              title="Productos Destacados"
+              link="/menu"
+              linkLabel="Ver todos"
+            />
+            <ProductSlider
+              products={destacados}
+              loading={loading}
+              emptyMsg=""
+              allProducts={allProducts}
+              addToCart={addToCart}
+            />
+            <p className="text-sm text-secondary-500 mt-8 max-w-xl leading-relaxed">
+              Los favoritos de nuestros clientes. Productos cuidadosamente seleccionados por calidad, popularidad y el amor que les tienen nuestras mascotas. Descubrí lo que hace especial a cada uno.
+            </p>
+          </div>
+        </section>
+      )}
 
       {/* ── BENEFICIOS ── */}
       <section className="py-14 bg-secondary-50 border-t border-secondary-100">
