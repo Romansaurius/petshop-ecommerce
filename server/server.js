@@ -38,6 +38,7 @@ async function ensureDbColumns() {
     await addColumnIfNotExists('productos', 'tipo', "VARCHAR(50) DEFAULT 'normal'");
     await addColumnIfNotExists('productos', 'tiene_talles', 'BOOLEAN DEFAULT FALSE');
     await addColumnIfNotExists('productos', 'imagen_config', "VARCHAR(100) DEFAULT 'contain|center'");
+    await addColumnIfNotExists('productos', 'promo_lanzamiento', 'BOOLEAN DEFAULT FALSE');
     await addColumnIfNotExists('pedidos', 'nombre_contacto', "VARCHAR(255) DEFAULT ''");
     await addColumnIfNotExists('pedidos', 'costo_envio', 'DECIMAL(10,2) DEFAULT 0');
     await addColumnIfNotExists('pedidos', 'metodo_envio', "VARCHAR(100) DEFAULT ''");

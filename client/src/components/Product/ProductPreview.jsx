@@ -115,8 +115,8 @@ const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
   if (!isOpen || !product) return null
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[95vh] overflow-y-auto shadow-2xl">
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm">
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-5xl max-h-[92vh] sm:max-h-[95vh] overflow-y-auto shadow-2xl">
 
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-secondary-100 px-6 py-4 flex justify-between items-center rounded-t-2xl z-10">
@@ -126,13 +126,13 @@ const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
           </button>
         </div>
 
-        <div className="p-6 md:p-8">
-          <div className="grid lg:grid-cols-2 gap-10">
+        <div className="p-4 sm:p-6 md:p-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10">
 
             {/* Galería de imágenes */}
             <div className="space-y-3">
               {/* Imagen principal */}
-              <div className="relative w-full h-80 md:h-96 bg-secondary-50 rounded-2xl overflow-hidden">
+              <div className="relative w-full h-64 sm:h-80 md:h-96 bg-secondary-50 rounded-2xl overflow-hidden">
                 {images.length > 0 ? (
                   <img
                     src={images[selectedImage]}
