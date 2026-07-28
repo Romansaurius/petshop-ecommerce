@@ -1,6 +1,8 @@
 const express = require('express');
 const Order = require('../models/Order');
 const auth = require('../middlewares/auth');
+const { sendOrderStatusEmail, sendOrderConfirmationEmail } = require('../services/emailService');
+const db = require('../config/database');
 const router = express.Router();
 
 // GET /api/orders - Todos los pedidos (solo admin)
@@ -23,6 +25,24 @@ router.put('/:id/estado', auth, async (req, res) => {
     const estadosValidos = ['pendiente', 'procesando', 'enviado', 'entregado', 'cancelado'];
     if (!estadosValidos.includes(estado)) return res.status(400).json({ error: 'Estado inválido' });
     await Order.updateEstado(req.params.id, estado);
+    // Email de seguimiento (no bloquea la respuesta)
+    try {
+      const [[order]] = await db.execute(
+        `SELECT p.id, p.total, p.metodo_envio, p.created_at,
+                COALESCE(u.nombre, p.nombre_contacto, 'cliente') as cliente_nombre,
+                COALESCE(u.email, p.email_contacto) as cliente_email,
+                GROUP_CONCAT(pr.nombre SEPARATOR ', ') as productos
+         FROM pedidos p
+         LEFT JOIN usuarios u ON p.usuario_id = u.id
+         LEFT JOIN detalles_pedido dp ON p.id = dp.pedido_id
+         LEFT JOIN productos pr ON dp.producto_id = pr.id
+         WHERE p.id = ? GROUP BY p.id`,
+        [req.params.id]
+      );
+      if (order) await sendOrderStatusEmail(order, estado);
+    } catch (emailErr) {
+      console.error('Email error (no critico):', emailErr.message);
+    }
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Error al actualizar estado' });
@@ -36,6 +56,21 @@ router.post('/', async (req, res) => {
     const subtotal = items.reduce((sum, item) => sum + (item.precio_unitario * item.cantidad), 0);
     const total = subtotal;
     const orderId = await Order.create({ usuario_id, total, direccion_envio, telefono_contacto, items });
+    // Email de confirmacion
+    try {
+      const [[order]] = await db.execute(
+        `SELECT p.id, p.total, p.metodo_envio, p.created_at, p.nombre_contacto, p.email_contacto,
+                GROUP_CONCAT(pr.nombre SEPARATOR ', ') as productos
+         FROM pedidos p
+         LEFT JOIN detalles_pedido dp ON p.id = dp.pedido_id
+         LEFT JOIN productos pr ON dp.producto_id = pr.id
+         WHERE p.id = ? GROUP BY p.id`,
+        [orderId]
+      );
+      if (order) await sendOrderConfirmationEmail(order);
+    } catch (emailErr) {
+      console.error('Email confirmacion error:', emailErr.message);
+    }
     res.status(201).json({ message: 'Pedido creado exitosamente', orderId, total, estado: 'pendiente' });
   } catch (error) {
     res.status(500).json({ error: 'Error al crear pedido' });
