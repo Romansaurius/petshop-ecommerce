@@ -19,7 +19,7 @@ const Header = ({ onOpenCart }) => {
     { name: 'Promos Lanzamiento', value: 'ofertas', href: '/menu?filter=ofertas' },
     { name: 'Snacks', value: 'Snacks Naturales', href: '/menu?category=Snacks Naturales' },
     { name: 'Juguetes', value: 'juguetes', href: '/menu?category=juguetes' },
-    { name: 'Comederos', value: 'comederos', href: '/menu?category=comederos' },
+    { name: 'Comederos', value: 'Comederos y Bebederos', href: '/menu?category=Comederos y Bebederos' },
     { name: 'Accesorios', value: 'accesorios', href: '/menu?category=accesorios' },
     { name: 'Camas', value: 'camas', href: '/menu?category=camas' },
     { name: 'Rascadores', value: 'rascadores', href: '/menu?category=rascadores' },
