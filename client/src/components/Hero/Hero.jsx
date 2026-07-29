@@ -2,21 +2,21 @@ import { Link } from 'react-router-dom'
 
 const Hero = () => (
   <section className="bg-secondary-50 border-b border-secondary-100">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-      <div className="grid lg:grid-cols-2 gap-16 items-center">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-20">
+      <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
 
         {/* Logo */}
         <div className="flex flex-col items-center justify-center">
           <img
             src="/logo2.png"
             alt="MauLu PetShop"
-            className="w-64 sm:w-80 lg:w-[380px] object-contain"
+            className="w-48 sm:w-64 lg:w-[380px] object-contain"
             style={{mixBlendMode:'multiply'}}
           />
         </div>
 
         {/* Card derecha */}
-        <div className="bg-white border border-secondary-200 rounded-3xl p-10 shadow-sm">
+        <div className="bg-white border border-secondary-200 rounded-3xl p-6 sm:p-10 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-widest text-primary-500 mb-3">
             ¿Por qué ser parte de MauLu?
           </p>
