@@ -243,6 +243,11 @@ class Product {
         destacado ? 1 : 0, 
         parseInt(descuento_porcentaje) || 0
       ];
+
+      if (productData.tipo !== undefined) {
+        query += ', tipo = ?';
+        params.push(productData.tipo || 'normal');
+      }
       
       if (stock !== undefined) {
         query += ', stock = ?';

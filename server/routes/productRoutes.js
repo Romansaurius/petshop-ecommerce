@@ -182,6 +182,7 @@ router.put('/:id', auth, handleUpload, async (req, res) => {
       destacado: req.body.destacado === 'true',
       descuento_porcentaje: req.body.descuento_porcentaje || 0,
       stock: req.body.stock,
+      tipo: req.body.tipo || 'normal',
       imagen_config: req.body.imagen_config || 'cover|center',
       promo_lanzamiento: req.body.promo_lanzamiento === 'true'
     };
