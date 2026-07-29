@@ -48,6 +48,14 @@ async function ensureDbColumns() {
     try { await db.execute(`ALTER TABLE detalles_pedido MODIFY COLUMN nombre_producto VARCHAR(255) DEFAULT ''`); } catch(e) {}
     try { await db.execute(`ALTER TABLE canjes MODIFY COLUMN tipo VARCHAR(30) DEFAULT 'porcentaje'`); } catch(e) {}
     console.log('Columnas DB verificadas');
+
+    // Limpiar marcas: dejar solo Filan, Beepaw, TG, Pulgitas
+    try {
+      await db.execute(`UPDATE productos SET marca_id = NULL WHERE marca_id IN (SELECT id FROM marcas WHERE nombre NOT IN ('Filan','Beepaw','TG','Pulgitas'))`);
+      await db.execute(`DELETE FROM marcas WHERE nombre NOT IN ('Filan','Beepaw','TG','Pulgitas')`);
+      await db.execute(`INSERT IGNORE INTO marcas (nombre) VALUES ('Filan'),('Beepaw'),('TG'),('Pulgitas')`);
+      console.log('Marcas actualizadas');
+    } catch (e) { console.log('marcas cleanup:', e.message); }
   } catch (e) {
     console.log('DB columns check error:', e.message);
   }
