@@ -330,7 +330,7 @@ const Admin = () => {
         body: formData
       })
 
-      const result = await response.json()
+      const result = await response.json().catch(() => ({ error: 'Error del servidor' }))
       
       if (response.ok) {
         loadProducts()
