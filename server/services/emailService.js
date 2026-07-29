@@ -126,7 +126,7 @@ const sendOrderStatusEmail = async (order, estado) => {
   try {
     const { subject, html } = buildEmail(order, estado);
     await transporter.sendMail({
-      from: `"Maulu Pet Shop" <${process.env.EMAIL_USER}>`,
+      from: `"Maulu" <${process.env.EMAIL_USER}>`,
       to: email,
       subject,
       html

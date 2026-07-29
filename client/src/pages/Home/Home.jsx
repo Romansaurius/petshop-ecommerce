@@ -28,16 +28,16 @@ const FAQItem = ({ question, answer }) => {
 }
 
 const SectionHeader = ({ eyebrow, title, link, linkLabel }) => (
-  <div className="flex items-end justify-between mb-8">
-    <div className="flex items-center gap-3">
-      <div className="w-0.5 h-8 bg-primary-400 rounded-full" />
+  <div className="flex items-end justify-between mb-5 sm:mb-8">
+    <div className="flex items-center gap-2 sm:gap-3">
+      <div className="w-0.5 h-6 sm:h-8 bg-primary-400 rounded-full" />
       <div>
-        <p className="text-[11px] font-semibold uppercase tracking-widest text-secondary-400 mb-0.5">{eyebrow}</p>
-        <h2 className="text-xl font-semibold text-secondary-800">{title}</h2>
+        <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-widest text-secondary-400 mb-0.5">{eyebrow}</p>
+        <h2 className="text-lg sm:text-xl font-semibold text-secondary-800">{title}</h2>
       </div>
     </div>
     {link && (
-      <Link to={link} className="text-xs font-medium text-secondary-400 hover:text-secondary-700 transition-colors border-b border-secondary-200 hover:border-secondary-500 pb-0.5">
+      <Link to={link} className="text-xs font-medium text-secondary-400 hover:text-secondary-700 transition-colors border-b border-secondary-200 hover:border-secondary-500 pb-0.5 shrink-0 ml-2">
         {linkLabel || 'Ver todos'}
       </Link>
     )}
@@ -78,20 +78,20 @@ const ProductSlider = ({ products, loading, emptyMsg, allProducts, addToCart }) 
     <div className="relative">
       {canLeft && (
         <button onClick={() => scroll(-1)}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white border border-secondary-200 shadow-md rounded-full p-1.5 sm:p-2 hover:bg-secondary-50 transition-colors hidden sm:flex">
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white border border-secondary-200 shadow-md rounded-full p-1.5 sm:p-2 hover:bg-secondary-50 transition-colors sm:-translate-x-4 hidden sm:flex">
           <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-secondary-600" />
         </button>
       )}
       {canRight && (
         <button onClick={() => scroll(1)}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white border border-secondary-200 shadow-md rounded-full p-1.5 sm:p-2 hover:bg-secondary-50 transition-colors hidden sm:flex">
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white border border-secondary-200 shadow-md rounded-full p-1.5 sm:p-2 hover:bg-secondary-50 transition-colors sm:translate-x-4 hidden sm:flex">
           <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-secondary-600" />
         </button>
       )}
-      <div ref={ref} className="flex gap-5 overflow-x-auto pb-2 scroll-smooth"
+      <div ref={ref} className="flex gap-3 sm:gap-5 overflow-x-auto pb-2 scroll-smooth"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         {products.map(p => (
-          <div key={p.id} className="shrink-0 w-56">
+          <div key={p.id} className="shrink-0 w-44 sm:w-56">
             <ProductCard product={p} onAddToCart={addToCart} allProducts={allProducts} />
           </div>
         ))}
@@ -153,10 +153,8 @@ const Home = () => {
       </div>
 
       {/* ── 1. LANZAMIENTOS EXCLUSIVOS ── */}
-      <section className="py-14 bg-secondary-50 border-t border-secondary-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeader
-            eyebrow="Promo apertura · Tiempo limitado"
+      <section className="py-8 sm:py-14 bg-secondary-50 border-t border-secondary-100">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
             title="Lanzamientos Exclusivos"
             link="/menu?filter=ofertas"
             linkLabel="Ver ofertas"
@@ -175,8 +173,8 @@ const Home = () => {
       </section>
 
       {/* ── 2. SELECCIÓN NATURAL ── */}
-      <section className="py-14 border-t border-secondary-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-8 sm:py-14 border-t border-secondary-100">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <SectionHeader
             eyebrow="Snacks · Premios · Mordedores · Nutrición premium"
             title="Nuestra Selección Natural"
@@ -197,8 +195,8 @@ const Home = () => {
       </section>
 
       {/* ── 3. CAMAS PREMIUM ── */}
-      <section className="py-14 bg-secondary-50 border-t border-secondary-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-8 sm:py-14 bg-secondary-50 border-t border-secondary-100">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <SectionHeader
             eyebrow="Descanso y confort"
             title="El descanso que se merece"
@@ -220,8 +218,8 @@ const Home = () => {
       </section>
 
       {/* ── 4. JUGUETES ── */}
-      <section className="py-14 border-t border-secondary-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-8 sm:py-14 border-t border-secondary-100">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <SectionHeader
             eyebrow="Estimulación · Entretenimiento · Diversión"
             title="Ideales para los más juguetones"
@@ -244,8 +242,8 @@ const Home = () => {
 
       {/* ── 5. PRODUCTOS DESTACADOS ── */}
       {(loading || destacados.length > 0) && (
-        <section className="py-14 bg-secondary-50 border-t border-secondary-100">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="py-8 sm:py-14 bg-secondary-50 border-t border-secondary-100">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
             <SectionHeader
               eyebrow="Lo mejor de nuestra tienda"
               title="Productos Destacados"
