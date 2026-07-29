@@ -17,8 +17,20 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 15 * 1024 * 1024 } // 15MB
+  limits: { fileSize: 15 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+    if (allowed.includes(file.mimetype)) cb(null, true);
+    else cb(new Error(`Formato no soportado: ${file.mimetype}. Usá JPG, PNG o WebP.`));
+  }
 });
+
+const handleUpload = (req, res, next) => {
+  upload.array('imagenes', 10)(req, res, (err) => {
+    if (err) return res.status(400).json({ error: err.message || 'Error al subir imagen' });
+    next();
+  });
+};
 
 // GET /api/products/categories - Obtener categorías
 router.get('/categories', async (req, res) => {
@@ -101,7 +113,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST /api/products - Crear producto (solo admin)
-router.post('/', auth, upload.array('imagenes', 10), async (req, res) => {
+router.post('/', auth, handleUpload, async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Acceso denegado' });
@@ -153,7 +165,7 @@ router.post('/', auth, upload.array('imagenes', 10), async (req, res) => {
 });
 
 // PUT /api/products/:id - Actualizar producto (solo admin)
-router.put('/:id', auth, upload.array('imagenes', 10), async (req, res) => {
+router.put('/:id', auth, handleUpload, async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Acceso denegado' });
