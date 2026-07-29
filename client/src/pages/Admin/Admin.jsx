@@ -62,6 +62,9 @@ const Admin = () => {
   const [cityForm, setCityForm] = useState({ nombre: '', provincia: '', shipping_zone_id: '' })
   const [editingCity, setEditingCity] = useState(null)
   const [showCityForm, setShowCityForm] = useState(false)
+  const [existingImages, setExistingImages] = useState([]) // URLs de imágenes actuales al editar
+  const [newImagePreviews, setNewImagePreviews] = useState([]) // { file, url } para nuevas imágenes
+  const [dragOverIdx, setDragOverIdx] = useState(null)
 
   useEffect(() => {
     if (!isAuthenticated || user?.role !== 'admin') {
@@ -302,7 +305,14 @@ const Admin = () => {
       formData.append('variantes', JSON.stringify([]))
     }
     
-    if (productForm.image && productForm.image.length > 0) {
+    // Imágenes existentes reordenadas (solo en edición)
+    if (editingProduct && existingImages.length > 0) {
+      formData.append('imagenes_existentes', JSON.stringify(existingImages))
+    }
+    // Nuevas imágenes en el orden del preview
+    if (newImagePreviews.length > 0) {
+      newImagePreviews.forEach(({ file }) => formData.append('imagenes', file))
+    } else if (!editingProduct && productForm.image && productForm.image.length > 0) {
       for (let i = 0; i < productForm.image.length; i++) {
         formData.append('imagenes', productForm.image[i])
       }
@@ -325,6 +335,8 @@ const Admin = () => {
       if (response.ok) {
         loadProducts()
         setProductForm({ name: '', price: '', category: categories[0]?.nombre || '', brand: '', description: '', image: null, featured: false, discount: 0, stock: 100, tipo: 'normal', esProductoPorTalles: false, tallesSeleccionados: { S: false, M: false, L: false, XL: false, XXL: false }, preciosTalles: { S: '', M: '', L: '', XL: '', XXL: '' }, imagen_config: 'contain|center', promo_lanzamiento: false })
+        setExistingImages([])
+        setNewImagePreviews([])
         setEditingProduct(null)
         setShowProductForm(false)
       } else {
@@ -368,6 +380,12 @@ const Admin = () => {
       imagen_config: product.imagen_config || 'contain|center',
       promo_lanzamiento: product.promo_lanzamiento || false
     })
+    // Cargar imágenes existentes para reordenar
+    try {
+      const imgs = typeof product.imagenes === 'string' ? JSON.parse(product.imagenes) : product.imagenes
+      setExistingImages(Array.isArray(imgs) && imgs.length > 0 ? imgs : (product.imagen ? [product.imagen] : []))
+    } catch { setExistingImages(product.imagen ? [product.imagen] : []) }
+    setNewImagePreviews([])
     setShowProductForm(true)
   }
 
@@ -789,11 +807,97 @@ const Admin = () => {
                       <label className="block text-sm font-medium text-secondary-700 mb-1">
                         Imágenes (máximo 10)
                       </label>
+
+                      {/* Imágenes existentes reordenables */}
+                      {editingProduct && existingImages.length > 0 && (
+                        <div className="mb-3">
+                          <p className="text-xs text-secondary-500 mb-1.5">Imágenes actuales — arrastrá para reordenar</p>
+                          <div className="flex flex-wrap gap-2">
+                            {existingImages.map((url, i) => (
+                              <div
+                                key={url}
+                                draggable
+                                onDragStart={e => e.dataTransfer.setData('text/plain', `e:${i}`)}
+                                onDragOver={e => { e.preventDefault(); setDragOverIdx(`e:${i}`) }}
+                                onDragLeave={() => setDragOverIdx(null)}
+                                onDrop={e => {
+                                  e.preventDefault()
+                                  setDragOverIdx(null)
+                                  const src = e.dataTransfer.getData('text/plain')
+                                  if (!src.startsWith('e:')) return
+                                  const from = parseInt(src.slice(2))
+                                  if (from === i) return
+                                  const arr = [...existingImages]
+                                  arr.splice(i, 0, arr.splice(from, 1)[0])
+                                  setExistingImages(arr)
+                                }}
+                                className={`relative w-16 h-16 rounded-lg overflow-hidden border-2 cursor-grab transition-all ${
+                                  dragOverIdx === `e:${i}` ? 'border-primary-500 scale-105' : 'border-secondary-200'
+                                }`}
+                              >
+                                <img src={url} alt="" className="w-full h-full object-cover" />
+                                {i === 0 && <span className="absolute bottom-0 left-0 right-0 text-[9px] text-center bg-primary-500 text-white">principal</span>}
+                                <button
+                                  type="button"
+                                  onClick={() => setExistingImages(existingImages.filter((_, j) => j !== i))}
+                                  className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] leading-none"
+                                >×</button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Nuevas imágenes a agregar */}
+                      {newImagePreviews.length > 0 && (
+                        <div className="mb-3">
+                          <p className="text-xs text-secondary-500 mb-1.5">Nuevas imágenes — arrastrá para reordenar</p>
+                          <div className="flex flex-wrap gap-2">
+                            {newImagePreviews.map(({ url }, i) => (
+                              <div
+                                key={url}
+                                draggable
+                                onDragStart={e => e.dataTransfer.setData('text/plain', `n:${i}`)}
+                                onDragOver={e => { e.preventDefault(); setDragOverIdx(`n:${i}`) }}
+                                onDragLeave={() => setDragOverIdx(null)}
+                                onDrop={e => {
+                                  e.preventDefault()
+                                  setDragOverIdx(null)
+                                  const src = e.dataTransfer.getData('text/plain')
+                                  if (!src.startsWith('n:')) return
+                                  const from = parseInt(src.slice(2))
+                                  if (from === i) return
+                                  const arr = [...newImagePreviews]
+                                  arr.splice(i, 0, arr.splice(from, 1)[0])
+                                  setNewImagePreviews(arr)
+                                }}
+                                className={`relative w-16 h-16 rounded-lg overflow-hidden border-2 cursor-grab transition-all ${
+                                  dragOverIdx === `n:${i}` ? 'border-primary-500 scale-105' : 'border-secondary-200'
+                                }`}
+                              >
+                                <img src={url} alt="" className="w-full h-full object-cover" />
+                                <button
+                                  type="button"
+                                  onClick={() => setNewImagePreviews(newImagePreviews.filter((_, j) => j !== i))}
+                                  className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] leading-none"
+                                >×</button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       <input
                         type="file"
                         accept="image/*"
                         multiple
-                        onChange={(e) => setProductForm({...productForm, image: e.target.files})}
+                        onChange={e => {
+                          const files = Array.from(e.target.files)
+                          const previews = files.map(file => ({ file, url: URL.createObjectURL(file) }))
+                          setNewImagePreviews(prev => [...prev, ...previews])
+                          setProductForm({ ...productForm, image: e.target.files })
+                          e.target.value = ''
+                        }}
                         className="input w-full"
                       />
                       <p className="text-xs text-secondary-500 mt-1">
@@ -961,6 +1065,8 @@ const Admin = () => {
                          onClick={() => {
                            setShowProductForm(false)
                            setEditingProduct(null)
+                           setExistingImages([])
+                           setNewImagePreviews([])
                            setProductForm({ name: '', price: '', category: 'comederos', description: '', image: null, featured: false, discount: 0, stock: 100, tipo: 'normal', esProductoPorTalles: false, tallesSeleccionados: { S: false, M: false, L: false, XL: false, XXL: false }, preciosTalles: { S: '', M: '', L: '', XL: '', XXL: '' }, imagen_config: 'contain|center', promo_lanzamiento: false })
                          }}
                          className="btn btn-secondary flex-1"

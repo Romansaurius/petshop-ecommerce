@@ -183,8 +183,14 @@ router.put('/:id', auth, upload.array('imagenes', 10), async (req, res) => {
     }
 
     // URLs de Cloudinary para actualización
-    if (req.files && req.files.length > 0) {
-      productData.imagenes = req.files.map(file => file.path);
+    // Si vienen imágenes existentes reordenadas, usarlas como base
+    let baseImages = [];
+    if (req.body.imagenes_existentes) {
+      try { baseImages = JSON.parse(req.body.imagenes_existentes); } catch {}
+    }
+    const newImages = req.files && req.files.length > 0 ? req.files.map(f => f.path) : [];
+    if (baseImages.length > 0 || newImages.length > 0) {
+      productData.imagenes = [...baseImages, ...newImages];
     }
 
     await Product.update(id, productData);
