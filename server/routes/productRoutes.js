@@ -17,7 +17,7 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 15 * 1024 * 1024 },
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
     if (allowed.includes(file.mimetype)) cb(null, true);
@@ -27,6 +27,7 @@ const upload = multer({
 
 const handleUpload = (req, res, next) => {
   upload.array('imagenes', 10)(req, res, (err) => {
+    if (err?.code === 'LIMIT_FILE_SIZE') return res.status(400).json({ error: 'La imagen supera el límite de 10MB' });
     if (err) return res.status(400).json({ error: err.message || 'Error al subir imagen' });
     next();
   });

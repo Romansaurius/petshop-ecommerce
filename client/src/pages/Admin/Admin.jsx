@@ -904,9 +904,7 @@ const Admin = () => {
                         }}
                         className="input w-full"
                       />
-                      <p className="text-xs text-secondary-500 mt-1">
-                        Hasta 10 imágenes · Máx 15MB por imagen
-                      </p>
+                      <p className="text-xs text-secondary-500 mt-1">Hasta 10 imágenes · Máx 10MB por imagen</p>
                     </div>
 
                     {/* Config de imagen */}

@@ -155,6 +155,8 @@ const Home = () => {
       {/* ── 1. LANZAMIENTOS EXCLUSIVOS ── */}
       <section className="py-8 sm:py-14 bg-secondary-50 border-t border-secondary-100">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <SectionHeader
+            eyebrow="Promos de lanzamiento"
             title="Lanzamientos Exclusivos"
             link="/menu?filter=ofertas"
             linkLabel="Ver ofertas"
