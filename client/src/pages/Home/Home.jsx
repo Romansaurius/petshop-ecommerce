@@ -78,14 +78,14 @@ const ProductSlider = ({ products, loading, emptyMsg, allProducts, addToCart }) 
     <div className="relative">
       {canLeft && (
         <button onClick={() => scroll(-1)}
-          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 bg-white border border-secondary-200 shadow-md rounded-full p-2 hover:bg-secondary-50 transition-colors">
-          <ChevronLeft className="w-5 h-5 text-secondary-600" />
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white border border-secondary-200 shadow-md rounded-full p-1.5 sm:p-2 hover:bg-secondary-50 transition-colors hidden sm:flex">
+          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-secondary-600" />
         </button>
       )}
       {canRight && (
         <button onClick={() => scroll(1)}
-          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 bg-white border border-secondary-200 shadow-md rounded-full p-2 hover:bg-secondary-50 transition-colors">
-          <ChevronRight className="w-5 h-5 text-secondary-600" />
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white border border-secondary-200 shadow-md rounded-full p-1.5 sm:p-2 hover:bg-secondary-50 transition-colors hidden sm:flex">
+          <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-secondary-600" />
         </button>
       )}
       <div ref={ref} className="flex gap-5 overflow-x-auto pb-2 scroll-smooth"

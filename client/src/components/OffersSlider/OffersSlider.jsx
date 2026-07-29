@@ -66,7 +66,7 @@ const OffersSlider = () => {
   return (
     <div
       className="relative w-full overflow-hidden rounded-2xl"
-      style={{ height: '320px' }}
+      style={{ height: 'clamp(200px, 45vw, 320px)' }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >

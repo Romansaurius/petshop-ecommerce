@@ -195,12 +195,12 @@ const Checkout = () => {
     <div className="min-h-screen bg-secondary-50">
       <div className="bg-white shadow-sm border-b border-secondary-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <button onClick={() => navigate('/')} className="flex items-center space-x-2 text-secondary-600 hover:text-primary-500 transition-colors">
-              <ArrowLeft className="w-5 h-5" /><span>Volver al inicio</span>
+          <div className="flex items-center h-14 sm:h-16 gap-3">
+            <button onClick={() => navigate('/')} className="flex items-center gap-1.5 text-secondary-600 hover:text-primary-500 transition-colors text-sm">
+              <ArrowLeft className="w-4 h-4" /><span className="hidden sm:inline">Volver</span>
             </button>
-            <h1 className="text-2xl font-bold text-secondary-800">Finalizar Pedido</h1>
-            <div />
+            <h1 className="flex-1 text-center text-lg sm:text-2xl font-bold text-secondary-800">Finalizar Pedido</h1>
+            <div className="w-16 sm:w-20" />
           </div>
         </div>
       </div>
@@ -214,20 +214,20 @@ const Checkout = () => {
               <h2 className="text-xl font-semibold text-secondary-800 mb-4">Tu Carrito</h2>
               <div className="space-y-4">
                 {cart.map(item => (
-                  <div key={item.variante_id ? `${item.id}_${item.variante_id}` : item.id} className="flex items-center justify-between p-4 bg-secondary-50 rounded-lg">
+                  <div key={item.variante_id ? `${item.id}_${item.variante_id}` : item.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-secondary-50 rounded-lg gap-3">
                     <div className="flex-1">
-                      <h4 className="font-medium text-secondary-800">{item.nombre || item.name} {item.talla && <span className="text-primary-500">({item.talla})</span>}</h4>
+                      <h4 className="font-medium text-secondary-800 text-sm">{item.nombre || item.name} {item.talla && <span className="text-primary-500">({item.talla})</span>}</h4>
                       <p className="text-sm text-secondary-600">{fmt(item.precio || item.price || 0)} c/u</p>
                     </div>
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center justify-between sm:justify-end sm:gap-4">
                       <div className="flex items-center space-x-2">
-                        <button onClick={() => handleQuantityChange(item.id, item.quantity - 1, item.variante_id)} className="w-8 h-8 rounded-full bg-secondary-200 hover:bg-secondary-300 flex items-center justify-center">-</button>
+                        <button onClick={() => handleQuantityChange(item.id, item.quantity - 1, item.variante_id)} className="w-8 h-8 rounded-full bg-secondary-200 hover:bg-secondary-300 flex items-center justify-center text-sm">-</button>
                         <span className="w-8 text-center font-medium">{item.quantity}</span>
-                        <button onClick={() => handleQuantityChange(item.id, item.quantity + 1, item.variante_id)} className="w-8 h-8 rounded-full bg-secondary-200 hover:bg-secondary-300 flex items-center justify-center">+</button>
+                        <button onClick={() => handleQuantityChange(item.id, item.quantity + 1, item.variante_id)} className="w-8 h-8 rounded-full bg-secondary-200 hover:bg-secondary-300 flex items-center justify-center text-sm">+</button>
                       </div>
                       <div className="text-right">
                         <div className="font-medium text-secondary-800">{fmt((item.precio || item.price || 0) * item.quantity)}</div>
-                        <button onClick={() => removeFromCart(item.id, item.variante_id)} className="text-red-500 hover:text-red-700 text-sm">Eliminar</button>
+                        <button onClick={() => removeFromCart(item.id, item.variante_id)} className="text-red-500 hover:text-red-700 text-xs">Eliminar</button>
                       </div>
                     </div>
                   </div>
@@ -391,7 +391,7 @@ const Checkout = () => {
                     </Field>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                     <Field label="Piso">
                       <input type="text" value={customerInfo.piso} onChange={e => setCustomerInfo({ ...customerInfo, piso: e.target.value })} className="input w-full" placeholder="Opcional" />
                     </Field>

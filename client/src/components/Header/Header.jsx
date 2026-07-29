@@ -17,7 +17,7 @@ const Header = ({ onOpenCart }) => {
   const categories = [
     { name: 'Todos', value: 'todos', href: '/menu' },
     { name: 'Promos', value: 'ofertas', href: '/menu?filter=ofertas' },
-    { name: 'Snacks Naturales', value: 'Snacks Naturales', href: '/menu?category=Snacks Naturales' },
+    { name: 'Snacks', value: 'Snacks Naturales', href: '/menu?category=Snacks Naturales' },
     { name: 'Juguetes', value: 'juguetes', href: '/menu?category=juguetes' },
     { name: 'Comederos', value: 'comederos', href: '/menu?category=comederos' },
     { name: 'Accesorios', value: 'accesorios', href: '/menu?category=accesorios' },
@@ -123,14 +123,14 @@ const Header = ({ onOpenCart }) => {
           </div>
         </div>
 
-        {/* Nav categorías — desktop: scrolleable horizontal */}
-        <nav className="hidden md:flex gap-1 py-2 border-t border-secondary-100 overflow-x-auto"
-          style={{ scrollbarWidth: 'none' }}>
+        {/* Nav categorías — scrolleable horizontal en todos los tamaños */}
+        <nav className="flex gap-1 py-2 border-t border-secondary-100 overflow-x-auto"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           {categories.map((cat) => (
             <Link
               key={cat.value}
               to={cat.href}
-              className={`shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+              className={`shrink-0 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
                 isActive(cat)
                   ? 'bg-primary-500 text-white'
                   : 'text-secondary-500 hover:text-secondary-800 hover:bg-secondary-100'
@@ -158,23 +158,7 @@ const Header = ({ onOpenCart }) => {
               />
             </form>
 
-            {/* Categorías mobile — grid compacto */}
-            <div className="grid grid-cols-3 gap-1.5">
-              {categories.map((cat) => (
-                <Link
-                  key={cat.value}
-                  to={cat.href}
-                  onClick={() => setIsMenuOpen(false)}
-                  className={`text-center py-2 px-1 rounded-xl text-xs font-medium transition-all ${
-                    isActive(cat)
-                      ? 'bg-primary-500 text-white'
-                      : 'bg-secondary-50 text-secondary-600 hover:bg-primary-50 hover:text-primary-600'
-                  }`}
-                >
-                  {cat.name}
-                </Link>
-              ))}
-            </div>
+            {/* Categorías mobile — eliminadas del menú hamburguesa (ya están en la nav scrolleable) */}
 
             {/* User actions mobile */}
             <div className="pt-2 border-t border-secondary-100 space-y-1">

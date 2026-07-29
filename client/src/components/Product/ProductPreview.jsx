@@ -317,7 +317,7 @@ const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
                 <button
                   onClick={handleAddToCart}
                   disabled={getProductStock() === 0}
-                  className="flex-1 btn btn-primary flex items-center justify-center gap-2 py-3 text-base font-semibold disabled:opacity-50"
+                  className="flex-1 btn btn-primary flex items-center justify-center gap-2 py-3 text-sm sm:text-base font-semibold disabled:opacity-50"
                 >
                   <ShoppingCart className="w-5 h-5" />
                   Agregar al carrito
@@ -336,9 +336,9 @@ const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
           {relatedProducts.length > 0 && (
             <div className="mt-10 pt-8 border-t border-secondary-100">
               <h3 className="text-lg font-bold text-secondary-800 mb-4">Productos relacionados</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 {relatedProducts.map(p => (
-                  <div key={p.id} className="bg-secondary-50 rounded-xl p-3 hover:shadow-md transition-all cursor-pointer">
+                  <div key={p.id} className="bg-secondary-50 rounded-xl p-2 sm:p-3 hover:shadow-md transition-all cursor-pointer">
                     <div className="w-full h-24 bg-white rounded-lg overflow-hidden mb-2">
                       {(p.imagen || p.image) ? (
                         <img src={p.imagen || p.image} alt={p.nombre || p.name} className="w-full h-full object-cover" />
@@ -363,9 +363,9 @@ const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
                 <div className="w-1 h-6 bg-primary-500 rounded-full" />
                 <h3 className="text-lg font-bold text-secondary-800">Productos recomendados</h3>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
                 {recommendedProducts.map(p => (
-                  <div key={p.id} className="group bg-white border border-secondary-100 rounded-xl p-3 hover:shadow-md hover:border-primary-200 transition-all cursor-pointer">
+                  <div key={p.id} className="group bg-white border border-secondary-100 rounded-xl p-2 sm:p-3 hover:shadow-md hover:border-primary-200 transition-all cursor-pointer">
                     <div className="w-full h-20 bg-secondary-50 rounded-lg overflow-hidden mb-2">
                       {(p.imagen || p.image) ? (
                         <img src={p.imagen || p.image} alt={p.nombre || p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />

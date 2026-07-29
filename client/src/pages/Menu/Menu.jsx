@@ -23,6 +23,7 @@ const Menu = () => {
     const searchFromUrl = searchParams.get('search')
     if (filterFromUrl) setSelectedCategory(filterFromUrl)
     else if (categoryFromUrl) setSelectedCategory(categoryFromUrl)
+    else setSelectedCategory('todos')
     if (searchFromUrl) setSearchTerm(searchFromUrl)
   }, [searchParams])
 
