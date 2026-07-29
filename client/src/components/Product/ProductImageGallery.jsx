@@ -19,7 +19,7 @@ const ProductImageGallery = ({ images = [], productName, className = '', imagenC
       <img
         src={images[idx]}
         alt={`${productName} ${idx + 1}`}
-        className="w-full h-full transition-opacity duration-300"
+        className="absolute inset-0 w-full h-full transition-opacity duration-300"
         style={imgStyle}
       />
 

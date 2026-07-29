@@ -16,7 +16,7 @@ const Header = ({ onOpenCart }) => {
 
   const categories = [
     { name: 'Todos', value: 'todos', href: '/menu' },
-    { name: 'Promos', value: 'ofertas', href: '/menu?filter=ofertas' },
+    { name: 'Promo Lanzamiento', value: 'ofertas', href: '/menu?filter=ofertas' },
     { name: 'Snacks', value: 'Snacks Naturales', href: '/menu?category=Snacks Naturales' },
     { name: 'Juguetes', value: 'juguetes', href: '/menu?category=juguetes' },
     { name: 'Comederos', value: 'comederos', href: '/menu?category=comederos' },
