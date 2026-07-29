@@ -383,7 +383,11 @@ const Admin = () => {
     // Cargar imágenes existentes para reordenar
     try {
       const imgs = typeof product.imagenes === 'string' ? JSON.parse(product.imagenes) : product.imagenes
-      setExistingImages(Array.isArray(imgs) && imgs.length > 0 ? imgs : (product.imagen ? [product.imagen] : []))
+      // getById devuelve imagenes como array de objetos {imagen_url,...}, normalizar a strings
+      const normalized = Array.isArray(imgs)
+        ? imgs.map(i => typeof i === 'string' ? i : i.imagen_url).filter(Boolean)
+        : []
+      setExistingImages(normalized.length > 0 ? normalized : (product.imagen ? [product.imagen] : []))
     } catch { setExistingImages(product.imagen ? [product.imagen] : []) }
     setNewImagePreviews([])
     setShowProductForm(true)

@@ -198,7 +198,8 @@ router.put('/:id', auth, upload.array('imagenes', 10), async (req, res) => {
     
     res.json(updatedProduct);
   } catch (error) {
-    res.status(500).json({ error: 'Error al actualizar producto' });
+    console.error('Error actualizando producto:', error);
+    res.status(500).json({ error: error.message || 'Error al actualizar producto' });
   }
 });
 
