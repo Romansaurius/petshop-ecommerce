@@ -57,9 +57,11 @@ const Menu = () => {
     } else if (selectedCategory === 'importados') {
       filtered = filtered.filter(p => p.tipo === 'importado')
     } else if (selectedCategory !== 'todos') {
-      filtered = filtered.filter(p =>
-        (p.categoria || p.category || '').toLowerCase() === selectedCategory.toLowerCase()
-      )
+      filtered = filtered.filter(p => {
+        const cat = (p.categoria || p.category || '').trim()
+        const sel = selectedCategory.trim()
+        return cat.toLowerCase() === sel.toLowerCase()
+      })
     }
 
     if (selectedBrand !== 'todas') {

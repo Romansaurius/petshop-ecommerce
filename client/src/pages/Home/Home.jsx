@@ -140,6 +140,14 @@ const Home = () => {
   const juguetesFallback = allProducts.filter(p => (p.categoria || '').toLowerCase().includes('juguete')).slice(0, 10)
   const juguetes = getSectionProducts('juguetes', juguetesFallback)
 
+  const gatunosFallback = allProducts.filter(p => {
+    const cat = (p.categoria || '').toLowerCase()
+    const nom = (p.nombre || '').toLowerCase()
+    const desc = (p.descripcion || '').toLowerCase()
+    return cat.includes('gato') || cat.includes('felino') || nom.includes('gato') || nom.includes('felino') || desc.includes('gato') || desc.includes('felino')
+  }).slice(0, 10)
+  const gatunos = getSectionProducts('gatunos', gatunosFallback)
+
   const destacadosFallback = allProducts.filter(p => p.destacado || p.featured).slice(0, 10)
   const destacados = getSectionProducts('destacados', destacadosFallback)
 
@@ -180,7 +188,7 @@ const Home = () => {
           <SectionHeader
             eyebrow="Snacks · Premios · Mordedores · Nutrición premium"
             title="Nuestra Selección Natural"
-            link="/menu?category=Snacks Naturales"
+            link="/menu?category=Mordedores y Snacks Naturales"
             linkLabel="Ver todos"
           />
           <ProductSlider
@@ -242,29 +250,51 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ── 5. PRODUCTOS DESTACADOS ── */}
-      {(loading || destacados.length > 0) && (
-        <section className="py-8 sm:py-14 bg-secondary-50 border-t border-secondary-100">
+      {/* ── 5. PARA LOS AMANTES GATUNOS ── */}
+      {(loading || gatunos.length > 0) && (
+        <section className="py-8 sm:py-14 border-t border-secondary-100">
           <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
             <SectionHeader
-              eyebrow="Lo mejor de nuestra tienda"
-              title="Productos Destacados"
-              link="/menu"
-              linkLabel="Ver todos"
+              eyebrow="Especial para gatos"
+              title="Para los amantes gatunos"
+              link="/menu?category=gatos"
+              linkLabel="Ver todo"
             />
             <ProductSlider
-              products={destacados}
+              products={gatunos}
               loading={loading}
-              emptyMsg=""
+              emptyMsg="Proximamente productos especiales para gatos."
               allProducts={allProducts}
               addToCart={addToCart}
             />
             <p className="text-sm text-secondary-500 mt-8 max-w-xl leading-relaxed">
-              Los favoritos de nuestros clientes. Productos cuidadosamente seleccionados por calidad, popularidad y el amor que les tienen nuestras mascotas. Descubrí lo que hace especial a cada uno.
+              Porque los gatos tienen su propio mundo. Encontra juguetes, snacks, accesorios y todo lo que necesitan para vivir felices, activos y bien cuidados.
             </p>
           </div>
         </section>
       )}
+
+      {/* ── 6. PRODUCTOS DESTACADOS ── */}
+      <section className="py-8 sm:py-14 bg-secondary-50 border-t border-secondary-100">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <SectionHeader
+            eyebrow="Lo mejor de nuestra tienda"
+            title="Productos Destacados"
+            link="/menu"
+            linkLabel="Ver todos"
+          />
+          <ProductSlider
+            products={destacados}
+            loading={loading}
+            emptyMsg=""
+            allProducts={allProducts}
+            addToCart={addToCart}
+          />
+          <p className="text-sm text-secondary-500 mt-8 max-w-xl leading-relaxed">
+            Los favoritos de nuestros clientes. Productos cuidadosamente seleccionados por calidad, popularidad y el amor que les tienen nuestras mascotas. Descubri lo que hace especial a cada uno.
+          </p>
+        </div>
+      </section>
 
       {/* ── BENEFICIOS ── */}
       <section className="py-14 bg-secondary-50 border-t border-secondary-100">
