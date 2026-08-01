@@ -493,7 +493,7 @@ const Admin = () => {
         body: JSON.stringify({ estado: newStatus })
       })
       if (res.ok) {
-        setOrders(orders.map(o => o.id === orderId ? { ...o, estado: newStatus } : o))
+        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, estado: newStatus } : o))
       } else {
         alert('Error al actualizar el estado')
       }
@@ -555,7 +555,7 @@ const Admin = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-secondary-600">Ventas Hoy</p>
                 <p className="text-2xl font-bold text-secondary-900">
-                  {formatPrice(orders.reduce((sum, order) => sum + order.total, 0))}
+                  {formatPrice(orders.reduce((sum, order) => sum + (parseFloat(order.total) || 0), 0))}
                 </p>
               </div>
             </div>

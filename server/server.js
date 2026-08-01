@@ -88,11 +88,13 @@ async function ensureDbColumns() {
         ('natural', 'Nuestra Selección Natural', 2),
         ('camas', 'El descanso que se merece', 3),
         ('juguetes', 'Ideales para los más juguetones', 4),
-        ('destacados', 'Productos Destacados', 5)`);
+        ('gatunos', 'Para los amantes gatunos', 5),
+        ('destacados', 'Productos Destacados', 6)`);
     } else {
       // Insertar sección destacados si no existe
       try {
         await db.execute(`INSERT IGNORE INTO home_secciones (clave, nombre, orden) VALUES ('destacados', 'Productos Destacados', 5)`);
+        await db.execute(`INSERT IGNORE INTO home_secciones (clave, nombre, orden) VALUES ('gatunos', 'Para los amantes gatunos', 6)`);
       } catch(e) {}
     }
   } catch (e) { console.log('home_secciones:', e.message); }
