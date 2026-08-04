@@ -4,8 +4,54 @@ import { useCart } from '../../context/CartContext'
 
 const FREE_SHIPPING_THRESHOLD = 35000
 
+const MiniProductCard = ({ product, onClick, formatPrice }) => {
+  const getImages = () => {
+    if (product?.imagenes) {
+      try {
+        const imgs = typeof product.imagenes === 'string' ? JSON.parse(product.imagenes) : product.imagenes
+        if (Array.isArray(imgs) && imgs.length > 0) return imgs
+      } catch {}
+    }
+    return product?.imagen ? [product.imagen] : []
+  }
+  const imgs = getImages()
+  const [fit, pos] = (product?.imagen_config || 'contain|center').split('|')
+  const discount = product?.descuento_porcentaje || 0
+  return (
+    <button
+      onClick={() => onClick(product)}
+      className="group bg-white border border-secondary-100 rounded-xl overflow-hidden hover:border-primary-200 hover:shadow-md transition-all text-left w-full"
+    >
+      <div className="relative w-full aspect-square bg-secondary-50 overflow-hidden">
+        {imgs.length > 0 ? (
+          <img src={imgs[0]} alt={product.nombre || product.name}
+            className="w-full h-full group-hover:scale-105 transition-transform duration-300"
+            style={{ objectFit: fit || 'contain', objectPosition: pos || 'center' }}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <svg className="w-8 h-8 text-secondary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+        )}
+        {discount > 0 && (
+          <span className="absolute top-1.5 left-1.5 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">-{discount}%</span>
+        )}
+      </div>
+      <div className="p-2.5">
+        <p className="text-xs font-medium text-secondary-800 line-clamp-2 leading-snug mb-1 group-hover:text-primary-600 transition-colors">
+          {product.nombre || product.name}
+        </p>
+        <p className="text-sm font-bold text-secondary-900">{formatPrice(product.precio || product.price || 0)}</p>
+      </div>
+    </button>
+  )
+}
+
 const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
   const { addToCart, cart } = useCart()
+  const [activeProduct, setActiveProduct] = useState(null)
   const [quantity, setQuantity] = useState(1)
   const [selectedImage, setSelectedImage] = useState(0)
   const [isLiked, setIsLiked] = useState(false)
@@ -13,12 +59,22 @@ const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
   const [selectedTalla, setSelectedTalla] = useState(null)
   const [selectedPrecio, setSelectedPrecio] = useState(null)
   const [descExpanded, setDescExpanded] = useState(false)
+
+  // activeProduct permite navegar a otro producto sin cerrar el modal
+  const currentProduct = activeProduct || product
+
+  const handleNavigate = (p) => {
+    setActiveProduct(p)
+    setQuantity(1)
+    setSelectedImage(0)
+    setIsLiked(false)
+  }
   
   useEffect(() => {
-    if (product) {
+    if (currentProduct) {
       setDescExpanded(false)
-      if (product.variantes && product.variantes.length > 0) {
-        const sortedVariantes = [...product.variantes].sort((a, b) => {
+      if (currentProduct.variantes && currentProduct.variantes.length > 0) {
+        const sortedVariantes = [...currentProduct.variantes].sort((a, b) => {
           const orden = { 'S': 1, 'M': 2, 'L': 3, 'XL': 4, 'XXL': 5 }
           return (orden[a.talla] || 99) - (orden[b.talla] || 99)
         })
@@ -29,41 +85,40 @@ const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
         setSelectedPrecio(null)
       }
     }
-  }, [product])
+  }, [currentProduct])
 
-  const getProductName = () => product?.nombre || product?.name || 'Producto'
+  const getProductName = () => currentProduct?.nombre || currentProduct?.name || 'Producto'
   const getProductPrice = () => {
     if (selectedPrecio !== null) return selectedPrecio
-    return product?.precio || product?.price || 0
+    return currentProduct?.precio || currentProduct?.price || 0
   }
-  const getProductDescription = () => product?.descripcion || product?.description || ''
-  const getProductCategory = () => product?.categoria || product?.category || ''
-  const getProductDiscount = () => product?.descuento_porcentaje || product?.discount || 0
-  const getProductTipo = () => product?.tipo || 'normal'
+  const getProductDescription = () => currentProduct?.descripcion || currentProduct?.description || ''
+  const getProductCategory = () => currentProduct?.categoria || currentProduct?.category || ''
+  const getProductDiscount = () => currentProduct?.descuento_porcentaje || currentProduct?.discount || 0
+  const getProductTipo = () => currentProduct?.tipo || 'normal'
   const getProductStock = () => {
-    if (selectedTalla && product?.variantes) {
-      const variante = product.variantes.find(v => v.talla === selectedTalla)
-      return variante ? variante.stock : product?.stock || 100
+    if (selectedTalla && currentProduct?.variantes) {
+      const variante = currentProduct.variantes.find(v => v.talla === selectedTalla)
+      return variante ? variante.stock : currentProduct?.stock || 100
     }
-    return product?.stock || 100
+    return currentProduct?.stock || 100
   }
 
   const getProductImages = () => {
-    if (product?.imagenes) {
+    if (currentProduct?.imagenes) {
       try {
-        const imgs = typeof product.imagenes === 'string' ? JSON.parse(product.imagenes) : product.imagenes
+        const imgs = typeof currentProduct.imagenes === 'string' ? JSON.parse(currentProduct.imagenes) : currentProduct.imagenes
         if (Array.isArray(imgs) && imgs.length > 0) return imgs
       } catch (e) {}
     }
-    if (product?.imagen || product?.image) return [product.imagen || product.image]
+    if (currentProduct?.imagen || currentProduct?.image) return [currentProduct.imagen || currentProduct.image]
     return []
   }
 
   const images = getProductImages()
   const is2x1 = getProductTipo() === '2x1'
-  const [imgFit, imgPos] = (product?.imagen_config || 'contain|center').split('|')
-  const RECOMMENDED_IDS = [1, 2, 3, 4, 5]
-  const recommendedProducts = allProducts.filter(p => p.destacado || p.featured).filter(p => p.id !== product?.id).slice(0, 5)
+  const [imgFit, imgPos] = (currentProduct?.imagen_config || 'contain|center').split('|')
+  const recommendedProducts = allProducts.filter(p => p.destacado || p.featured).filter(p => p.id !== currentProduct?.id).slice(0, 6)
   
   // Calcular total del carrito considerando 2x1
   const cartTotal = (cart || []).reduce((sum, item) => {
@@ -79,14 +134,14 @@ const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
   const remaining = Math.max(FREE_SHIPPING_THRESHOLD - totalWithProduct, 0)
 
   useEffect(() => {
-    if (product && allProducts.length > 0) {
+    if (currentProduct && allProducts.length > 0) {
       const related = allProducts
-        .filter(p => p.id !== product.id && (p.categoria || p.category) === getProductCategory())
+        .filter(p => p.id !== currentProduct.id && (p.categoria || p.category) === getProductCategory())
         .slice(0, 4)
       setRelatedProducts(related)
     }
     setSelectedImage(0)
-  }, [product, allProducts])
+  }, [currentProduct, allProducts])
 
   const formatPrice = (price) => new Intl.NumberFormat('es-AR', {
     style: 'currency', currency: 'ARS', minimumFractionDigits: 0
@@ -98,10 +153,10 @@ const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
 
   const handleAddToCart = () => {
     const productWithTalla = {
-      ...product,
+      ...currentProduct,
       precio: getProductPrice(),
       talla: selectedTalla,
-      variante_id: selectedTalla ? product.variantes?.find(v => v.talla === selectedTalla)?.id : null
+      variante_id: selectedTalla ? currentProduct.variantes?.find(v => v.talla === selectedTalla)?.id : null
     }
     for (let i = 0; i < quantity; i++) addToCart(productWithTalla)
     setQuantity(1)
@@ -196,12 +251,12 @@ const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
               <div>
                 <h1 className="text-2xl font-bold text-secondary-900 leading-tight">{getProductName()}</h1>
                 <div className="flex items-center space-x-2 mt-2">
-                  {(product.rating > 0) ? (
+                  {(currentProduct.rating > 0) ? (
                     <>
                       {Array.from({ length: 5 }, (_, i) => (
-                        <Star key={i} className={`w-4 h-4 ${i < Math.floor(product.rating) ? 'text-yellow-400 fill-current' : 'text-secondary-200'}`} />
+                        <Star key={i} className={`w-4 h-4 ${i < Math.floor(currentProduct.rating) ? 'text-yellow-400 fill-current' : 'text-secondary-200'}`} />
                       ))}
-                      {product.reviews > 0 && <span className="text-sm text-secondary-500">({product.reviews} reseñas)</span>}
+                      {currentProduct.reviews > 0 && <span className="text-sm text-secondary-500">({currentProduct.reviews} reseñas)</span>}
                     </>
                   ) : null}
                 </div>
@@ -272,11 +327,11 @@ const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
               })()}
 
               {/* Selector de talles */}
-              {product?.variantes && product.variantes.length > 0 && (
+              {currentProduct?.variantes && currentProduct.variantes.length > 0 && (
                 <div>
                   <span className="text-sm font-medium text-secondary-700 mb-2 block">Talla:</span>
                   <div className="flex flex-wrap gap-2">
-                    {product.variantes.map(variante => (
+                    {currentProduct.variantes.map(variante => (
                       <button
                         key={variante.id}
                         type="button"
@@ -335,10 +390,10 @@ const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
           {/* Productos relacionados */}
           {relatedProducts.length > 0 && (
             <div className="mt-10 pt-8 border-t border-secondary-100">
-              <h3 className="text-lg font-bold text-secondary-800 mb-4">Productos relacionados</h3>
+              <h3 className="text-base font-semibold text-secondary-800 mb-4">Productos relacionados</h3>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {relatedProducts.map(p => (
-                  <ProductCard key={p.id} product={p} allProducts={allProducts} />
+                  <MiniProductCard key={p.id} product={p} onClick={handleNavigate} formatPrice={formatPrice} />
                 ))}
               </div>
             </div>
@@ -347,13 +402,13 @@ const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
           {/* Productos recomendados */}
           {recommendedProducts.length > 0 && (
             <div className="mt-8 pt-8 border-t border-secondary-100">
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-1 h-6 bg-primary-500 rounded-full" />
-                <h3 className="text-lg font-bold text-secondary-800">Productos recomendados</h3>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-1 h-5 bg-primary-500 rounded-full" />
+                <h3 className="text-base font-semibold text-secondary-800">Productos recomendados</h3>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
                 {recommendedProducts.map(p => (
-                  <ProductCard key={p.id} product={p} allProducts={allProducts} />
+                  <MiniProductCard key={p.id} product={p} onClick={handleNavigate} formatPrice={formatPrice} />
                 ))}
               </div>
             </div>

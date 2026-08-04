@@ -160,8 +160,8 @@ const Home = () => {
         <OffersSlider />
       </div>
 
-      {/* ── 1. LANZAMIENTOS EXCLUSIVOS ── */}
-      <section className="py-8 sm:py-14 bg-secondary-50 border-t border-secondary-100">
+      {/* ── 1. LANZAMIENTOS — fondo gris ── */}
+      <section className="py-10 sm:py-16 bg-secondary-50">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <SectionHeader
             eyebrow="Promos de lanzamiento"
@@ -176,14 +176,14 @@ const Home = () => {
             allProducts={allProducts}
             addToCart={addToCart}
           />
-          <p className="text-sm text-secondary-500 mt-8 max-w-xl leading-relaxed">
+          <p className="text-sm text-secondary-400 mt-7 max-w-xl leading-relaxed">
             Aprovechá las ofertas de tiempo limitado por apertura. Descuentos únicos en productos seleccionados para que conozcas todo lo que tenemos para tu mascota.
           </p>
         </div>
       </section>
 
-      {/* ── 2. SELECCIÓN NATURAL ── */}
-      <section className="py-8 sm:py-14 border-t border-secondary-100">
+      {/* ── 2. SELECCIÓN NATURAL — fondo blanco ── */}
+      <section className="py-10 sm:py-16 bg-white border-t border-secondary-100">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <SectionHeader
             eyebrow="Snacks · Premios · Mordedores · Nutrición premium"
@@ -198,14 +198,14 @@ const Home = () => {
             allProducts={allProducts}
             addToCart={addToCart}
           />
-          <p className="text-sm text-secondary-500 mt-8 max-w-xl leading-relaxed">
+          <p className="text-sm text-secondary-400 mt-7 max-w-xl leading-relaxed">
             Cuidar su alimentación también es una forma de demostrar amor. Descubrí productos seleccionados por su calidad, ingredientes naturales y beneficios para el bienestar diario de perros y gatos.
           </p>
         </div>
       </section>
 
-      {/* ── 3. CAMAS PREMIUM ── */}
-      <section className="py-8 sm:py-14 bg-secondary-50 border-t border-secondary-100">
+      {/* ── 3. CAMAS — fondo gris ── */}
+      <section className="py-10 sm:py-16 bg-secondary-50 border-t border-secondary-100">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <SectionHeader
             eyebrow="Descanso y confort"
@@ -221,14 +221,14 @@ const Home = () => {
               <Link to="/menu" className="btn btn-primary mt-4 text-sm">Ver todos los productos</Link>
             </div>
           )}
-          <p className="text-sm text-secondary-500 mt-8 max-w-xl leading-relaxed">
+          <p className="text-sm text-secondary-400 mt-7 max-w-xl leading-relaxed">
             Porque después de jugar, explorar y compartir momentos únicos, también necesitan un lugar cómodo para descansar y recargar energías.
           </p>
         </div>
       </section>
 
-      {/* ── 4. JUGUETES ── */}
-      <section className="py-8 sm:py-14 border-t border-secondary-100">
+      {/* ── 4. JUGUETES — fondo blanco ── */}
+      <section className="py-10 sm:py-16 bg-white border-t border-secondary-100">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <SectionHeader
             eyebrow="Estimulación · Entretenimiento · Diversión"
@@ -239,20 +239,20 @@ const Home = () => {
           {loading ? <SkeletonSlider /> : juguetes.length > 0 ? (
             <ProductSlider products={juguetes} loading={false} emptyMsg="" allProducts={allProducts} addToCart={addToCart} />
           ) : (
-            <div className="bg-white border border-secondary-100 rounded-2xl p-10 text-center">
+            <div className="bg-secondary-50 border border-secondary-100 rounded-2xl p-10 text-center">
               <p className="text-secondary-500 text-sm">Próximamente nuestra selección de juguetes premium.</p>
               <Link to="/menu" className="btn btn-primary mt-4 text-sm">Ver todos los productos</Link>
             </div>
           )}
-          <p className="text-sm text-secondary-500 mt-8 max-w-xl leading-relaxed">
+          <p className="text-sm text-secondary-400 mt-7 max-w-xl leading-relaxed">
             Estimulación mental, entretenimiento y momentos inolvidables para todas las edades y personalidades.
           </p>
         </div>
       </section>
 
-      {/* ── 5. PARA LOS AMANTES GATUNOS ── */}
+      {/* ── 5. GATUNOS — fondo gris ── */}
       {(loading || gatunos.length > 0) && (
-        <section className="py-8 sm:py-14 border-t border-secondary-100">
+        <section className="py-10 sm:py-16 bg-secondary-50 border-t border-secondary-100">
           <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
             <SectionHeader
               eyebrow="Especial para gatos"
@@ -263,19 +263,19 @@ const Home = () => {
             <ProductSlider
               products={gatunos}
               loading={loading}
-              emptyMsg="Proximamente productos especiales para gatos."
+              emptyMsg="Próximamente productos especiales para gatos."
               allProducts={allProducts}
               addToCart={addToCart}
             />
-            <p className="text-sm text-secondary-500 mt-8 max-w-xl leading-relaxed">
-              Porque los gatos tienen su propio mundo. Encontra juguetes, snacks, accesorios y todo lo que necesitan para vivir felices, activos y bien cuidados.
+            <p className="text-sm text-secondary-400 mt-7 max-w-xl leading-relaxed">
+              Porque los gatos tienen su propio mundo. Encontrá juguetes, snacks, accesorios y todo lo que necesitan para vivir felices, activos y bien cuidados.
             </p>
           </div>
         </section>
       )}
 
-      {/* ── 6. PRODUCTOS DESTACADOS ── */}
-      <section className="py-8 sm:py-14 bg-secondary-50 border-t border-secondary-100">
+      {/* ── 6. DESTACADOS — fondo blanco ── */}
+      <section className="py-10 sm:py-16 bg-white border-t border-secondary-100">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <SectionHeader
             eyebrow="Lo mejor de nuestra tienda"
@@ -290,14 +290,14 @@ const Home = () => {
             allProducts={allProducts}
             addToCart={addToCart}
           />
-          <p className="text-sm text-secondary-500 mt-8 max-w-xl leading-relaxed">
-            Los favoritos de nuestros clientes. Productos cuidadosamente seleccionados por calidad, popularidad y el amor que les tienen nuestras mascotas. Descubri lo que hace especial a cada uno.
+          <p className="text-sm text-secondary-400 mt-7 max-w-xl leading-relaxed">
+            Los favoritos de nuestros clientes. Productos cuidadosamente seleccionados por calidad, popularidad y el amor que les tienen nuestras mascotas.
           </p>
         </div>
       </section>
 
-      {/* ── BENEFICIOS ── */}
-      <section className="py-14 bg-secondary-50 border-t border-secondary-100">
+      {/* ── BENEFICIOS — fondo naranja suave, separador visual claro ── */}
+      <section className="py-14 bg-primary-50 border-t border-primary-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             {[
@@ -306,7 +306,7 @@ const Home = () => {
               { emoji: '🛏️', title: 'Comodidad y Diversión', desc: 'Encontrá camas premium, juguetes y accesorios pensados para acompañar cada etapa de la vida de tu mascota con calidad y amor.' },
             ].map(f => (
               <div key={f.title}>
-                <div className="w-12 h-12 bg-white border border-secondary-100 rounded-2xl flex items-center justify-center mx-auto mb-3 text-xl shadow-sm">
+                <div className="w-12 h-12 bg-white border border-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-3 text-xl shadow-sm">
                   {f.emoji}
                 </div>
                 <h3 className="font-semibold text-secondary-800 mb-1.5 text-sm">{f.title}</h3>
@@ -317,14 +317,14 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ── FAQ ── */}
-      <section className="py-14 border-t border-secondary-100">
+      {/* ── FAQ — fondo blanco ── */}
+      <section className="py-14 bg-white border-t border-secondary-100">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
             <p className="text-[11px] font-semibold uppercase tracking-widest text-secondary-400 mb-2">Ayuda</p>
             <h2 className="text-xl font-semibold text-secondary-800">Preguntas frecuentes</h2>
           </div>
-          <div className="bg-white rounded-2xl border border-secondary-100 px-6">
+          <div className="bg-secondary-50 rounded-2xl border border-secondary-100 px-6">
             {faqs.map((faq, i) => <FAQItem key={i} question={faq.question} answer={faq.answer} />)}
           </div>
         </div>
