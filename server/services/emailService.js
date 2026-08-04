@@ -123,6 +123,10 @@ const buildEmail = (order, estado) => {
 const sendOrderStatusEmail = async (order, estado) => {
   const email = order.cliente_email || order.email_contacto;
   if (!email) return;
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.log(`[EMAIL SIMULADO] Para: ${email} | Estado: ${estado} | Pedido #${order.id}`);
+    return;
+  }
   try {
     const { subject, html } = buildEmail(order, estado);
     await transporter.sendMail({
