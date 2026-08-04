@@ -78,6 +78,20 @@ const Header = ({ onOpenCart }) => {
             </div>
           </form>
 
+          {/* Search — mobile (inline, entre logo y carrito) */}
+          <form onSubmit={handleSearch} className="flex md:hidden flex-1">
+            <div className="relative w-full">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-secondary-400" />
+              <input
+                type="text"
+                placeholder="Buscar..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-8 pr-3 py-2 bg-secondary-50 border border-secondary-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent"
+              />
+            </div>
+          </form>
+
           {/* Actions */}
           <div className="flex items-center gap-2">
             {/* Desktop user actions */}
@@ -146,17 +160,6 @@ const Header = ({ onOpenCart }) => {
       {isMenuOpen && (
         <div className="md:hidden bg-white border-t border-secondary-100">
           <div className="px-4 py-3 space-y-3">
-            {/* Search mobile */}
-            <form onSubmit={handleSearch} className="relative">
-              <Search className="absolute left-3 top-2.5 w-4 h-4 text-secondary-400" />
-              <input
-                type="text"
-                placeholder="Buscar productos..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 bg-secondary-50 border border-secondary-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
-              />
-            </form>
 
             {/* Categorías mobile — eliminadas del menú hamburguesa (ya están en la nav scrolleable) */}
 

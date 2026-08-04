@@ -544,7 +544,13 @@ const Admin = () => {
               <ShoppingBag className="w-8 h-8 text-green-500" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-secondary-600">Pedidos Hoy</p>
-                <p className="text-2xl font-bold text-secondary-900">{orders.length}</p>
+                <p className="text-2xl font-bold text-secondary-900">
+                  {orders.filter(o => {
+                    const d = new Date(o.created_at)
+                    const now = new Date()
+                    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate()
+                  }).length}
+                </p>
               </div>
             </div>
           </div>
@@ -555,7 +561,11 @@ const Admin = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-secondary-600">Ventas Hoy</p>
                 <p className="text-2xl font-bold text-secondary-900">
-                  {formatPrice(orders.reduce((sum, order) => sum + (parseFloat(order.total) || 0), 0))}
+                  {formatPrice(orders.filter(o => {
+                    const d = new Date(o.created_at)
+                    const now = new Date()
+                    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate()
+                  }).reduce((sum, order) => sum + (parseFloat(order.total) || 0), 0))}
                 </p>
               </div>
             </div>
