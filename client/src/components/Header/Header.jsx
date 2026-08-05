@@ -110,7 +110,6 @@ const Header = ({ onOpenCart }) => {
                     Admin
                   </Link>
                 )}
-                <button onClick={logout} className="text-xs text-secondary-400 hover:text-secondary-700">Salir</button>
               </div>
             ) : (
               <div className="hidden md:flex items-center gap-2">
