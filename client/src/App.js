@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
+import { GoogleOAuthProvider } from '@react-oauth/google'
 import { CartProvider } from './context/CartContext'
 import { AuthProvider } from './context/AuthContext'
 import Header from './components/Header/Header'
@@ -52,13 +53,15 @@ function AppContent() {
 
 function App() {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <Router>
-          <AppContent />
-        </Router>
-      </CartProvider>
-    </AuthProvider>
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || ''}>
+      <AuthProvider>
+        <CartProvider>
+          <Router>
+            <AppContent />
+          </Router>
+        </CartProvider>
+      </AuthProvider>
+    </GoogleOAuthProvider>
   )
 }
 

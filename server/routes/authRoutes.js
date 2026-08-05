@@ -10,6 +10,51 @@ const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'secret';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
+// POST /api/auth/google
+router.post('/google', async (req, res) => {
+  try {
+    const { credential, access_token } = req.body;
+    let googleUser;
+
+    if (credential) {
+      // ID token flow (credential)
+      const payload = JSON.parse(Buffer.from(credential.split('.')[1], 'base64').toString());
+      googleUser = { email: payload.email, nombre: payload.name, google_id: payload.sub };
+    } else if (access_token) {
+      // Access token flow (useGoogleLogin)
+      const resp = await fetch(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${access_token}`);
+      if (!resp.ok) return res.status(401).json({ error: 'Token de Google inválido' });
+      const info = await resp.json();
+      googleUser = { email: info.email, nombre: info.name, google_id: info.sub };
+    } else {
+      return res.status(400).json({ error: 'Token requerido' });
+    }
+
+    let user = await User.findByEmail(googleUser.email);
+    if (!user) {
+      // Crear usuario nuevo con contraseña aleatoria
+      const randomPass = require('crypto').randomBytes(20).toString('hex');
+      const userId = await User.create({
+        nombre: googleUser.nombre,
+        email: googleUser.email,
+        password: randomPass,
+        telefono: null,
+        direccion: null
+      });
+      user = await User.findById(userId);
+    }
+
+    const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d' });
+    res.json({
+      token,
+      user: { id: user.id, nombre: user.nombre, email: user.email, role: user.role, compras_realizadas: user.compras_realizadas }
+    });
+  } catch (error) {
+    console.error('Google auth error:', error);
+    res.status(500).json({ error: 'Error al autenticar con Google' });
+  }
+});
+
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
   try {

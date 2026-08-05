@@ -88,6 +88,31 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const loginWithGoogle = async (tokenResponse) => {
+    setLoading(true);
+    try {
+      const body = tokenResponse.credential
+        ? { credential: tokenResponse.credential }
+        : { access_token: tokenResponse.access_token };
+      const response = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await response.json();
+      if (!response.ok) return { success: false, error: data.error };
+      const userData = { ...data.user, name: data.user.nombre };
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('token', data.token);
+      return { success: true, user: userData };
+    } catch {
+      return { success: false, error: 'Error de conexión' };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const loginWithToken = (token, userData) => {
     const formatted = { ...userData, name: userData.nombre };
     setUser(formatted);
@@ -109,6 +134,7 @@ export const AuthProvider = ({ children }) => {
       register,
       logout,
       loginWithToken,
+      loginWithGoogle,
       isAuthenticated: !!user
     }}>
       {children}

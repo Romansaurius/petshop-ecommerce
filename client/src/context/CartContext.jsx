@@ -60,8 +60,9 @@ export const CartProvider = ({ children }) => {
       const is2x1 = product.tipo === '2x1'
       
       if (existingItem) {
-        if (existingItem.quantity >= 10) {
-          alert('Máximo 10 unidades por producto')
+        const maxStock = normalizedProduct.stock ?? 10
+        if (existingItem.quantity >= maxStock) {
+          alert(`Máximo ${maxStock} unidad${maxStock === 1 ? '' : 'es'} disponible${maxStock === 1 ? '' : 's'} de este producto`)
           return prevCart
         }
         return prevCart.map(item => {

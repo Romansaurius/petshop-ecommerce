@@ -2,6 +2,7 @@ const express = require('express');
 const { MercadoPagoConfig, Preference, Payment } = require('mercadopago');
 const Order = require('../models/Order');
 const db = require('../config/database');
+const { sendOrderConfirmationWhatsApp } = require('../services/whatsappService');
 const router = express.Router();
 
 const getClient = () => new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN });
@@ -113,6 +114,25 @@ router.post('/webhook', async (req, res) => {
           );
         }
         console.log('Pago confirmado, pedido actualizado:', ref.order_id);
+
+        // WhatsApp de confirmacion al cliente
+        try {
+          const [[pedidoWpp]] = await db.execute(
+            `SELECT p.id, p.total, p.metodo_envio, p.nombre_contacto, p.telefono_contacto,
+                    COALESCE(u.nombre, p.nombre_contacto) as cliente_nombre,
+                    COALESCE(u.telefono, p.telefono_contacto) as cliente_telefono,
+                    GROUP_CONCAT(pr.nombre SEPARATOR ', ') as productos
+             FROM pedidos p
+             LEFT JOIN usuarios u ON p.usuario_id = u.id
+             LEFT JOIN detalles_pedido dp ON p.id = dp.pedido_id
+             LEFT JOIN productos pr ON dp.producto_id = pr.id
+             WHERE p.id = ? GROUP BY p.id`,
+            [ref.order_id]
+          );
+          if (pedidoWpp) await sendOrderConfirmationWhatsApp(pedidoWpp);
+        } catch (wppErr) {
+          console.error('WhatsApp error (no critico):', wppErr.message);
+        }
       }
     }
     res.sendStatus(200);
