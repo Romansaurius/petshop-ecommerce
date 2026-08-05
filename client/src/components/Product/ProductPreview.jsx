@@ -361,7 +361,7 @@ const ProductPreview = ({ product, isOpen, onClose, allProducts = [] }) => {
                     <Minus className="w-4 h-4" />
                   </button>
                   <span className="px-4 py-2 font-semibold text-secondary-800 border-x border-secondary-200">{quantity}</span>
-                  <button onClick={() => setQuantity(Math.min(10, quantity + 1))} className="px-3 py-2 hover:bg-secondary-100 transition-colors">
+                  <button onClick={() => setQuantity(Math.min(getProductStock() || 1, quantity + 1))} className="px-3 py-2 hover:bg-secondary-100 transition-colors">
                     <Plus className="w-4 h-4" />
                   </button>
                 </div>

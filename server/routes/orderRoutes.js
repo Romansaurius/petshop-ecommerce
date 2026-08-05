@@ -2,6 +2,7 @@ const express = require('express');
 const Order = require('../models/Order');
 const auth = require('../middlewares/auth');
 const { sendOrderStatusEmail, sendOrderConfirmationEmail } = require('../services/emailService');
+const { sendOrderStatusWhatsApp } = require('../services/whatsappService');
 const db = require('../config/database');
 const router = express.Router();
 
@@ -39,7 +40,10 @@ router.put('/:id/estado', auth, async (req, res) => {
          WHERE p.id = ? GROUP BY p.id`,
         [req.params.id]
       );
-      if (order) await sendOrderStatusEmail(order, estado);
+      if (order) {
+          await sendOrderStatusEmail(order, estado);
+          await sendOrderStatusWhatsApp(order, estado);
+        }
     } catch (emailErr) {
       console.error('Email error (no critico):', emailErr.message);
     }
