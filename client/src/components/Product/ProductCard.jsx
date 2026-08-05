@@ -120,22 +120,9 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
 
         {/* Info */}
         <div className="p-2.5 sm:p-3 flex flex-col flex-1">
-          <p className="font-medium text-xs sm:text-sm text-secondary-800 line-clamp-2 leading-snug group-hover:text-primary-600 transition-colors mb-1.5 min-h-[2.5rem]">
+          <p className="font-medium text-xs sm:text-sm text-secondary-800 line-clamp-2 leading-snug group-hover:text-primary-600 transition-colors mb-1.5">
             {name()}
           </p>
-
-          <div className="min-h-[1.75rem] mb-1">
-          {hasVariantes && (
-            <div className="flex flex-wrap gap-1">
-              {sortedVariantes.map(v => (
-                <button key={v.id} onClick={e => { e.stopPropagation(); setSelectedVariante(v); }}
-                  className={`px-1.5 py-0.5 text-[10px] border rounded font-medium transition-colors ${selectedVariante?.id === v.id ? 'border-primary-500 bg-primary-50 text-primary-600' : 'border-secondary-200 text-secondary-400'}`}>
-                  {v.talla}
-                </button>
-              ))}
-            </div>
-          )}
-          </div>
 
           <div className="flex items-center justify-between mt-auto pt-1.5">
             <div>
