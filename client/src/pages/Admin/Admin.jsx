@@ -829,7 +829,7 @@ const Admin = () => {
                       {/* Imágenes existentes reordenables */}
                       {editingProduct && existingImages.length > 0 && (
                         <div className="mb-3">
-                          <p className="text-xs text-secondary-500 mb-1.5">Imágenes actuales ??arrastrá para reordenar</p>
+                          <p className="text-xs text-secondary-500 mb-1.5">Imágenes actuales �X arrastrá para reordenar</p>
                           <div className="flex flex-wrap gap-2">
                             {existingImages.map((url, i) => (
                               <div
@@ -1046,7 +1046,7 @@ const Admin = () => {
                       <div className="grid grid-cols-3 gap-2">
                         {[
                           { value: 'normal', label: 'Normal', emoji: '?��' },
-                          { value: '2x1', label: '2x1', emoji: '??' },
+                          { value: '2x1', label: '2x1', emoji: '???' },
                           { value: 'importado', label: 'Importado', emoji: '?��?' }
                         ].map(opt => (
                           <button
