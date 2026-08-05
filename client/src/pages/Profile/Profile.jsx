@@ -13,7 +13,7 @@ const statusConfig = {
 
 const nivelConfig = {
   normal:   { label: 'Normal',   color: 'text-gray-500',    bg: 'bg-gray-100',    next: 1000, nextLabel: 'Gold' },
-  gold:     { label: 'Gold',     color: 'text-yellow-600',  bg: 'bg-yellow-50',   next: 1750, nextLabel: 'Platinum' },
+  gold:     { label: 'Gold',     color: 'text-yellow-600',  bg: 'bg-yellow-50',   next: 2000, nextLabel: 'Platinum' },
   platinum: { label: 'Platinum', color: 'text-purple-600',  bg: 'bg-purple-50',   next: null, nextLabel: null },
 }
 
@@ -104,7 +104,7 @@ export default function Profile() {
   const totalGastado = orders.reduce((s, o) => s + Number(o.total || 0), 0)
 
   const puedeVerGold = puntos_historicos >= 1000
-  const puedeVerPlatinum = puntos_historicos >= 1750
+  const puedeVerPlatinum = puntos_historicos >= 2000
 
   const tabs = [
     { id: 'resumen', label: 'Resumen' },

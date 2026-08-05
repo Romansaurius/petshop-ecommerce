@@ -10,6 +10,9 @@ const Admin = () => {
   const [canjes, setCanjes] = useState([])
   const [coupons, setCoupons] = useState([])
   const [loyaltyTab, setLoyaltyTab] = useState('canjes')
+  const [addPointsForm, setAddPointsForm] = useState({ email: '', puntos: '' })
+  const [addPointsResult, setAddPointsResult] = useState(null)
+  const [addPointsLoading, setAddPointsLoading] = useState(false)
   const [showCouponForm, setShowCouponForm] = useState(false)
   const [editingCoupon, setEditingCoupon] = useState(null)
   const [couponForm, setCouponForm] = useState({
@@ -1576,12 +1579,12 @@ const Admin = () => {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-secondary-800">Sistema de Fidelización</h2>
               <div className="flex gap-2">
-                {['canjes', 'cupones'].map(t => (
+                {['canjes', 'cupones', 'puntos'].map(t => (
                   <button key={t} onClick={() => setLoyaltyTab(t)}
                     className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                       loyaltyTab === t ? 'bg-primary-500 text-white' : 'bg-secondary-100 text-secondary-600 hover:bg-secondary-200'
                     }`}>
-                    {t === 'canjes' ? 'Canjes' : 'Cupones'}
+                    {t === 'canjes' ? 'Canjes' : t === 'cupones' ? 'Cupones' : 'Cargar Puntos'}
                   </button>
                 ))}
               </div>
@@ -1761,6 +1764,54 @@ const Admin = () => {
                       ))}
                     </tbody>
                   </table>
+                </div>
+              </div>
+            )}
+
+            {loyaltyTab === 'puntos' && (
+              <div className="max-w-md space-y-4">
+                <p className="text-sm text-secondary-500">Cargá puntos manualmente a un usuario por su email.</p>
+                <div className="card p-6 space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-secondary-700 mb-1">Email del usuario</label>
+                    <input type="email" value={addPointsForm.email}
+                      onChange={e => { setAddPointsForm(p => ({ ...p, email: e.target.value })); setAddPointsResult(null) }}
+                      className="input w-full" placeholder="usuario@email.com" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-secondary-700 mb-1">Puntos a agregar</label>
+                    <input type="number" min="1" value={addPointsForm.puntos}
+                      onChange={e => { setAddPointsForm(p => ({ ...p, puntos: e.target.value })); setAddPointsResult(null) }}
+                      className="input w-full" placeholder="500" />
+                  </div>
+                  <button
+                    disabled={addPointsLoading || !addPointsForm.email || !addPointsForm.puntos}
+                    onClick={async () => {
+                      setAddPointsLoading(true); setAddPointsResult(null)
+                      try {
+                        const res = await fetch('/api/loyalty/admin/add-points', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
+                          body: JSON.stringify({ email: addPointsForm.email, puntos: parseInt(addPointsForm.puntos) })
+                        })
+                        const data = await res.json()
+                        if (res.ok) {
+                          setAddPointsResult({ ok: true, msg: `✅ ${data.puntos_agregados} puntos agregados a ${data.usuario} (${data.email}). Total: ${data.puntos} pts` })
+                          setAddPointsForm({ email: '', puntos: '' })
+                        } else {
+                          setAddPointsResult({ ok: false, msg: data.error || 'Error' })
+                        }
+                      } catch { setAddPointsResult({ ok: false, msg: 'Error de conexión' }) }
+                      setAddPointsLoading(false)
+                    }}
+                    className="btn btn-primary w-full disabled:opacity-50">
+                    {addPointsLoading ? 'Cargando...' : 'Cargar puntos'}
+                  </button>
+                  {addPointsResult && (
+                    <p className={`text-sm p-3 rounded-lg ${addPointsResult.ok ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
+                      {addPointsResult.msg}
+                    </p>
+                  )}
                 </div>
               </div>
             )}
