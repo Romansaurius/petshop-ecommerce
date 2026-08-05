@@ -26,7 +26,7 @@ const categoriaConfig = {
 const fmt = (n) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(n)
 
 export default function Profile() {
-  const { user, logout, isAuthenticated } = useAuth()
+  const { user, logout, isAuthenticated, loading } = useAuth()
   const navigate = useNavigate()
   const [orders, setOrders] = useState([])
   const [loyaltyData, setLoyaltyData] = useState({ puntos: 0, puntos_historicos: 0, nivel: 'normal', nivel_expira: null })
@@ -40,6 +40,7 @@ export default function Profile() {
   const [toggling2fa, setToggling2fa] = useState(false)
 
   useEffect(() => {
+    if (loading) return
     if (!isAuthenticated) { navigate('/login'); return }
     const token = localStorage.getItem('token')
     const headers = { Authorization: `Bearer ${token}` }

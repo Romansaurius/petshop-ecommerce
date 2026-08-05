@@ -4,29 +4,23 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
     const token = localStorage.getItem('token');
     if (userData && token) {
-      // Verificar que el token sigue siendo válido
       fetch('/api/auth/verify', {
         headers: { 'Authorization': `Bearer ${token}` }
       })
         .then(res => {
-          if (res.ok) {
-            setUser(JSON.parse(userData));
-          } else {
-            // Token inválido, limpiar sesión
-            localStorage.removeItem('user');
-            localStorage.removeItem('token');
-          }
+          if (res.ok) setUser(JSON.parse(userData));
+          else { localStorage.removeItem('user'); localStorage.removeItem('token'); }
         })
-        .catch(() => {
-          // Error de red, mantener sesión local
-          setUser(JSON.parse(userData));
-        });
+        .catch(() => setUser(JSON.parse(userData)))
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
     }
   }, []);
 
