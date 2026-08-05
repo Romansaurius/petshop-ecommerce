@@ -29,6 +29,12 @@ const Checkout = () => {
   const [fieldErrors, setFieldErrors] = useState({})
   const [shippingMethod, setShippingMethod] = useState('delivery')
   const [selectedZone, setSelectedZone] = useState(null)
+  const [selectedOffice, setSelectedOffice] = useState('')
+
+  const OFFICES = [
+    { id: 'tortuguitas', label: 'Oficina Tortuguitas', address: 'Los Laureles 991, entre Formosa y Perón' },
+    { id: 'pilar', label: 'Oficina Pilar', address: '12 de Octubre 56500, Complejo La Cañada, Barrio Los Arces' },
+  ]
   const [cpStatus, setCpStatus] = useState(null)
   const [loyaltyNivel, setLoyaltyNivel] = useState('normal')
   const [loyaltyNivelExpira, setLoyaltyNivelExpira] = useState(null)
@@ -168,7 +174,7 @@ const Checkout = () => {
     setIsProcessing(true)
     try {
       const address = shippingMethod === 'pickup'
-        ? 'Retiro en local'
+        ? `Retiro en local${selectedOffice ? ` — ${OFFICES.find(o => o.id === selectedOffice)?.label}: ${OFFICES.find(o => o.id === selectedOffice)?.address}` : ''}`
         : `${customerInfo.calle} ${customerInfo.numero}${customerInfo.piso ? ` P${customerInfo.piso}` : ''}${customerInfo.depto ? ` D${customerInfo.depto}` : ''}, ${customerInfo.ciudad}, ${customerInfo.provincia}${customerInfo.cp ? ` (CP ${customerInfo.cp})` : ''}`
 
       const res = await fetch('/api/payment/create', {
@@ -382,6 +388,28 @@ const Checkout = () => {
                   )}
                 </div>
               </div>
+
+              {/* Oficina de retiro */}
+              {shippingMethod === 'pickup' && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-secondary-700 flex items-center gap-2">
+                    <Store className="w-4 h-4 text-primary-500" /> Elegí la oficina de retiro
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {OFFICES.map(o => (
+                      <button key={o.id} type="button" onClick={() => setSelectedOffice(o.id)}
+                        className={`text-left p-3 rounded-xl border-2 transition-all ${
+                          selectedOffice === o.id
+                            ? 'border-primary-500 bg-primary-50'
+                            : 'border-secondary-200 hover:border-secondary-300'
+                        }`}>
+                        <p className="text-sm font-semibold text-secondary-800">{o.label}</p>
+                        <p className="text-xs text-secondary-500 mt-0.5">{o.address}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Dirección */}
               {shippingMethod === 'delivery' && (

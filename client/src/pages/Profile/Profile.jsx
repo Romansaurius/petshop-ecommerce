@@ -357,12 +357,9 @@ export default function Profile() {
               )
             })}
 
-            {/* Info puntos */}
-            <div className="bg-primary-50 rounded-2xl border border-primary-100 p-4 space-y-1.5 text-xs text-primary-700">
-              <p className="font-semibold flex items-center gap-1.5"><Star className="w-3.5 h-3.5" /> 1 punto por cada $100 gastados</p>
-              <p className="text-primary-600">→ 500 pts = gastar $50.000</p>
-              <p className="text-primary-600">→ Nivel Gold (1000 pts históricos) = gastar $100.000 en total</p>
-              <p className="text-primary-600">→ Nivel Platinum (1750 pts históricos) = gastar $175.000 en total</p>
+            <div className="bg-primary-50 rounded-2xl border border-primary-100 p-4 text-xs text-primary-700 flex items-center gap-1.5">
+              <Star className="w-3.5 h-3.5 shrink-0" />
+              <span>1 punto por cada $100 gastados</span>
             </div>
             {historialCanjes.length > 0 && (
               <div className="bg-white rounded-2xl border border-gray-100 p-5">
