@@ -523,7 +523,7 @@ const Admin = () => {
       <header className="bg-white shadow-sm border-b border-secondary-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <h1 className="text-2xl font-bold text-primary-500">??�?Panel de Administración</h1>
+            <h1 className="text-2xl font-bold text-primary-500">??�?Panel de Administración</h1>
             <div className="text-sm text-secondary-600">
               Bienvenido, {user?.name}
             </div>
@@ -829,7 +829,7 @@ const Admin = () => {
                       {/* Imágenes existentes reordenables */}
                       {editingProduct && existingImages.length > 0 && (
                         <div className="mb-3">
-                          <p className="text-xs text-secondary-500 mb-1.5">Imágenes actuales �X arrastrá para reordenar</p>
+                          <p className="text-xs text-secondary-500 mb-1.5">Imágenes actuales �X arrastrá para reordenar</p>
                           <div className="flex flex-wrap gap-2">
                             {existingImages.map((url, i) => (
                               <div
@@ -947,7 +947,7 @@ const Admin = () => {
                         <div>
                           <p className="text-xs text-secondary-500 mb-1.5">Posición</p>
                           <div className="grid grid-cols-3 gap-1.5">
-                            {[['top left','??],['top center','??],['top right','??],['center left','??],['center','·'],['center right','??],['bottom left','??],['bottom center','??],['bottom right','??]].map(([val, icon]) => (
+                            {[['top left','TL'],['top center','TC'],['top right','TR'],['center left','CL'],['center','C'],['center right','CR'],['bottom left','BL'],['bottom center','BC'],['bottom right','BR']].map(([val, icon]) => (
                               <button key={val} type="button"
                                 onClick={() => {
                                   const fit = (productForm.imagen_config || 'contain|center').split('|')[0] || 'contain'
@@ -1137,7 +1137,7 @@ const Admin = () => {
                               {product.nombre || product.name}
                               {(product.destacado || product.featured) && (
                                 <span className="ml-2 px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">
-                                  �?Destacado
+                                  �?Destacado
                                 </span>
                               )}
                             </div>
