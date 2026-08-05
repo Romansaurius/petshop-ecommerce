@@ -18,7 +18,9 @@ const Admin = () => {
     tipo: 'monto_fijo',
     valor: '',
     fecha_expiracion: '',
-    usos_maximos: ''
+    usos_maximos: '',
+    monto_minimo: '',
+    descuento_maximo: ''
   })
   const [showCanjeForm, setShowCanjeForm] = useState(false)
   const [editingCanje, setEditingCanje] = useState(null)
@@ -436,7 +438,7 @@ const Admin = () => {
       
       if (response.ok) {
         loadCoupons()
-        setCouponForm({ codigo: '', nombre: '', tipo: 'monto_fijo', valor: '', fecha_expiracion: '', usos_maximos: '' })
+        setCouponForm({ codigo: '', nombre: '', tipo: 'monto_fijo', valor: '', fecha_expiracion: '', usos_maximos: '', monto_minimo: '', descuento_maximo: '' })
         setEditingCoupon(null)
         setShowCouponForm(false)
       } else {
@@ -457,7 +459,9 @@ const Admin = () => {
       tipo: coupon.tipo,
       valor: coupon.valor.toString(),
       fecha_expiracion: coupon.fecha_expiracion ? coupon.fecha_expiracion.split('T')[0] : '',
-      usos_maximos: coupon.usos_maximos ? coupon.usos_maximos.toString() : ''
+      usos_maximos: coupon.usos_maximos ? coupon.usos_maximos.toString() : '',
+      monto_minimo: coupon.monto_minimo ? coupon.monto_minimo.toString() : '',
+      descuento_maximo: coupon.descuento_maximo ? coupon.descuento_maximo.toString() : ''
     })
     setShowCouponForm(true)
   }
@@ -519,7 +523,7 @@ const Admin = () => {
       <header className="bg-white shadow-sm border-b border-secondary-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <h1 className="text-2xl font-bold text-primary-500">??�?Panel de Administración</h1>
+            <h1 className="text-2xl font-bold text-primary-500">??�?Panel de Administración</h1>
             <div className="text-sm text-secondary-600">
               Bienvenido, {user?.name}
             </div>
@@ -825,7 +829,7 @@ const Admin = () => {
                       {/* Imágenes existentes reordenables */}
                       {editingProduct && existingImages.length > 0 && (
                         <div className="mb-3">
-                          <p className="text-xs text-secondary-500 mb-1.5">Imágenes actuales — arrastrá para reordenar</p>
+                          <p className="text-xs text-secondary-500 mb-1.5">Imágenes actuales ??arrastrá para reordenar</p>
                           <div className="flex flex-wrap gap-2">
                             {existingImages.map((url, i) => (
                               <div
@@ -855,7 +859,7 @@ const Admin = () => {
                                   type="button"
                                   onClick={() => setExistingImages(existingImages.filter((_, j) => j !== i))}
                                   className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] leading-none"
-                                >×</button>
+                                >?</button>
                               </div>
                             ))}
                           </div>
@@ -865,7 +869,7 @@ const Admin = () => {
                       {/* Nuevas imágenes a agregar */}
                       {newImagePreviews.length > 0 && (
                         <div className="mb-3">
-                          <p className="text-xs text-secondary-500 mb-1.5">Nuevas imágenes — arrastrá para reordenar</p>
+                          <p className="text-xs text-secondary-500 mb-1.5">Nuevas imágenes ??arrastrá para reordenar</p>
                           <div className="flex flex-wrap gap-2">
                             {newImagePreviews.map(({ url }, i) => (
                               <div
@@ -894,7 +898,7 @@ const Admin = () => {
                                   type="button"
                                   onClick={() => setNewImagePreviews(newImagePreviews.filter((_, j) => j !== i))}
                                   className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] leading-none"
-                                >×</button>
+                                >?</button>
                               </div>
                             ))}
                           </div>
@@ -943,7 +947,7 @@ const Admin = () => {
                         <div>
                           <p className="text-xs text-secondary-500 mb-1.5">Posición</p>
                           <div className="grid grid-cols-3 gap-1.5">
-                            {[['top left','↖'],['top center','↑'],['top right','↗'],['center left','←'],['center','·'],['center right','→'],['bottom left','↙'],['bottom center','↓'],['bottom right','↘']].map(([val, icon]) => (
+                            {[['top left','??],['top center','??],['top right','??],['center left','??],['center','·'],['center right','??],['bottom left','??],['bottom center','??],['bottom right','??]].map(([val, icon]) => (
                               <button key={val} type="button"
                                 onClick={() => {
                                   const fit = (productForm.imagen_config || 'contain|center').split('|')[0] || 'contain'
@@ -1133,7 +1137,7 @@ const Admin = () => {
                               {product.nombre || product.name}
                               {(product.destacado || product.featured) && (
                                 <span className="ml-2 px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">
-                                  �?Destacado
+                                  �?Destacado
                                 </span>
                               )}
                             </div>
@@ -1834,6 +1838,39 @@ const Admin = () => {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-secondary-700 mb-1">
+                            Monto mínimo de compra
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={couponForm.monto_minimo}
+                            onChange={(e) => setCouponForm({...couponForm, monto_minimo: e.target.value})}
+                            className="input w-full"
+                            placeholder="Sin mínimo"
+                          />
+                          <p className="text-xs text-secondary-400 mt-0.5">El usuario debe gastar al menos este monto</p>
+                        </div>
+                        {couponForm.tipo === 'porcentaje' && (
+                          <div>
+                            <label className="block text-sm font-medium text-secondary-700 mb-1">
+                              Descuento máximo ($)
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={couponForm.descuento_maximo}
+                              onChange={(e) => setCouponForm({...couponForm, descuento_maximo: e.target.value})}
+                              className="input w-full"
+                              placeholder="Sin tope"
+                            />
+                            <p className="text-xs text-secondary-400 mt-0.5">Tope máximo del descuento en pesos</p>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-secondary-700 mb-1">
                             Fecha de Expiración (opcional)
                           </label>
                           <input
@@ -1868,7 +1905,7 @@ const Admin = () => {
                           onClick={() => {
                             setShowCouponForm(false)
                             setEditingCoupon(null)
-                            setCouponForm({ codigo: '', nombre: '', tipo: 'monto_fijo', valor: '', fecha_expiracion: '', usos_maximos: '' })
+                            setCouponForm({ codigo: '', nombre: '', tipo: 'monto_fijo', valor: '', fecha_expiracion: '', usos_maximos: '', monto_minimo: '', descuento_maximo: '' })
                           }}
                           className="btn btn-secondary flex-1"
                         >
