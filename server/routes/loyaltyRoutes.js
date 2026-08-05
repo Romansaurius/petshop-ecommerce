@@ -95,8 +95,8 @@ router.post('/canjear', auth, async (req, res) => {
     if (canje.categoria === 'gold' && usuario.puntos_historicos < 1000) {
       return res.status(400).json({ error: 'Necesitás 1000 puntos históricos para acceder a canjes Gold' });
     }
-    if (canje.categoria === 'platinum' && usuario.puntos_historicos < 1750) {
-      return res.status(400).json({ error: 'Necesitás 1750 puntos históricos para acceder a canjes Platinum' });
+    if (canje.categoria === 'platinum' && usuario.puntos_historicos < 2000) {
+      return res.status(400).json({ error: 'Necesitás 2000 puntos históricos para acceder a canjes Platinum' });
     }
 
     // Generar código único
@@ -151,6 +151,28 @@ router.post('/sumar-puntos', auth, async (req, res) => {
       [puntos, puntos, req.user.id]
     );
     res.json({ puntos_ganados: puntos });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ADMIN - POST /api/loyalty/admin/add-points
+router.post('/admin/add-points', auth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'No autorizado' });
+  try {
+    const { email, puntos } = req.body;
+    if (!email || !puntos || puntos <= 0) return res.status(400).json({ error: 'Email y puntos requeridos' });
+
+    const [[usuario]] = await db.execute('SELECT id, nombre, email FROM usuarios WHERE email = ?', [email]);
+    if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+    await db.execute(
+      'UPDATE usuarios SET puntos = puntos + ?, puntos_historicos = puntos_historicos + ? WHERE id = ?',
+      [puntos, puntos, usuario.id]
+    );
+
+    const [[updated]] = await db.execute('SELECT puntos, puntos_historicos FROM usuarios WHERE id = ?', [usuario.id]);
+    res.json({ success: true, usuario: usuario.nombre, email: usuario.email, puntos_agregados: puntos, ...updated });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

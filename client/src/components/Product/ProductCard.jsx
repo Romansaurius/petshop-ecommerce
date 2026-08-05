@@ -119,12 +119,12 @@ const ProductCard = ({ product, onAddToCart, viewMode = 'grid', allProducts = []
         </div>
 
         {/* Info */}
-        <div className="p-2.5 sm:p-3 flex flex-col flex-1">
+        <div className="p-2.5 sm:p-3 flex flex-col">
           <p className="font-medium text-xs sm:text-sm text-secondary-800 line-clamp-2 leading-snug group-hover:text-primary-600 transition-colors mb-1.5">
             {name()}
           </p>
 
-          <div className="flex items-center justify-between mt-auto pt-1.5">
+          <div className="flex items-center justify-between mt-2">
             <div>
               {originalPrice && <p className="text-[10px] text-secondary-300 line-through leading-none mb-0.5">{fmt(originalPrice)}</p>}
               <p className="text-sm sm:text-base font-bold text-secondary-800">{fmt(displayPrice)}</p>
