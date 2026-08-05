@@ -205,10 +205,10 @@ router.get('/coupons', auth, async (req, res) => {
 router.post('/coupons', auth, async (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ error: 'No autorizado' });
   try {
-    const { codigo, nombre, tipo, valor, fecha_expiracion, usos_maximos } = req.body;
+    const { codigo, nombre, tipo, valor, fecha_expiracion, usos_maximos, monto_minimo, descuento_maximo } = req.body;
     const [result] = await db.execute(
-      `INSERT INTO cupones (codigo, nombre, tipo, valor, fecha_expiracion, usos_maximos) VALUES (?, ?, ?, ?, ?, ?)`,
-      [codigo, nombre, tipo, valor, fecha_expiracion || null, usos_maximos || null]
+      `INSERT INTO cupones (codigo, nombre, tipo, valor, fecha_expiracion, usos_maximos, monto_minimo, descuento_maximo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [codigo, nombre, tipo, valor, fecha_expiracion || null, usos_maximos || null, monto_minimo || null, descuento_maximo || null]
     );
     res.json({ id: result.insertId });
   } catch (e) {
@@ -221,10 +221,10 @@ router.post('/coupons', auth, async (req, res) => {
 router.put('/coupons/:id', auth, async (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ error: 'No autorizado' });
   try {
-    const { codigo, nombre, tipo, valor, fecha_expiracion, usos_maximos, activo } = req.body;
+    const { codigo, nombre, tipo, valor, fecha_expiracion, usos_maximos, activo, monto_minimo, descuento_maximo } = req.body;
     await db.execute(
-      `UPDATE cupones SET codigo=?, nombre=?, tipo=?, valor=?, fecha_expiracion=?, usos_maximos=?, activo=? WHERE id=?`,
-      [codigo, nombre, tipo, valor, fecha_expiracion || null, usos_maximos || null, activo, req.params.id]
+      `UPDATE cupones SET codigo=?, nombre=?, tipo=?, valor=?, fecha_expiracion=?, usos_maximos=?, activo=?, monto_minimo=?, descuento_maximo=? WHERE id=?`,
+      [codigo, nombre, tipo, valor, fecha_expiracion || null, usos_maximos || null, activo, monto_minimo || null, descuento_maximo || null, req.params.id]
     );
     res.json({ success: true });
   } catch (e) {
@@ -242,7 +242,7 @@ router.delete('/coupons/:id', auth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// PUBLIC - GET /api/loyalty/validate-coupon/:codigo
+// PUBLIC - GET /api/loyalty/validate-coupon/:codigo?subtotal=XXXX
 router.get('/validate-coupon/:codigo', async (req, res) => {
   try {
     const [[cupon]] = await db.execute(
@@ -250,7 +250,21 @@ router.get('/validate-coupon/:codigo', async (req, res) => {
       [req.params.codigo]
     );
     if (!cupon) return res.status(404).json({ error: 'Cupón inválido o expirado' });
-    res.json({ valido: true, tipo: cupon.tipo, valor: cupon.valor, nombre: cupon.nombre });
+
+    // Validar monto mínimo si se pasa el subtotal
+    const subtotal = parseFloat(req.query.subtotal);
+    if (cupon.monto_minimo && !isNaN(subtotal) && subtotal < cupon.monto_minimo) {
+      return res.status(400).json({ error: `Este cupón requiere una compra mínima de ${new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(cupon.monto_minimo)}` });
+    }
+
+    res.json({
+      valido: true,
+      tipo: cupon.tipo,
+      valor: cupon.valor,
+      nombre: cupon.nombre,
+      monto_minimo: cupon.monto_minimo || null,
+      descuento_maximo: cupon.descuento_maximo || null
+    });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

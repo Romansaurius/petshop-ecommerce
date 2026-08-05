@@ -29,7 +29,9 @@ const Checkout = () => {
   const [fieldErrors, setFieldErrors] = useState({})
   const [shippingMethod, setShippingMethod] = useState('delivery')
   const [selectedZone, setSelectedZone] = useState(null)
-  const [cpStatus, setCpStatus] = useState(null) // null | 'checking' | 'ok' | 'mismatch' | 'unknown'
+  const [cpStatus, setCpStatus] = useState(null)
+  const [loyaltyNivel, setLoyaltyNivel] = useState('normal')
+  const [loyaltyNivelExpira, setLoyaltyNivelExpira] = useState(null)
   const [customerInfo, setCustomerInfo] = useState({
     name: '', email: '', phone: '',
     provincia: '', ciudad: '', calle: '', numero: '',
@@ -39,6 +41,12 @@ const Checkout = () => {
   useEffect(() => {
     if (isAuthenticated && user) {
       setCustomerInfo(prev => ({ ...prev, name: user.name || '', email: user.email || '' }))
+      // Consultar nivel loyalty
+      const token = localStorage.getItem('token')
+      fetch('/api/loyalty/perfil', { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.json())
+        .then(d => { if (d.nivel) { setLoyaltyNivel(d.nivel); setLoyaltyNivelExpira(d.nivel_expira) } })
+        .catch(() => {})
     }
   }, [isAuthenticated, user])
 
@@ -67,10 +75,20 @@ const Checkout = () => {
   const subtotal = getTotalPrice()
   const discount = appliedDiscount
 
+  // Descuento pasivo por nivel loyalty
+  const loyaltyDiscount = (() => {
+    if (loyaltyNivel === 'gold') return Math.min(subtotal * 0.05, 7500)
+    if (loyaltyNivel === 'platinum') return Math.min(subtotal * 0.05, 10000)
+    return 0
+  })()
+  const totalDiscount = discount + loyaltyDiscount
+
   const shippingCost = (() => {
     if (shippingMethod === 'pickup') return 0
+    // Platinum tiene envío gratis siempre
+    if (loyaltyNivel === 'platinum') return 0
     if (!selectedZone) return null
-    const sub = subtotal - discount
+    const sub = subtotal - totalDiscount
     const montoGratis = selectedZone.monto_envio_gratis
       ? Number(selectedZone.monto_envio_gratis)
       : (shippingConfig.envio_gratis_activo ? Number(shippingConfig.monto_envio_gratis) : null)
@@ -78,19 +96,21 @@ const Checkout = () => {
     return Number(selectedZone.precio)
   })()
 
-  const total = subtotal - discount + (shippingCost ?? 0)
+  const total = subtotal - totalDiscount + (shippingCost ?? 0)
 
   const handleApplyDiscount = async () => {
     const code = discountCode.trim().toUpperCase()
     if (!code) return
     setCouponError('')
     try {
-      const res = await fetch(`/api/loyalty/validate-coupon/${code}`)
+      const res = await fetch(`/api/loyalty/validate-coupon/${code}?subtotal=${subtotal}`)
       const data = await res.json()
       if (!res.ok) { setCouponError(data.error || 'Cupón inválido'); setAppliedDiscount(0); setAppliedCoupon(null); return }
-      const valor = data.tipo === 'porcentaje'
-        ? getTotalPrice() * (Number(data.valor) / 100)
+      let valor = data.tipo === 'porcentaje'
+        ? subtotal * (Number(data.valor) / 100)
         : Number(data.valor)
+      // Aplicar tope máximo si existe
+      if (data.descuento_maximo && valor > data.descuento_maximo) valor = data.descuento_maximo
       setAppliedDiscount(valor)
       setAppliedCoupon(data)
     } catch {
@@ -158,7 +178,7 @@ const Checkout = () => {
           items: cart,
           customerInfo: { ...customerInfo, address },
           usuario_id: user?.id || null,
-          discount: appliedDiscount,
+          discount: totalDiscount,
           costo_envio: shippingCost ?? 0,
           metodo_envio: shippingMethod === 'pickup'
             ? 'Retiro en local'
@@ -244,12 +264,33 @@ const Checkout = () => {
                 <button onClick={handleApplyDiscount} className="btn btn-secondary px-6">Aplicar</button>
               </div>
               {couponError && <p className="text-red-500 mt-2 text-sm">{couponError}</p>}
-              {appliedCoupon && <p className="text-green-600 mt-2 text-sm">✓ {appliedCoupon.nombre} — -{fmt(appliedDiscount)}</p>}
+              {appliedCoupon && (
+                <div className="mt-2 text-sm text-green-600 space-y-0.5">
+                  <p>✓ {appliedCoupon.nombre} — -{fmt(appliedDiscount)}</p>
+                  {appliedCoupon.monto_minimo && <p className="text-xs text-secondary-400">Compra mínima: {fmt(appliedCoupon.monto_minimo)}</p>}
+                  {appliedCoupon.descuento_maximo && <p className="text-xs text-secondary-400">Tope de descuento: {fmt(appliedCoupon.descuento_maximo)}</p>}
+                </div>
+              )}
             </div>
           </div>
 
           {/* Derecha: resumen + formulario */}
           <div className="space-y-6">
+
+            {/* Badge nivel loyalty activo */}
+            {loyaltyNivel !== 'normal' && (
+              <div className={`p-3 rounded-xl text-sm font-medium flex items-center gap-2 ${
+                loyaltyNivel === 'platinum' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+              }`}>
+                <span>{loyaltyNivel === 'platinum' ? '💎' : '⭐'}</span>
+                <span>
+                  Nivel <strong>{loyaltyNivel === 'platinum' ? 'Platinum' : 'Gold'}</strong> activo
+                  {loyaltyNivelExpira && <span className="font-normal opacity-75"> · vence {new Date(loyaltyNivelExpira).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}</span>}
+                  {' — '}
+                  {loyaltyNivel === 'platinum' ? '5% OFF + envío gratis' : '5% OFF en esta compra'}
+                </span>
+              </div>
+            )}
 
             {/* Resumen */}
             <div className="card p-6">
@@ -271,7 +312,20 @@ const Checkout = () => {
                   </div>
                   {discount > 0 && (
                     <div className="flex justify-between text-green-600">
-                      <span>Descuento</span><span>-{fmt(discount)}</span>
+                      <span>Descuento cupón</span><span>-{fmt(discount)}</span>
+                    </div>
+                  )}
+                  {loyaltyDiscount > 0 && (
+                    <div className="flex justify-between text-yellow-600">
+                      <span>
+                        {loyaltyNivel === 'gold' ? '⭐ Descuento Gold (5%)' : '💎 Descuento Platinum (5%)'}
+                      </span>
+                      <span>-{fmt(loyaltyDiscount)}</span>
+                    </div>
+                  )}
+                  {loyaltyNivel === 'platinum' && shippingMethod !== 'pickup' && (
+                    <div className="flex justify-between text-purple-600 text-xs">
+                      <span>💎 Envío gratis Platinum</span><span>✓</span>
                     </div>
                   )}
                   <div className="flex justify-between text-secondary-600">

@@ -188,9 +188,16 @@ const LoyaltyCard = ({ onClose }) => {
             </div>
           )}
 
-          <div className="flex items-center gap-2 p-3 bg-primary-50 rounded-xl text-xs text-primary-700">
-            <Star className="w-4 h-4 shrink-0" />
-            <span>Ganás <strong>1 punto</strong> por cada $100 en compras</span>
+          <div className="space-y-2 p-3 bg-primary-50 rounded-xl text-xs text-primary-700">
+            <div className="flex items-center gap-2">
+              <Star className="w-4 h-4 shrink-0" />
+              <span>Ganás <strong>1 punto</strong> por cada $100 en compras</span>
+            </div>
+            <div className="pl-6 space-y-1 text-primary-600">
+              <p>→ Para <strong>500 pts</strong> necesitás gastar <strong>$50.000</strong></p>
+              <p>→ Para nivel <strong>Gold</strong> (1000 pts históricos): gastar <strong>$100.000</strong></p>
+              <p>→ Para nivel <strong>Platinum</strong> (1750 pts históricos): gastar <strong>$175.000</strong></p>
+            </div>
           </div>
 
           <button onClick={onClose} className="btn btn-primary w-full">Continuar comprando</button>
