@@ -2,7 +2,7 @@ const express = require('express');
 const Order = require('../models/Order');
 const auth = require('../middlewares/auth');
 const { sendOrderStatusEmail, sendOrderConfirmationEmail } = require('../services/emailService');
-const { sendOrderStatusWhatsApp } = require('../services/whatsappService');
+const { sendOrderStatusWhatsApp, sendOrderConfirmationWhatsApp } = require('../services/whatsappService');
 const db = require('../config/database');
 const router = express.Router();
 
@@ -71,7 +71,10 @@ router.post('/', async (req, res) => {
          WHERE p.id = ? GROUP BY p.id`,
         [orderId]
       );
-      if (order) await sendOrderConfirmationEmail(order);
+      if (order) {
+        await sendOrderConfirmationEmail(order);
+        await sendOrderConfirmationWhatsApp({ ...order, telefono_contacto });
+      }
     } catch (emailErr) {
       console.error('Email confirmacion error:', emailErr.message);
     }

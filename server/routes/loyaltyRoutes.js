@@ -108,6 +108,16 @@ router.post('/canjear', auth, async (req, res) => {
       [canje.puntos_requeridos, userId]
     );
 
+    // Si es canje de descuento, crear cupón real en tabla cupones (válido 90 días, 1 uso)
+    if (canje.tipo === 'porcentaje' || canje.tipo === 'monto_fijo') {
+      const expiraCupon = new Date();
+      expiraCupon.setDate(expiraCupon.getDate() + 90);
+      await db.execute(
+        `INSERT INTO cupones (codigo, nombre, tipo, valor, fecha_expiracion, usos_maximos, descuento_maximo) VALUES (?, ?, ?, ?, ?, 1, ?)`,
+        [codigo, canje.nombre, canje.tipo, canje.valor_descuento, expiraCupon, canje.tope_descuento || null]
+      );
+    }
+
     // Si es canje de nivel Gold o Platinum, activar nivel (solo si no tiene uno activo superior)
     if (canje.categoria === 'gold' || canje.categoria === 'platinum') {
       const jerarquia = { normal: 0, gold: 1, platinum: 2 };
