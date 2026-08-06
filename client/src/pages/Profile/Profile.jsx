@@ -84,17 +84,26 @@ export default function Profile() {
       })
       const data = await res.json()
       if (res.ok) {
-        setMensaje({ tipo: 'ok', texto: data.mensaje })
-        setLoyaltyData(prev => ({ ...prev, puntos: prev.puntos - canje.puntos_requeridos }))
-        // Refrescar nivel
-        fetch('/api/loyalty/perfil', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
-          .then(r => r.json()).then(d => { if (d.puntos !== undefined) setLoyaltyData(d) })
+        const esCupon = canje.tipo === 'descuento' || canje.tipo === 'cupon'
+        const instruccion = esCupon
+          ? `Ingresá este código en el checkout de tu próxima compra para recibir ${canje.valor_descuento > 0 ? `${canje.valor_descuento}% de descuento` : 'tu descuento'}.`
+          : `Mostrá este código al retirar tu pedido o mencionalo al contactarnos.`
+        setMensaje({ tipo: 'ok', codigo: data.codigo, instruccion, nombre: canje.nombre })
+        const token = localStorage.getItem('token')
+        const headers = { Authorization: `Bearer ${token}` }
+        // Refrescar puntos/nivel e historial
+        Promise.all([
+          fetch('/api/loyalty/perfil', { headers }).then(r => r.json()),
+          fetch('/api/loyalty/historial', { headers }).then(r => r.json()),
+        ]).then(([perfil, historial]) => {
+          if (perfil.puntos !== undefined) setLoyaltyData(perfil)
+          if (Array.isArray(historial)) setHistorialCanjes(historial)
+        })
       } else {
         setMensaje({ tipo: 'error', texto: data.error })
       }
     } catch { setMensaje({ tipo: 'error', texto: 'Error de conexión' }) }
     setCanjeando(null)
-    setTimeout(() => setMensaje(null), 5000)
   }
 
   const handleLogout = () => { logout(); navigate('/') }
@@ -117,8 +126,23 @@ export default function Profile() {
       <div className="max-w-4xl mx-auto px-4 py-10">
 
         {mensaje && (
-          <div className={`mb-4 p-4 rounded-xl text-sm font-medium ${mensaje.tipo === 'ok' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
-            {mensaje.texto}
+          <div className={`mb-4 rounded-xl border ${mensaje.tipo === 'ok' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+            {mensaje.tipo === 'ok' ? (
+              <div className="p-4">
+                <p className="text-sm font-semibold text-green-800 mb-2">🎉 ¡Canje exitoso! — {mensaje.nombre}</p>
+                <div className="bg-white border border-green-200 rounded-lg px-4 py-3 flex items-center justify-between gap-3 mb-2">
+                  <span className="font-mono text-base font-bold text-gray-900 tracking-widest">{mensaje.codigo}</span>
+                  <button
+                    onClick={() => { navigator.clipboard.writeText(mensaje.codigo) }}
+                    className="text-xs text-green-700 hover:text-green-900 font-medium shrink-0"
+                  >Copiar</button>
+                </div>
+                <p className="text-xs text-green-700">{mensaje.instruccion}</p>
+                <button onClick={() => setMensaje(null)} className="mt-2 text-xs text-green-600 hover:underline">Cerrar</button>
+              </div>
+            ) : (
+              <div className="p-4 text-sm font-medium text-red-700">{mensaje.texto}</div>
+            )}
           </div>
         )}
 
@@ -366,18 +390,28 @@ export default function Profile() {
               <div className="bg-white rounded-2xl border border-gray-100 p-5">
                 <h2 className="font-semibold text-gray-900 mb-3">Historial de canjes</h2>
                 <div className="space-y-3">
-                  {historialCanjes.map(h => (
-                    <div key={h.id} className="flex items-center justify-between text-sm">
-                      <div>
-                        <p className="font-medium text-gray-900">{h.nombre}</p>
-                        <p className="text-xs text-gray-400">{new Date(h.created_at).toLocaleDateString('es-AR')}</p>
+                  {historialCanjes.map(h => {
+                    const esCupon = h.tipo === 'descuento' || h.tipo === 'cupon'
+                    return (
+                      <div key={h.id} className="border border-gray-100 rounded-xl p-3">
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <p className="font-medium text-sm text-gray-900">{h.nombre}</p>
+                          <p className="text-xs font-bold text-red-500 shrink-0">-{h.puntos_gastados} pts</p>
+                        </div>
+                        <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-1.5 mb-1">
+                          <span className="font-mono text-sm font-bold text-gray-800 tracking-wider flex-1">{h.codigo}</span>
+                          <button
+                            onClick={() => navigator.clipboard.writeText(h.codigo)}
+                            className="text-xs text-primary-600 hover:underline shrink-0"
+                          >Copiar</button>
+                        </div>
+                        <p className="text-xs text-gray-400">
+                          {esCupon ? 'Usá este código en el checkout para aplicar el descuento.' : 'Mostrá este código al retirar o mencionalo al contactarnos.'}
+                          {' · '}{new Date(h.created_at).toLocaleDateString('es-AR')}
+                        </p>
                       </div>
-                      <div className="text-right">
-                        <p className="text-xs font-bold text-red-500">-{h.puntos_gastados} pts</p>
-                        <p className="text-xs text-gray-400 font-mono">{h.codigo}</p>
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
             )}
