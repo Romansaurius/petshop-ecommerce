@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { useCart } from '../../context/CartContext'
 import { useAuth } from '../../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
@@ -32,8 +32,8 @@ const Checkout = () => {
   const [selectedOffice, setSelectedOffice] = useState('')
 
   const OFFICES = [
-    { id: 'tortuguitas', label: 'Oficina Tortuguitas', address: 'Los Laureles 991, entre Formosa y Perón' },
-    { id: 'pilar', label: 'Oficina Pilar', address: '12 de Octubre 56500, Complejo La Cañada, Barrio Los Arces' },
+    { id: 'tortuguitas', label: 'Oficina Tortuguitas', address: 'Los Laureles 991, entre Formosa y Per籀n' },
+    { id: 'pilar', label: 'Oficina Pilar', address: '12 de Octubre 56500, Complejo La Ca簽ada, Barrio Los Arces' },
   ]
   const [cpStatus, setCpStatus] = useState(null)
   const [loyaltyNivel, setLoyaltyNivel] = useState('normal')
@@ -62,19 +62,32 @@ const Checkout = () => {
   }, [])
 
   const allCities = zones.flatMap(z => (z.cities || []).map(c => ({ ...c, zona: z })))
-  const provincias = [...new Set(allCities.map(c => c.provincia).filter(Boolean))].sort()
-  const citiesByProvincia = customerInfo.provincia
-    ? allCities.filter(c => c.provincia === customerInfo.provincia)
-    : allCities
+  // Solo Buenos Aires y CABA
+  const provincias = [...new Set(allCities.map(c => c.provincia).filter(Boolean))]
+    .filter(p => p === 'Buenos Aires' || p === 'Ciudad Aut籀noma de Buenos Aires')
+    .sort()
+  const zonasByProvincia = customerInfo.provincia
+    ? zones.filter(z => (z.cities || []).some(c => c.provincia === customerInfo.provincia))
+    : []
+  const [selectedZoneId, setSelectedZoneId] = useState('')
+  const citiesByZone = selectedZoneId
+    ? allCities.filter(c => c.shipping_zone_id === Number(selectedZoneId))
+    : []
 
   const handleProvinciaChange = (prov) => {
     setCustomerInfo(prev => ({ ...prev, provincia: prov, ciudad: '' }))
     setSelectedZone(null)
+    setSelectedZoneId('')
+  }
+
+  const handleZoneChange = (zoneId) => {
+    setSelectedZoneId(zoneId)
+    const zone = zones.find(z => z.id === Number(zoneId))
+    setSelectedZone(zone || null)
+    setCustomerInfo(prev => ({ ...prev, ciudad: '' }))
   }
 
   const handleCityChange = (cityName) => {
-    const found = allCities.find(c => c.nombre === cityName)
-    setSelectedZone(found ? found.zona : null)
     setCustomerInfo(prev => ({ ...prev, ciudad: cityName }))
   }
 
@@ -89,10 +102,13 @@ const Checkout = () => {
   })()
   const totalDiscount = discount + loyaltyDiscount
 
+  // Envio gratis Platinum solo en Zona Norte (id=1)
+  const ZONA_NORTE_ID = 1
+  const platinumEnvioGratis = loyaltyNivel === 'platinum' && selectedZone?.id === ZONA_NORTE_ID
+
   const shippingCost = (() => {
     if (shippingMethod === 'pickup') return 0
-    // Platinum tiene envío gratis siempre
-    if (loyaltyNivel === 'platinum') return 0
+    if (platinumEnvioGratis) return 0
     if (!selectedZone) return null
     const sub = subtotal - totalDiscount
     const montoGratis = selectedZone.monto_envio_gratis
@@ -111,16 +127,16 @@ const Checkout = () => {
     try {
       const res = await fetch(`/api/loyalty/validate-coupon/${code}?subtotal=${subtotal}`)
       const data = await res.json()
-      if (!res.ok) { setCouponError(data.error || 'Cupón inválido'); setAppliedDiscount(0); setAppliedCoupon(null); return }
+      if (!res.ok) { setCouponError(data.error || 'Cup籀n inv獺lido'); setAppliedDiscount(0); setAppliedCoupon(null); return }
       let valor = data.tipo === 'porcentaje'
         ? subtotal * (Number(data.valor) / 100)
         : Number(data.valor)
-      // Aplicar tope máximo si existe
+      // Aplicar tope m獺ximo si existe
       if (data.descuento_maximo && valor > data.descuento_maximo) valor = data.descuento_maximo
       setAppliedDiscount(valor)
       setAppliedCoupon(data)
     } catch {
-      setCouponError('Error al verificar el cupón')
+      setCouponError('Error al verificar el cup籀n')
     }
   }
 
@@ -168,13 +184,13 @@ const Checkout = () => {
     e.preventDefault()
     if (!validate()) return
     if (shippingMethod === 'delivery' && shippingCost === null) {
-      alert('Seleccioná una ciudad para calcular el costo de envío')
+      alert('Seleccion獺 una ciudad para calcular el costo de env穩o')
       return
     }
     setIsProcessing(true)
     try {
       const address = shippingMethod === 'pickup'
-        ? `Retiro en local${selectedOffice ? ` — ${OFFICES.find(o => o.id === selectedOffice)?.label}: ${OFFICES.find(o => o.id === selectedOffice)?.address}` : ''}`
+        ? `Retiro en local${selectedOffice ? ` ??${OFFICES.find(o => o.id === selectedOffice)?.label}: ${OFFICES.find(o => o.id === selectedOffice)?.address}` : ''}`
         : `${customerInfo.calle} ${customerInfo.numero}${customerInfo.piso ? ` P${customerInfo.piso}` : ''}${customerInfo.depto ? ` D${customerInfo.depto}` : ''}, ${customerInfo.ciudad}, ${customerInfo.provincia}${customerInfo.cp ? ` (CP ${customerInfo.cp})` : ''}`
 
       const res = await fetch('/api/payment/create', {
@@ -188,16 +204,16 @@ const Checkout = () => {
           costo_envio: shippingCost ?? 0,
           metodo_envio: shippingMethod === 'pickup'
             ? 'Retiro en local'
-            : `Envío a ${customerInfo.ciudad} (${selectedZone?.nombre ?? 'zona a confirmar'})`,
+            : `Env穩o a ${customerInfo.ciudad} (${selectedZone?.nombre ?? 'zona a confirmar'})`,
           cp_alerta: ['mismatch', 'unknown'].includes(cpStatus) ? cpStatus : null,
           cupon_codigo: appliedCoupon?.codigo || null
         })
       })
       const data = await res.json()
       if (data.init_point) window.location.href = data.init_point
-      else alert('Error al iniciar el pago. Intentá de nuevo.')
+      else alert('Error al iniciar el pago. Intent獺 de nuevo.')
     } catch {
-      alert('Error de conexión. Intentá de nuevo.')
+      alert('Error de conexi籀n. Intent獺 de nuevo.')
     } finally {
       setIsProcessing(false)
     }
@@ -209,8 +225,8 @@ const Checkout = () => {
     return (
       <div className="min-h-screen bg-secondary-50 flex items-center justify-center">
         <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full mx-4 text-center">
-          <h2 className="text-2xl font-bold text-secondary-800 mb-2">Tu carrito está vacío</h2>
-          <p className="text-secondary-600 mb-6">Agregá algunos productos antes de continuar.</p>
+          <h2 className="text-2xl font-bold text-secondary-800 mb-2">Tu carrito est獺 vac穩o</h2>
+          <p className="text-secondary-600 mb-6">Agreg獺 algunos productos antes de continuar.</p>
           <button onClick={() => navigate('/menu')} className="btn btn-primary">Ver Productos</button>
         </div>
       </div>
@@ -262,9 +278,9 @@ const Checkout = () => {
             </div>
 
             <div className="card p-6">
-              <h3 className="text-lg font-semibold text-secondary-800 mb-4">Código de Descuento</h3>
+              <h3 className="text-lg font-semibold text-secondary-800 mb-4">C籀digo de Descuento</h3>
               <div className="flex space-x-2">
-                <input type="text" placeholder="Ingresá tu código" value={discountCode}
+                <input type="text" placeholder="Ingres獺 tu c籀digo" value={discountCode}
                   onChange={e => { setDiscountCode(e.target.value); setCouponError(''); setAppliedDiscount(0); setAppliedCoupon(null) }}
                   className="input flex-1" />
                 <button onClick={handleApplyDiscount} className="btn btn-secondary px-6">Aplicar</button>
@@ -272,8 +288,8 @@ const Checkout = () => {
               {couponError && <p className="text-red-500 mt-2 text-sm">{couponError}</p>}
               {appliedCoupon && (
                 <div className="mt-2 text-sm text-green-600 space-y-0.5">
-                  <p>✓ {appliedCoupon.nombre} — -{fmt(appliedDiscount)}</p>
-                  {appliedCoupon.monto_minimo && <p className="text-xs text-secondary-400">Compra mínima: {fmt(appliedCoupon.monto_minimo)}</p>}
+                  <p>??{appliedCoupon.nombre} ??-{fmt(appliedDiscount)}</p>
+                  {appliedCoupon.monto_minimo && <p className="text-xs text-secondary-400">Compra m穩nima: {fmt(appliedCoupon.monto_minimo)}</p>}
                   {appliedCoupon.descuento_maximo && <p className="text-xs text-secondary-400">Tope de descuento: {fmt(appliedCoupon.descuento_maximo)}</p>}
                 </div>
               )}
@@ -288,12 +304,12 @@ const Checkout = () => {
               <div className={`p-3 rounded-xl text-sm font-medium flex items-center gap-2 ${
                 loyaltyNivel === 'platinum' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-yellow-50 text-yellow-700 border border-yellow-200'
               }`}>
-                <span>{loyaltyNivel === 'platinum' ? '💎' : '⭐'}</span>
+                <span>{loyaltyNivel === 'platinum' ? '??' : '潃?}</span>
                 <span>
                   Nivel <strong>{loyaltyNivel === 'platinum' ? 'Platinum' : 'Gold'}</strong> activo
-                  {loyaltyNivelExpira && <span className="font-normal opacity-75"> · vence {new Date(loyaltyNivelExpira).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}</span>}
-                  {' — '}
-                  {loyaltyNivel === 'platinum' ? '5% OFF + envío gratis' : '5% OFF en esta compra'}
+                  {loyaltyNivelExpira && <span className="font-normal opacity-75"> 繚 vence {new Date(loyaltyNivelExpira).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}</span>}
+                  {' ??'}
+                  {loyaltyNivel === 'platinum' ? '5% OFF + env穩o gratis' : '5% OFF en esta compra'}
                 </span>
               </div>
             )}
@@ -307,7 +323,7 @@ const Checkout = () => {
                   const unidades = item.is2x1 ? Math.ceil(item.quantity / 2) : item.quantity
                   return (
                     <div key={item.variante_id ? `${item.id}_${item.variante_id}` : item.id} className="flex justify-between">
-                      <span className="text-secondary-700">{item.nombre || item.name} {item.talla && `(${item.talla})`} × {item.quantity}</span>
+                      <span className="text-secondary-700">{item.nombre || item.name} {item.talla && `(${item.talla})`} ? {item.quantity}</span>
                       <span className="font-medium">{fmt(precio * unidades)}</span>
                     </div>
                   )
@@ -318,29 +334,29 @@ const Checkout = () => {
                   </div>
                   {discount > 0 && (
                     <div className="flex justify-between text-green-600">
-                      <span>Descuento cupón</span><span>-{fmt(discount)}</span>
+                      <span>Descuento cup籀n</span><span>-{fmt(discount)}</span>
                     </div>
                   )}
                   {loyaltyDiscount > 0 && (
                     <div className="flex justify-between text-yellow-600">
                       <span>
-                        {loyaltyNivel === 'gold' ? '⭐ Descuento Gold (5%)' : '💎 Descuento Platinum (5%)'}
+                        {loyaltyNivel === 'gold' ? '潃?Descuento Gold (5%)' : '?? Descuento Platinum (5%)'}
                       </span>
                       <span>-{fmt(loyaltyDiscount)}</span>
                     </div>
                   )}
-                  {loyaltyNivel === 'platinum' && shippingMethod !== 'pickup' && (
+                  {loyaltyNivel === 'platinum' && shippingMethod !== 'pickup' && platinumEnvioGratis && (
                     <div className="flex justify-between text-purple-600 text-xs">
-                      <span>💎 Envío gratis Platinum</span><span>✓</span>
+                      <span>?? Env穩o gratis Platinum</span><span>??/span>
                     </div>
                   )}
                   <div className="flex justify-between text-secondary-600">
-                    <span>Envío</span>
+                    <span>Env穩o</span>
                     <span>
                       {shippingMethod === 'pickup'
                         ? <span className="text-green-600">Gratis (retiro)</span>
                         : shippingCost === null
-                          ? <span className="text-secondary-400 italic">Seleccioná ciudad</span>
+                          ? <span className="text-secondary-400 italic">Seleccion獺 ciudad</span>
                           : shippingCost === 0
                             ? <span className="text-green-600">Gratis</span>
                             : fmt(shippingCost)
@@ -363,7 +379,7 @@ const Checkout = () => {
                 <Field label="Nombre y apellido" required error={fieldErrors.name}>
                   <input type="text" value={customerInfo.name} onChange={e => setCustomerInfo({ ...customerInfo, name: e.target.value })} className={`input w-full ${fieldErrors.name ? 'border-red-400' : ''}`} />
                 </Field>
-                <Field label="Teléfono" required error={fieldErrors.phone}>
+                <Field label="Tel矇fono" required error={fieldErrors.phone}>
                   <input type="tel" value={customerInfo.phone} onChange={e => setCustomerInfo({ ...customerInfo, phone: e.target.value })} className={`input w-full ${fieldErrors.phone ? 'border-red-400' : ''}`} />
                 </Field>
               </div>
@@ -372,13 +388,13 @@ const Checkout = () => {
                 <input type="email" value={customerInfo.email} onChange={e => setCustomerInfo({ ...customerInfo, email: e.target.value })} className={`input w-full ${fieldErrors.email ? 'border-red-400' : ''}`} />
               </Field>
 
-              {/* Método de entrega */}
+              {/* M矇todo de entrega */}
               <div>
-                <p className="text-sm font-medium text-secondary-700 mb-2">Método de entrega</p>
+                <p className="text-sm font-medium text-secondary-700 mb-2">M矇todo de entrega</p>
                 <div className="grid grid-cols-2 gap-3">
                   <button type="button" onClick={() => setShippingMethod('delivery')}
                     className={`flex items-center gap-2 p-3 rounded-xl border-2 text-sm font-medium transition-all ${shippingMethod === 'delivery' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-secondary-200 text-secondary-600 hover:border-secondary-300'}`}>
-                    <Truck className="w-4 h-4" /> Envío a domicilio
+                    <Truck className="w-4 h-4" /> Env穩o a domicilio
                   </button>
                   {shippingConfig.retiro_local_activo && (
                     <button type="button" onClick={() => setShippingMethod('pickup')}
@@ -393,7 +409,7 @@ const Checkout = () => {
               {shippingMethod === 'pickup' && (
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-secondary-700 flex items-center gap-2">
-                    <Store className="w-4 h-4 text-primary-500" /> Elegí la oficina de retiro
+                    <Store className="w-4 h-4 text-primary-500" /> Eleg穩 la oficina de retiro
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {OFFICES.map(o => (
@@ -411,11 +427,11 @@ const Checkout = () => {
                 </div>
               )}
 
-              {/* Dirección */}
+              {/* Direcci籀n */}
               {shippingMethod === 'delivery' && (
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 text-sm font-medium text-secondary-700">
-                    <MapPin className="w-4 h-4 text-primary-500" /> Dirección de envío
+                    <MapPin className="w-4 h-4 text-primary-500" /> Direcci籀n de env穩o
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -425,50 +441,69 @@ const Checkout = () => {
                         onChange={e => handleProvinciaChange(e.target.value)}
                         className={`input w-full ${fieldErrors.provincia ? 'border-red-400' : ''}`}
                       >
-                        <option value="">Seleccioná provincia...</option>
-                        {provincias.map(p => <option key={p} value={p}>{p}</option>)}
-                        {provincias.length > 0 && <option value="Otra">Otra provincia</option>}
+                        <option value="">Seleccion獺 provincia...</option>
+                        {provincias.map(p => <option key={p} value={p}>{p === 'Ciudad Aut籀noma de Buenos Aires' ? 'CABA' : p}</option>)}
                       </select>
                     </Field>
 
-                    <Field label="Ciudad / Localidad" required error={fieldErrors.ciudad}>
-                      {citiesByProvincia.length > 0 ? (
-                        <select
-                          value={customerInfo.ciudad}
-                          onChange={e => handleCityChange(e.target.value)}
-                          className={`input w-full ${fieldErrors.ciudad ? 'border-red-400' : ''}`}
-                        >
-                          <option value="">Seleccioná ciudad...</option>
-                          {citiesByProvincia.map(c => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}
-                        </select>
-                      ) : (
-                        <input
-                          type="text"
-                          value={customerInfo.ciudad}
-                          onChange={e => handleCityChange(e.target.value)}
-                          className={`input w-full ${fieldErrors.ciudad ? 'border-red-400' : ''}`}
-                          placeholder="Ingresá tu ciudad"
-                        />
-                      )}
-                      {selectedZone && (
-                        <p className="text-xs text-primary-600 mt-1">
-                          Zona: {selectedZone.nombre} — Envío: {shippingCost === 0 ? 'Gratis ✅' : fmt(selectedZone.precio)}
-                          {selectedZone.monto_envio_gratis && shippingCost > 0 && (
-                            <span className="text-secondary-400"> (gratis desde {fmt(selectedZone.monto_envio_gratis)})</span>
-                          )}
-                        </p>
-                      )}
-                      {!selectedZone && customerInfo.ciudad && (
-                        <p className="text-xs text-amber-600 mt-1">Ciudad fuera de nuestras zonas. Te contactaremos para coordinar el envío.</p>
-                      )}
+                    <Field label="Zona" required>
+                      <select
+                        value={selectedZoneId}
+                        onChange={e => handleZoneChange(e.target.value)}
+                        disabled={!customerInfo.provincia}
+                        className="input w-full disabled:opacity-50"
+                      >
+                        <option value="">Seleccion獺 zona...</option>
+                        {zonasByProvincia.map(z => <option key={z.id} value={z.id}>{z.nombre}</option>)}
+                      </select>
                     </Field>
                   </div>
+
+                  <Field label="Ciudad / Localidad" required error={fieldErrors.ciudad}>
+                    {citiesByZone.length > 0 ? (
+                      <select
+                        value={customerInfo.ciudad}
+                        onChange={e => handleCityChange(e.target.value)}
+                        disabled={!selectedZoneId}
+                        className={`input w-full disabled:opacity-50 ${fieldErrors.ciudad ? 'border-red-400' : ''}`}
+                      >
+                        <option value="">Seleccion獺 ciudad...</option>
+                        {citiesByZone.map(c => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        value={customerInfo.ciudad}
+                        onChange={e => handleCityChange(e.target.value)}
+                        className={`input w-full ${fieldErrors.ciudad ? 'border-red-400' : ''}`}
+                        placeholder="Ingres獺 tu ciudad"
+                      />
+                    )}
+                    {selectedZone && customerInfo.ciudad && (
+                      <p className="text-xs text-primary-600 mt-1">
+                        {platinumEnvioGratis
+                          ? '?? Env穩o gratis por tu nivel Platinum ??
+                          : shippingCost === 0
+                            ? 'Env穩o gratis ??
+                            : `Costo de env穩o: ${fmt(selectedZone.precio)}${
+                                selectedZone.monto_envio_gratis ? ` (gratis desde ${fmt(selectedZone.monto_envio_gratis)})` : ''
+                              }`
+                        }
+                      </p>
+                    )}
+                    {loyaltyNivel === 'platinum' && selectedZone && selectedZone.id !== ZONA_NORTE_ID && (
+                      <p className="text-xs text-amber-600 mt-1">El envio gratis Platinum aplica solo en Zona Norte (Pilar, Escobar, San Miguel y alrededores).</p>
+                    )}
+                    {!selectedZone && customerInfo.ciudad && (
+                      <p className="text-xs text-amber-600 mt-1">Ciudad fuera de nuestras zonas. Te contactaremos para coordinar el env穩o.</p>
+                    )}
+                  </Field>
 
                   <div className="grid grid-cols-2 gap-4">
                     <Field label="Calle" required error={fieldErrors.calle}>
                       <input type="text" value={customerInfo.calle} onChange={e => setCustomerInfo({ ...customerInfo, calle: e.target.value })} className={`input w-full ${fieldErrors.calle ? 'border-red-400' : ''}`} />
                     </Field>
-                    <Field label="Número" required error={fieldErrors.numero}>
+                    <Field label="N繳mero" required error={fieldErrors.numero}>
                       <input type="text" value={customerInfo.numero} onChange={e => setCustomerInfo({ ...customerInfo, numero: e.target.value })} className={`input w-full ${fieldErrors.numero ? 'border-red-400' : ''}`} />
                     </Field>
                   </div>
@@ -480,7 +515,7 @@ const Checkout = () => {
                     <Field label="Depto">
                       <input type="text" value={customerInfo.depto} onChange={e => setCustomerInfo({ ...customerInfo, depto: e.target.value })} className="input w-full" placeholder="Opcional" />
                     </Field>
-                    <Field label="Código Postal">
+                    <Field label="C籀digo Postal">
                       <input
                         type="text"
                         value={customerInfo.cp}
@@ -494,13 +529,13 @@ const Checkout = () => {
                       />
                       {cpStatus === 'checking' && <p className="mt-1 text-xs text-secondary-400">Verificando...</p>}
                       {cpStatus === 'ok' && <p className="mt-1 text-xs text-green-600">CP coincide con la ciudad</p>}
-                      {cpStatus === 'mismatch' && <p className="mt-1 text-xs text-amber-600">⚠️ El CP no coincide con la ciudad seleccionada. Verificá que sea correcto, de lo contrario el pedido no podrá realizarse con éxito.</p>}
-                      {cpStatus === 'unknown' && <p className="mt-1 text-xs text-amber-600">⚠️ No pudimos verificar este CP. Verificá que sea correcto, de lo contrario el pedido no podrá realizarse con éxito.</p>}
+                      {cpStatus === 'mismatch' && <p className="mt-1 text-xs text-amber-600">?? El CP no coincide con la ciudad seleccionada. Verific獺 que sea correcto, de lo contrario el pedido no podr獺 realizarse con 矇xito.</p>}
+                      {cpStatus === 'unknown' && <p className="mt-1 text-xs text-amber-600">?? No pudimos verificar este CP. Verific獺 que sea correcto, de lo contrario el pedido no podr獺 realizarse con 矇xito.</p>}
                     </Field>
                   </div>
 
                   <Field label="Referencias">
-                    <input type="text" value={customerInfo.referencias} onChange={e => setCustomerInfo({ ...customerInfo, referencias: e.target.value })} className="input w-full" placeholder="Ej: Portón azul, timbre 2 (opcional)" />
+                    <input type="text" value={customerInfo.referencias} onChange={e => setCustomerInfo({ ...customerInfo, referencias: e.target.value })} className="input w-full" placeholder="Ej: Port籀n azul, timbre 2 (opcional)" />
                   </Field>
                 </div>
               )}
@@ -520,3 +555,5 @@ const Checkout = () => {
 }
 
 export default Checkout
+
+

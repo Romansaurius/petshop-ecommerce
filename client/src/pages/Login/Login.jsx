@@ -73,11 +73,13 @@ const Login = () => {
     setError('')
     setLoading(true)
     try {
-      await fetch('/api/auth/forgot-password', {
+      const res = await fetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: forgotEmail })
       })
+      const data = await res.json()
+      if (!res.ok) { setError(data.error || 'Error al enviar el email'); setLoading(false); return }
       setForgotSent(true)
     } catch {
       setError('Error de conexión')

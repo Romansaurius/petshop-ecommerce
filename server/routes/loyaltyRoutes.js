@@ -112,15 +112,29 @@ router.post('/canjear', auth, async (req, res) => {
       [canje.puntos_requeridos, userId]
     );
 
-    // Si es canje de descuento, crear cupón real en tabla cupones (válido 90 días, 1 uso)
-    if (canje.tipo === 'porcentaje' || canje.tipo === 'monto_fijo') {
-      const expiraCupon = new Date();
-      expiraCupon.setDate(expiraCupon.getDate() + 90);
+    // Crear cupón real en tabla cupones según tipo (válido 90 días, 1 uso)
+    const expiraCupon = new Date();
+    expiraCupon.setDate(expiraCupon.getDate() + 90);
+
+    if (canje.tipo === 'porcentaje') {
       await db.execute(
-        `INSERT INTO cupones (codigo, nombre, tipo, valor, fecha_expiracion, usos_maximos, descuento_maximo) VALUES (?, ?, ?, ?, ?, 1, ?)`,
-        [codigo, canje.nombre, canje.tipo, canje.valor_descuento, expiraCupon, canje.tope_descuento || null]
+        `INSERT INTO cupones (codigo, nombre, tipo, valor, fecha_expiracion, usos_maximos, descuento_maximo) VALUES (?, ?, 'porcentaje', ?, ?, 1, ?)`,
+        [codigo, canje.nombre, canje.valor_descuento, expiraCupon, canje.tope_descuento || null]
+      );
+    } else if (canje.tipo === 'monto_fijo' || canje.tipo === 'descuento') {
+      await db.execute(
+        `INSERT INTO cupones (codigo, nombre, tipo, valor, fecha_expiracion, usos_maximos, descuento_maximo) VALUES (?, ?, 'monto_fijo', ?, ?, 1, ?)`,
+        [codigo, canje.nombre, canje.valor_descuento, expiraCupon, canje.tope_descuento || null]
+      );
+    } else if (canje.tipo === 'producto') {
+      // Cupón de monto_fijo con valor alto = producto gratis (tope = precio del producto si está seteado, sino 99999)
+      const valorProducto = canje.tope_descuento > 0 ? canje.tope_descuento : 99999;
+      await db.execute(
+        `INSERT INTO cupones (codigo, nombre, tipo, valor, fecha_expiracion, usos_maximos, descuento_maximo) VALUES (?, ?, 'monto_fijo', ?, ?, 1, ?)`,
+        [codigo, canje.nombre, valorProducto, expiraCupon, valorProducto]
       );
     }
+    // tipo 'servicio' y 'nivel': no crean cupón de carrito, se manejan por WhatsApp/activación
 
     // Si es canje de nivel Gold o Platinum, activar nivel (solo si no tiene uno activo superior)
     if (canje.categoria === 'gold' || canje.categoria === 'platinum') {
@@ -149,7 +163,7 @@ router.post('/canjear', auth, async (req, res) => {
       [userId, canje_id, canje.puntos_requeridos, codigo]
     );
 
-    res.json({ success: true, codigo, mensaje: `¡Canje exitoso! Tu código es ${codigo}` });
+    res.json({ success: true, codigo, tipo: canje.tipo, nombre: canje.nombre, mensaje: `¡Canje exitoso! Tu código es ${codigo}` });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
