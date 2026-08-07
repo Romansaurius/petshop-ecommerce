@@ -7,11 +7,14 @@ const PUNTOS_POR_PESO = 1 / 100; // 1 punto cada $100
 
 // Calcular nivel activo del usuario
 function calcularNivel(usuario) {
+  // Nivel automático por puntos históricos
+  if (usuario.puntos_historicos >= 2000) return 'platinum';
+  if (usuario.puntos_historicos >= 1000) return 'gold';
+  // Nivel por canje (con fecha de expiración)
   if (usuario.nivel !== 'normal' && usuario.nivel_expira) {
     const ahora = new Date();
     const expira = new Date(usuario.nivel_expira);
-    if (ahora > expira) return 'normal';
-    return usuario.nivel;
+    if (ahora <= expira) return usuario.nivel;
   }
   return 'normal';
 }
@@ -38,7 +41,8 @@ router.get('/perfil', auth, async (req, res) => {
     const usuario = rows[0];
     const nivelActivo = calcularNivel(usuario);
 
-    // Si el nivel expiró, actualizarlo en DB
+    // Si el nivel por canje expiró pero tiene pts suficientes, no tocar
+    // Solo resetear si realmente corresponde normal
     if (nivelActivo === 'normal' && usuario.nivel !== 'normal') {
       await db.execute(`UPDATE usuarios SET nivel = 'normal', nivel_expira = NULL WHERE id = ?`, [req.user.id]);
     }
