@@ -84,10 +84,10 @@ export default function Profile() {
       })
       const data = await res.json()
       if (res.ok) {
-        const esCupon = canje.tipo === 'descuento' || canje.tipo === 'cupon'
-        const instruccion = esCupon
-          ? `Ingresá este código en el checkout de tu próxima compra para recibir ${canje.valor_descuento > 0 ? `${canje.valor_descuento}% de descuento` : 'tu descuento'}.`
-          : `Mostrá este código al retirar tu pedido o mencionalo al contactarnos.`
+        const esDescuento = canje.tipo === 'porcentaje' || canje.tipo === 'monto_fijo'
+        const instruccion = esDescuento
+          ? `Poné este código en el carrito para que se aplique el descuento en tu próxima compra.`
+          : `Poné este código en el carrito para canjear tu producto gratis.`
         setMensaje({ tipo: 'ok', codigo: data.codigo, instruccion, nombre: canje.nombre })
         const token = localStorage.getItem('token')
         const headers = { Authorization: `Bearer ${token}` }
@@ -114,6 +114,8 @@ export default function Profile() {
 
   const puedeVerGold = puntos_historicos >= 1000
   const puedeVerPlatinum = puntos_historicos >= 2000
+  // Acceso automático al nivel según puntos históricos (sin necesidad de canjear)
+  const nivelEfectivo = puntos_historicos >= 2000 ? 'platinum' : puntos_historicos >= 1000 ? 'gold' : nivel
 
   const tabs = [
     { id: 'resumen', label: 'Resumen' },
@@ -382,9 +384,15 @@ export default function Profile() {
               )
             })}
 
-            <div className="bg-primary-50 rounded-2xl border border-primary-100 p-4 text-xs text-primary-700 flex items-center gap-1.5">
-              <Star className="w-3.5 h-3.5 shrink-0" />
-              <span>1 punto por cada $100 gastados</span>
+            <div className="bg-primary-50 rounded-2xl border border-primary-100 p-4 space-y-2">
+              <div className="flex items-center gap-1.5 text-xs text-primary-700 font-medium">
+                <Star className="w-3.5 h-3.5 shrink-0" />
+                <span>Ganás 1 punto por cada $100 en compras</span>
+              </div>
+              <div className="text-xs text-primary-600 space-y-1 pt-1 border-t border-primary-100">
+                <p><span className="font-semibold text-yellow-600">Gold</span> (1.000 pts históricos) — 5% OFF en cada compra, tope $7.500 · Canjes exclusivos Gold</p>
+                <p><span className="font-semibold text-purple-600">Platinum</span> (2.000 pts históricos) — 7% OFF en cada compra, tope $10.000 · Envío gratis · Canjes exclusivos Platinum</p>
+              </div>
             </div>
             {historialCanjes.length > 0 && (
               <div className="bg-white rounded-2xl border border-gray-100 p-5">
@@ -406,7 +414,7 @@ export default function Profile() {
                           >Copiar</button>
                         </div>
                         <p className="text-xs text-gray-400">
-                          {esCupon ? 'Usá este código en el checkout para aplicar el descuento.' : 'Mostrá este código al retirar o mencionalo al contactarnos.'}
+                          {(h.tipo === 'porcentaje' || h.tipo === 'monto_fijo') ? 'Poné este código en el carrito para aplicar el descuento.' : 'Poné este código en el carrito para canjear tu producto gratis.'}
                           {' · '}{new Date(h.created_at).toLocaleDateString('es-AR')}
                         </p>
                       </div>
