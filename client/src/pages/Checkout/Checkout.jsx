@@ -347,7 +347,7 @@ const Checkout = () => {
                   )}
                   {loyaltyNivel === 'platinum' && shippingMethod !== 'pickup' && platinumEnvioGratis && (
                     <div className="flex justify-between text-purple-600 text-xs">
-                      <span>?? Env穩o gratis Platinum</span><span>??/span>
+                      <span>?? Env穩o gratis Platinum</span><span>??</span>
                     </div>
                   )}
                   <div className="flex justify-between text-secondary-600">
@@ -482,9 +482,9 @@ const Checkout = () => {
                     {selectedZone && customerInfo.ciudad && (
                       <p className="text-xs text-primary-600 mt-1">
                         {platinumEnvioGratis
-                          ? '?? Env穩o gratis por tu nivel Platinum ??
+                          ? '?? Env穩o gratis por tu nivel Platinum ??'
                           : shippingCost === 0
-                            ? 'Env穩o gratis ??
+                            ? 'Env穩o gratis ??'
                             : `Costo de env穩o: ${fmt(selectedZone.precio)}${
                                 selectedZone.monto_envio_gratis ? ` (gratis desde ${fmt(selectedZone.monto_envio_gratis)})` : ''
                               }`
