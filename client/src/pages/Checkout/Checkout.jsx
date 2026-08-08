@@ -304,11 +304,11 @@ const Checkout = () => {
               <div className={`p-3 rounded-xl text-sm font-medium flex items-center gap-2 ${
                 loyaltyNivel === 'platinum' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-yellow-50 text-yellow-700 border border-yellow-200'
               }`}>
-                <span>{loyaltyNivel === 'platinum' ? '??' : '?}</span>
+                <span>{loyaltyNivel === 'platinum' ? 'Platinum' : 'Gold'}</span>
                 <span>
                   Nivel <strong>{loyaltyNivel === 'platinum' ? 'Platinum' : 'Gold'}</strong> activo
                   {loyaltyNivelExpira && <span className="font-normal opacity-75"> 繚 vence {new Date(loyaltyNivelExpira).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}</span>}
-                  {' ??'}
+                  {'·'}
                   {loyaltyNivel === 'platinum' ? '5% OFF + env穩o gratis' : '5% OFF en esta compra'}
                 </span>
               </div>
