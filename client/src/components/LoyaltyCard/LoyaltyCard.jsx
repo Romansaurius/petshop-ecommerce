@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Gift, Star, Lock, X, Copy, Check } from 'lucide-react'
 
 const WHATSAPP_NUM = '5491173943004' // ← cambiá por el número real del negocio
@@ -32,6 +32,7 @@ const LoyaltyCard = ({ onClose }) => {
   const [error, setError] = useState(null)
   const [tab, setTab] = useState('canjes')
   const [copied, setCopied] = useState(null)
+  const resultadoRef = useRef(null)
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -64,6 +65,7 @@ const LoyaltyCard = ({ onClose }) => {
         const tipo = data.tipo || canje.tipo
         const { texto, whatsapp } = instruccionPorTipo(tipo, canje.nombre, data.codigo)
         setResultado({ codigo: data.codigo, nombre: canje.nombre, tipo, instruccion: texto, whatsappUrl: whatsapp })
+        setTimeout(() => resultadoRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
         const token = localStorage.getItem('token')
         const headers = { Authorization: `Bearer ${token}` }
         Promise.all([
@@ -111,7 +113,7 @@ const LoyaltyCard = ({ onClose }) => {
 
           {/* Resultado de canje */}
           {resultado && (
-            <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+            <div ref={resultadoRef} className="bg-green-50 border border-green-200 rounded-xl p-4">
               <p className="text-sm font-semibold text-green-800 mb-2">🎉 ¡Canje exitoso! — {resultado.nombre}</p>
               {resultado.tipo !== 'servicio' && (
                 <div className="flex items-center gap-2 bg-white border border-green-200 rounded-lg px-3 py-2 mb-2">
