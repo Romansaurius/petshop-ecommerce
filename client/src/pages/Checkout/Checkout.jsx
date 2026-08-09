@@ -340,7 +340,7 @@ const Checkout = () => {
                   {loyaltyDiscount > 0 && (
                     <div className="flex justify-between text-yellow-600">
                       <span>
-                        {loyaltyNivel === 'gold' ? '?Descuento Gold (5%)' : '?? Descuento Platinum (5%)'}
+                        {loyaltyNivel === 'gold' ? 'Descuento Gold (5%)' : 'Descuento Platinum (5%)'}
                       </span>
                       <span>-{fmt(loyaltyDiscount)}</span>
                     </div>
