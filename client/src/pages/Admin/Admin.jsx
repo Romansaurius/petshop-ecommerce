@@ -1248,6 +1248,12 @@ const Admin = () => {
                         <p className="text-sm font-medium text-secondary-900">{order.cliente_nombre || 'Invitado'}</p>
                         <p className="text-xs text-secondary-500">{order.cliente_email || order.email_contacto || ''}</p>
                         <p className="text-xs text-secondary-500">{order.cliente_telefono || order.telefono_contacto || ''}</p>
+                        {order.direccion_envio && (
+                          <p className="text-xs text-secondary-500 mt-0.5">{order.direccion_envio}</p>
+                        )}
+                        {order.metodo_envio && (
+                          <p className="text-xs text-primary-500 font-medium">{order.metodo_envio}</p>
+                        )}
                         {!order.usuario_id && (
                           <span className="text-[10px] bg-secondary-100 text-secondary-500 px-1.5 py-0.5 rounded-full">Sin cuenta</span>
                         )}

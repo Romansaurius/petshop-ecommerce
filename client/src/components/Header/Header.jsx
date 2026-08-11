@@ -47,7 +47,7 @@ const Header = ({ onOpenCart }) => {
       <div className="bg-primary-500 text-white py-1.5">
         <div className="max-w-7xl mx-auto px-4 text-center flex items-center justify-center gap-2 text-xs font-medium">
           <Truck className="w-3 h-3 shrink-0" />
-          <span>Envío gratis desde $35.000 · Zona Pilar y alrededores</span>
+          <span>Envíos a todo el país &nbsp;·&nbsp; Envío gratis desde $35.000 · Zona Pilar y alrededores</span>
         </div>
       </div>
 

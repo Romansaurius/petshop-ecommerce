@@ -10,7 +10,7 @@ const faqs = [
   { question: '¿Cómo realizo una compra?', answer: 'Navegá por nuestro catálogo, elegí los productos y agregalos al carrito. Luego completá tus datos de contacto y elegí el método de pago.' },
   { question: '¿Por qué crear una cuenta?', answer: 'Crear una cuenta te da acceso al programa de fidelización. Acumulá puntos con cada compra, desbloqueá recompensas y accedé a descuentos exclusivos.' },
   { question: '¿Cuáles son los métodos de pago?', answer: 'Aceptamos tarjetas de crédito y débito a través de Mercado Pago. Todos los pagos son procesados de forma segura.' },
-  { question: '¿Cómo funciona el envío?', answer: 'Realizamos envíos a Malvinas Argentinas, Pilar, San Isidro y alrededores. Las compras superiores a $35.000 tienen envío gratis.' },
+  { question: '¿Cómo funciona el envío?', answer: 'Realizamos envíos a todo el país. El costo varía según la zona: Zona Norte (Pilar, Escobar, San Miguel y alrededores) tiene envío gratis desde $35.000. Para el resto del país el costo se calcula por zona al momento del checkout. Los clientes Platinum tienen envío gratis en Zona Norte en todas sus compras.' },
   { question: '¿Puedo devolver un producto?', answer: 'Sí, aceptamos devoluciones dentro de los 30 días de recibido el producto, siempre que esté en su estado original.' },
 ]
 
